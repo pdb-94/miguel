@@ -2,17 +2,12 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
-# MiGUEL modules
-from component import Component
 
 
-class DieselGenerator(Component):
+class DieselGenerator:
     """
     Class to represent Diesel Generators
     """
-    c_invest_n = 1000.0
-    c_op_main = 20.0
-
     def __init__(self,
                  env,
                  name: str = None,
@@ -34,17 +29,15 @@ class DieselGenerator(Component):
         :param fuel_ticks: dict
             fuel consumption depending on load in percentage
         """
+        self.env = env
+        self.name = name
         self.p_n = p_n
-        self.c_invest = 0
-        self.c_op_main = 0
+        self.c_invest_n = 1150.0  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_op_main_n = self.c_invest_n * 0.03  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_var = 0.021  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
         self.fuel_consumption = fuel_consumption
         self.fuel_price = fuel_price
         self.low_load_behavior = low_load_behavior
-        super().__init__(env=env,
-                         name=name,
-                         p_n=p_n,
-                         c_invest=self.c_invest_n * self.p_n,
-                         c_op_main=self.c_op_main * self.p_n)
         self.df = pd.DataFrame(columns=['Status',
                                         'P [W]',
                                         'P [%]',
@@ -70,14 +63,14 @@ class DieselGenerator(Component):
         self.technical_data = {'Component': 'Diesel Generator',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n/1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': self.c_invest_n,
+                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
                                'Investment cost [' + self.env.currency + ']': int(self.c_invest_n*self.p_n/1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': self.c_op_main,
-                               'Operation maintenance cost [' + self.env.currency + ']': int(self.c_op_main * self.p_n/1000)}
+                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
+                               'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
 
     def run(self):
         """
-
+        Run diesel generator based on load behavior
         :return:
         """
         if self.low_load_behavior is True:
@@ -87,7 +80,6 @@ class DieselGenerator(Component):
         else:
             pass
         self.calc_energy_consumption()
-        # print(self.df[['P [W]', 'Energy [kWh]']])
 
     def low_load_model(self):
         """

@@ -4,23 +4,16 @@ import numpy as np
 import datetime as dt
 import pandas as pd
 import windpowerlib
-# MiGUEL modules
-from component import Component
 
 # TODO:
 #  - self.interpolate_values/run: interpolate values only for env.df.index
 #  - create container for wind farm: https://windpowerlib.readthedocs.io/en/stable/modules.html#data-container
 
 
-
-
-class WindTurbine(Component):
+class WindTurbine:
     """
     Class to represent Wind Turbines
     """
-    c_invest_n = 1000.0
-    c_op_main = 20.0
-
     def __init__(self,
                  env,
                  name: str = None,
@@ -46,10 +39,12 @@ class WindTurbine(Component):
             {'turbine_type': str,
              'hub_height': float}
         """
+        self.env = env
         self.p_n = p_n
-        self.c_invest = 0
-        self.c_op_main = 0
-        super().__init__(env, name, self.c_invest_n * self.p_n, self.c_op_main * self.p_n)
+        self.name = name
+        self.c_invest_n = 1325.0  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 63
+        self.c_op_main_n = self.c_invest_n * 0.052  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_var = 0.0035  # USD/kWh Sustainable Energy Handbook Module 6.1 Simplified Financial Models
         # Location
         self.longitude = location.get('longitude')
         self.latitude = location.get('latitude')
@@ -66,13 +61,10 @@ class WindTurbine(Component):
             self.hub_height = self.turbine_data.get('hub_height')
 
         self.turbine_df = self.get_turbine_data()
-        self.windturbine = self.create_windturbine()
+        self.windturbine = self.create_wind_turbine()
         self.modelchain = self.create_modelchain()
         # Prepare weather data
-        self.annual_weather_data = self.env.weather_data[0]
-        self.annual_weather_data = self.annual_weather_data.drop(['ghi', 'dni', 'dhi', 'IR(h)'], axis=1)
-        self.annual_weather_data.index = self.convert_index_time()
-        self.annual_weather_data = self.interpolate_values(self.annual_weather_data)
+        self.annual_weather_data = self.env.wt_weather_data
         self.annual_weather_data = self.modify_weather_data()
         # Run windpowerlib
         self.annual_wt_yield = self.run(weather_data=self.annual_weather_data)
@@ -83,10 +75,10 @@ class WindTurbine(Component):
         self.technical_data = {'Component': 'Wind Turbine',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n/1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': self.c_invest_n,
+                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
                                'Investment cost [' + self.env.currency + ']': int(self.c_invest_n*self.p_n/1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': self.c_op_main,
-                               'Operation maintenance cost [' + self.env.currency + ']': int(self.c_op_main * self.p_n/1000)}
+                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
+                               'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
 
     @staticmethod
     def get_turbine_data():
@@ -124,14 +116,14 @@ class WindTurbine(Component):
                                                                              hub_height=self.hub_height)
         return weather_data
 
-    def create_windturbine(self):
+    def create_wind_turbine(self):
         """
         Create windpowerlib.WindTurbine object in self.WindTurbine
         :return: None
         """
-        windturbine = windpowerlib.WindTurbine(**self.turbine_data)
+        wind_turbine = windpowerlib.WindTurbine(**self.turbine_data)
 
-        return windturbine
+        return wind_turbine
 
     def create_modelchain(self):
         """

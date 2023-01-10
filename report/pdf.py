@@ -1,3 +1,4 @@
+import sys
 from fpdf import FPDF
 
 
@@ -5,33 +6,43 @@ class PDF(FPDF):
     """
     Class to create final report
     """
+
     def __init__(self, title: str = None):
         self.title = title
         super().__init__()
 
-    def header(self):
+        self.root = sys.path[1]
+        self.create_title_page()
+
+    def create_title_page(self):
         """
-        Create pdf header
+        Create title page
         :return: None
         """
-        self.set_font(family='Arial', style='B', size=12)
-        self.cell(w=0, txt=self.title, align='L')
-        self.ln(10)
+        dir_path = self.root + '/report/'
+        self.add_page()
+        self.image(name=dir_path + 'pictures/MiGUEL_logo.png', y=85, x=0, w=150)
+        self.set_font('Arial', 'B', 16)
+        self.multi_cell(w=0, h=128, txt='', align='L')
+        self.multi_cell(w=0, h=10, txt='Report: ' + self.title, align='LB')
+        self.set_font('Arial', 'B', 10)
+        self.multi_cell(w=0, h=5, txt='Author: Paul Bohn (Technische Hochschule Köln) \nContributors: Silvan Rummeny', align='LB')
+        self.image(name=dir_path + 'pictures/th-koeln.png', y=160, x=11, w=20)
 
-    def chapter_title(self, num, label):
+    def chapter_title(self, label: str, size: int = 12):
         """
         Create chapter title
-        :param num: int
-            chapter number
         :param label: str
             chapter title
+        :param size: int
+            font size
         :return: None
         """
-        self.set_font('Arial', 'B', 10)
-        self.cell(w=0, h=6, txt='Chapter %d : %s' % (num, label), align='L')
+        self.set_font('Arial', 'B', size)
+        self.cell(w=0, h=6, txt=label, align='L')
         self.ln(10)
 
-    def chapter_body(self, name, size: int = 10):
+    def chapter_body(self, name: str, size: int = 10):
         """
         Create chapter text
         :param size: int
@@ -49,35 +60,38 @@ class PDF(FPDF):
     def footer(self):
         """
         Create pdf footer
-        :return:
+        :return: None
         """
         self.set_y(-15)
         self.set_font(family='Arial', size=8)
         self.cell(0, 10, txt=str(self.page_no()), align='R')
 
-    def print_chapter(self, num: list = None, title: list = None, file: list = None):
+    def print_chapter(self, chapter_type: list = None, title: list = None, file: list = None, size: int = 12):
         """
-        :param num: list
-            chapter number
+        :param chapter_type: bool
+            main chapter
+        :param size: int
+            font size
         :param title: list
             chapter title
         :param file: list
             chapter text file
         :return: None
         """
-        self.add_page()
-        for i in range(len(num)):
-            self.chapter_title(num=num[i], label=title[i])
+        for i in range(len(title)):
+            if chapter_type[i] is True:
+                self.add_page()
+            self.chapter_title(label=title[i], size=size)
             self.chapter_body(name=file[i])
 
     def create_table(self, file, table, padding):
         """
-
         :param file: pdf object
             pdf file
         :param table: list
             table with header and values
-        :param padding:
+        :param padding: int
+            padding of table cells
         :return: None
         """
         epw = file.w - 2 * file.l_margin

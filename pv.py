@@ -3,20 +3,13 @@ import numpy as np
 import datetime as dt
 import pvlib
 
-# MiGUEL modules
-from component import Component
-
 # TODO: Sascha: Module and inverter database? Temperature and dc_model? Errors
 
 
-class PV(Component):
+class PV:
     """
     Class to represent PV Systems
     """
-    c_invest_n = 1000.0
-    c_op_main = 20.0
-    c_var = 0.0
-
     def __init__(self,
                  env,
                  name: str = None,
@@ -52,10 +45,9 @@ class PV(Component):
         :param surface_azimuth: int
             orientation
         """
-        # Parent parameter
+        self.env = env
+        self.name = name
         self.p_n = p_n
-        self.c_invest = 0
-        self.c_op_main = 0
         # Location
         self.longitude = location.get('longitude')
         self.latitude = location.get('latitude')
@@ -63,8 +55,8 @@ class PV(Component):
         self.surface_tilt = surface_tilt
         self.surface_azimuth = surface_azimuth
         # PV Components
-        self.modules = list(pvlib.pvsystem.retrieve_sam('CECMod'))
-        self.inverter = list(pvlib.pvsystem.retrieve_sam('CECInverter'))
+        self.module_lib = list(pvlib.pvsystem.retrieve_sam('CECMod'))
+        self.inverter_lib = list(pvlib.pvsystem.retrieve_sam('CECInverter'))
         self.pv_module_parameters = pvlib.pvsystem.retrieve_sam('CECMod')[pv_module]
         self.inverter_parameters = pvlib.pvsystem.retrieve_sam('CECInverter')[inverter]
         self.modules_per_string = modules_per_string
@@ -72,8 +64,11 @@ class PV(Component):
         if self.p_n is None:
             self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] \
                        * self.modules_per_string * strings_per_inverter
-        # Inherit parameters from parent cass
-        super().__init__(env, name, self.c_invest_n * self.p_n/1000, self.c_op_main * self.p_n/1000)
+        # Economic parameters
+        self.c_invest_n = 875  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 79
+        self.c_op_main_n = self.c_invest_n * 0.02  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_var = 0.0
+
         # Create Location, PVSystem and ModelChain
         self.location = self.create_location()
         self.pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
@@ -104,10 +99,10 @@ class PV(Component):
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n/1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': self.c_invest_n,
+                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
                                'Investment cost [' + self.env.currency + ']': int(self.c_invest_n*self.p_n/1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': self.c_op_main,
-                               'Operation maintenance cost [' + self.env.currency + ']': int(self.c_op_main * self.p_n/1000)}
+                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
+                               'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
 
     def create_pv(self,
                   temperature_model: str = 'open_rack_glass_glass',

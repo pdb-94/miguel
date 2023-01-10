@@ -36,6 +36,7 @@ class Environment:
             {d_rate: float,
              i_rate: float,
              lifetime: float,
+             electricity_price: float
              co2_price: dict
              feed-in_tariff: list}
         :param ecology: dict
@@ -65,12 +66,14 @@ class Environment:
             self.i_rate = 0.03
             self.lifetime = 20
             self.feed_in = 0.00
+            self.electricity_price = 0.00
             self.co2_price = {2021: 25, 2022: 30, 2023: 35, 2024: 40, 2025: 55, 2026: 65}
             self.currency = 'US$'
         else:
             self.d_rate = economy.get('d_rate')
             self.i_rate = economy.get('i_rate')
             self.lifetime = economy.get('lifetime')
+            self.electricity_price = economy.get('electricity_price')
             self.co2_price = economy.get('co2_price')
             self.feed_in = economy.get('feed-in_tariff')
             self.currency = economy.get('currency')
@@ -87,7 +90,8 @@ class Environment:
         self.df['PV total power [W]'] = 0
         self.df['WT total power [W]'] = 0
         self.weather_data = self.get_weather_data()
-        self.monthly_df = pd.DataFrame
+        self.wt_weather_data = self.create_wt_weather_data()
+        self.monthly_weather_data = self.monthly_weather_data()
 
         # Container
         self.grid = []
@@ -102,7 +106,7 @@ class Environment:
                                                  'Specific investment cost [' + self.currency + '/kW]',
                                                  'Investment cost [' + self.currency + ']',
                                                  'Specific operation maintenance cost [' + self.currency + '/kW]',
-                                                 'Operation maintenance cost [' + self.currency + ']'])
+                                                 'Operation maintenance cost [' + self.currency + '/a]'])
         self.storage_data = pd.DataFrame(columns=['Component',
                                                   'Name',
                                                   'Nominal Power [kW]',
@@ -110,7 +114,7 @@ class Environment:
                                                   'Specific investment cost [' + self.currency + '/kWh]',
                                                   'Investment cost [' + self.currency + ']',
                                                   'Specific operation maintenance cost [' + self.currency + '/kWh]',
-                                                  'Operation maintenance cost [' + self.currency + ']'])
+                                                  'Operation maintenance cost [' + self.currency + '/a]'])
 
     def find_location(self):
         """
@@ -121,6 +125,8 @@ class Environment:
         location = geolocator.reverse(str(self.latitude) + ',' + str(self.longitude))
         address = location.raw['address']
         city = address.get('city', '')
+        if city == '':
+            city = None
         state = address.get('state', '')
         country = address.get('country', '')
         code = address.get('country_code')
@@ -161,6 +167,47 @@ class Environment:
 
         return data, months_selected, inputs, metadata
 
+    def create_wt_weather_data(self):
+        """
+
+        :return: pd.DataFrame
+        """
+        # Drop unnecessary columns
+        wt_hourly_data = self.weather_data[0].drop(['ghi', 'dni', 'dhi', 'IR(h)'], axis=1)
+        # Convert Index
+        start_time = dt.datetime(year=self.time_series[0].year, month=1, day=1, hour=0, minute=0)
+        end_time = dt.datetime(year=self.time_series[-1].year, month=12, day=31, hour=23, minute=59)
+        wt_hourly_data.index = pd.date_range(start=start_time, end=end_time, freq='1h')
+        wt_data = wt_hourly_data
+        # Interpolate values
+        if self.t_step == dt.timedelta(minutes=60):
+            pass
+        else:
+            # Extend index
+            wt_data = wt_data.asfreq(self.t_step)
+            wt_data.index = wt_data.index.to_pydatetime()
+            dates = []
+            for i in range(1, int(dt.timedelta(minutes=60)/self.t_step)):
+                dates.append(wt_data.index[-1]+pd.Timedelta(i*int(self.t_step/dt.timedelta(minutes=1)), 'min'))
+            dates_df = pd.DataFrame(columns=wt_data.columns, index=dates)
+            wt_data = pd.concat([wt_data, dates_df])
+            # Interpolate values
+            for col in wt_data.columns:
+                wt_data[col] = wt_data[col].astype(float)
+                wt_data[col] = wt_data[col].interpolate(method='time')
+
+        return wt_data
+
+    def monthly_weather_data(self):
+        """
+        Create monthly weather data
+        :return: pd.DataFrame
+            monthly weather data
+        """
+        monthly_weather_data = self.weather_data[0].groupby(lambda x: x.month).mean()
+
+        return monthly_weather_data
+
     # Add Components to Environment
     def add_grid(self):
         """
@@ -200,6 +247,7 @@ class Environment:
         Add PV system to environment
         :return:
         """
+        # TODO: Implement Saschas method (pick PV-system - Mail 20.12.22)
         name = 'PV_' + str(len(self.pv) + 1)
         self.pv.append(PV(env=self,
                           name=name,
@@ -283,6 +331,16 @@ class Environment:
         else:
             self.storage_data = self.storage_data.append(component.technical_data, ignore_index=True)
 
+    def calc_energy_consumption_parameters(self):
+        """
+
+        :return: energy_consumption, peak_load
+        """
+        energy_consumption = self.df['P_Res [W]'].sum()
+        peak_load = self.df['P_Res [W]'].max()
+
+        return energy_consumption, peak_load
+
     # Calculate simulation values
     def calc_self_supply(self):
         """
@@ -295,39 +353,45 @@ class Environment:
         df['P_Res (after RE) [W]'] = np.where(remaining_load < 0, 0, remaining_load)
 
     def calc_monthly_data(self):
+        """
+
+        :return:
+        """
         for i in range(12):
             days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
             monthly_df = self.env.df.iloc[[0, 1440 * days[i]], :].sum(axis=0)
-        print(monthly_df)
 
-    def calc_lcoe(self, system_component: str):
+    def calc_lcoe(self, system_component: object):
         """
         Calculate LCOE
-        :param system_component: str
+        :param system_component: object
             system component
         :return: list
             lcoe: float
             energy_yield: float
         """
-        if system_component == 'PV':
-            component = self.pv[0]
-        elif system_component == 'wind_turbine':
-            component = self.wind_turbine[0]
-        elif system_component == 'diesel_generator':
-            component = self.diesel_generator[0]
-        elif system_component == 'grid':
-            component = self.grid[0]
-        elif system_component == 'storage':
-            component = self.storage[0]
+        d = self.d_rate
+        i_c = system_component.c_invest
+        o_m_c = system_component.c_op_main
+        var_c = system_component.c_var
+        energy_yield = system_component.df['P [W]'] / 1000
 
-        i_c = component.c_invest
-        o_m_c = component.c_op_main
-        var_c = component.c_var
-        energy_yield = component.df['P [W]'] / 1000
-
-        lcoe = (i_c + o_m_c * self.lifetime + var_c * energy_yield * self.lifetime)
+        lcoe = 0
+        for n in range(self.lifetime):
+            f = (1+d)**n
+            lcoe += (i_c + o_m_c/f+var_c/f)/(energy_yield/f)
+        print(lcoe)
 
         return lcoe, energy_yield
+
+    def calc_lcos(self):
+        """
+
+        :return:
+        """
+        lcos = 0
+
+        return lcos
 
 
 if __name__ == '__main__':
@@ -335,24 +399,3 @@ if __name__ == '__main__':
     end = dt.datetime(year=2022, month=1, day=31, hour=23, minute=59)
     step = dt.timedelta(minutes=1)
     environment = Environment(time={'start': start, 'end': end, 'step': step})
-
-    # def export_csv(self):
-    #     """
-    #     :return:
-    #     """
-    #     self.component_data.to_csv('component_data.csv')
-    #     self.convert_csv_to_txt(csv='component_data.csv', txt='component_data.txt')
-    #
-    # def convert_csv_to_txt(self, csv: str, txt: str):
-    #     """
-    #     :param csv: str
-    #         CSV file name
-    #     :param txt: str
-    #         txt file name
-    #     :return: None
-    #     """
-    #     with open(csv, 'r') as f_in, open(txt, 'w') as f_out:
-    #         # Read CSV file and store in variable
-    #         content = f_in.read()
-    #         # Write  content into the TXT file
-    #         f_out.write(content)

@@ -1,6 +1,8 @@
+import time
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
+
 # MiGUEL modules
 import environment as en
 from report.report import Report
@@ -15,6 +17,7 @@ class Operator:
     """
     Class to control environment, run dispatch and parameter optimization
     """
+
     def __init__(self,
                  env: en.Environment,
                  dispatch_strategy: str = None):
@@ -24,6 +27,9 @@ class Operator:
         """
         self.env = env
         self.dispatch_strategy = dispatch_strategy
+        self.energy_data = self.env.calc_energy_consumption_parameters()
+        self.energy_consumption = self.energy_data[0]
+        self.peak_load = self.energy_data[1]
         # self.run(dispatch_strategy=self.dispatch_strategy)
 
     def run(self, dispatch_strategy: str = None):
@@ -101,7 +107,7 @@ class Operator:
             generator.run()
             env.df[generator.name + ': P [W]'] = generator.df['P [W]'].values
         # Calculate RE load
-        re_load_adjusted = env.df['P_Res [W]'] - env.df['Diesel Generator_1: P [W]']
+        re_load_adjusted = env.df['P_Res [W]'] - env.df['DG_1: P [W]']
         env.df['RE self consumption [W]'] = np.where(re_load_adjusted > env.df['Self supply [W]'],
                                                      env.df['Self supply [W]'],
                                                      re_load_adjusted)
@@ -115,35 +121,31 @@ class Operator:
             - ES Y/N (size)
             - Problem:
                 - all components influence each other (recursive behavior)
-                - Optimize runtime
-                    - Extract weather data while initiating Environment
-                      (Env will only be created once - Components more often)
-                    -
 
         :param component: str
             system component to compare
         :return: None
         """
-
         if component == 'Diesel Generator':
             print('Compare Diesel Generator with Generator Model.')
         elif component == 'PV':
-            print('Compare PV plant size.')
+            print('Compare PV plant size +-20%.')
         elif component == 'WT':
             print('Compare System')
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2021, month=1, day=31, hour=23, minute=59)
-    environment = en.Environment(time={'start': start, 'end': end, 'step': dt.timedelta(minutes=1), 'timezone': 'CET'},
+    end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
+    environment = en.Environment(name='St. Dominics Hospital',
+                                 time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
                                  location={'longitude': -0.7983,
                                            'latitude': 6.0442,
                                            'altitude': 50,
                                            'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'})
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
-    print('Load created')
     environment.add_pv(p_n=None,
                        pv_profile=None,
                        pv_module='ET_Solar_Industry_ET_A_M672285B',
@@ -160,19 +162,14 @@ if __name__ == '__main__':
                        strings_per_inverter=3,
                        surface_tilt=20,
                        surface_azimuth=180)
-    print('PV created')
-    environment.add_grid()
-    print('Grid created')
-    environment.add_wind_turbine(p_n=4200, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
-    print('WT created')
+    # environment.add_grid()
+    environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
     environment.add_diesel_generator(p_n=10000, fuel_consumption=9.7, fuel_price=1.20, low_load_behavior=False)
-    print('DG created')
-    environment.add_storage(p_n=50, c=50)
-    print('ES created')
+    environment.add_storage(p_n=5000, c=50)
     environment.calc_self_supply()
-    operator = Operator(env=environment, dispatch_strategy='dispatch_1')
-    report = Report(environment=environment, operator=operator)
+    operator = Operator(env=environment, dispatch_strategy='dispatch_3')
+    # operator.env.df.plot()
     # operator.env.df.to_csv('env.csv')
-    # operator.env.df[['P_Res [W]', 'Self supply [W]', 'Diesel Generator_1: P [W]', 'RE self consumption [W]']].plot()
-    # operator.env.df[['P_Res [W]', 'Self supply [W]', 'Wind Turbine_1: P [W]', 'Grid_1: P [W]']].plot()
     # plt.show()
+    report = Report(environment=environment, operator=operator)
+    print('Runtime: %s seconds' % (time.time() - start_time))
