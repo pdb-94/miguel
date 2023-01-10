@@ -1,4 +1,4 @@
-# miguel
+# MiGUEL
 
 Micro Grid User Energy Planning Tool Library (MiGUEL)
 
