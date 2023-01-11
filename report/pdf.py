@@ -10,16 +10,15 @@ class PDF(FPDF):
     def __init__(self, title: str = None):
         self.title = title
         super().__init__()
-
-        self.root = sys.path[1]
         self.create_title_page()
+        self.set_margins(left=25, top=25, right=25)
 
     def create_title_page(self):
         """
         Create title page
         :return: None
         """
-        dir_path = self.root + '/report/'
+        dir_path = sys.path[1] + '/report/'
         self.add_page()
         self.image(name=dir_path + 'pictures/MiGUEL_logo.png', y=85, x=0, w=150)
         self.set_font('Arial', 'B', 16)
@@ -27,7 +26,8 @@ class PDF(FPDF):
         self.multi_cell(w=0, h=10, txt='Report: ' + self.title, align='LB')
         self.set_font('Arial', 'B', 10)
         self.multi_cell(w=0, h=5, txt='Author: Paul Bohn (Technische Hochschule Köln) \nContributors: Silvan Rummeny', align='LB')
-        self.image(name=dir_path + 'pictures/th-koeln.png', y=160, x=11, w=20)
+        self.image(name=dir_path + 'pictures/th-koeln.png', y=160, x=11, h=15)
+        self.image(name=dir_path + 'pictures/EnerSHelF_logo.png', y=158, x=60, h=18)
 
     def chapter_title(self, label: str, size: int = 12):
         """
@@ -97,8 +97,7 @@ class PDF(FPDF):
         epw = file.w - 2 * file.l_margin
         col_width = epw / len(table[1][0])
         file.cell(w=epw, h=0.0, txt=table[0][0], align='C', ln=1)
-        file.set_font(family='Arial', style='', size=8)
-        # file.ln(0.5)
+        file.set_font(family='Arial', style='', size=7.5)
         th = file.font_size
         for row in table[1]:
             for value in row:

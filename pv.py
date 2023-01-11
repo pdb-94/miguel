@@ -298,9 +298,4 @@ class PV:
         inverter_name = inverters[random.randint(0, (len(inverters) - 1))]
         inverter = self.inverter_lib[inverter_name]
 
-        print(module)
-        print(inverter)
-        print(modules_per_string)
-        print(strings_per_inverter)
-
         return module, inverter, modules_per_string, strings_per_inverter

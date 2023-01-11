@@ -126,10 +126,12 @@ class Report:
         :return: None
         """
         # Set author
-        self.pdf.set_author('MiGUEL, Paul Bohn')
+        self.pdf.set_author('Paul Bohn')
+        self.pdf.set_creator('Micro Grid User Energy Planning Tool Library')
+        self.pdf.set_keywords('EnerSHelF, Renewable Energy, Energy systems, Modeling')
         self.pdf.add_page()
         self.pdf.chapter_title(label='Energy system: ' + self.name + '\n\n', size=14)
-        # Create Chapter
+        # Create Chapters
         self.introduction_summary()
         self.base_data()
         self.climate_data()
@@ -143,21 +145,12 @@ class Report:
         Create Introduction and Summary
         :return: None
         """
-        # Introduction - contains disclaimer
-        introduction = "The report '" + self.name + \
-                       "' was created automatically using the Micro Grid User Energy Planning Tool Library (MiGUEL). " \
-                       " The calculation results are based on the user's input data. The input data is supplemented " \
-                       "through weather data from the Photovoltaic Geographical Information System (PVGIS). \n\n"
-
-        self.create_txt(file_name='introduction',
-                        text=introduction)
-        # Summary - contains most important results
         summary = "The most important findings are displayed in the upcoming chapter."
         self.create_txt(file_name='summary',
                         text=summary)
         self.pdf.print_chapter(chapter_type=[False, False],
                                title=['Introduction', 'Summary'],
-                               file=[self.txt_file_path + 'introduction.txt',
+                               file=[self.txt_file_path + 'default/introduction.txt',
                                      self.txt_file_path + 'summary.txt'])
 
     def base_data(self):
@@ -184,9 +177,9 @@ class Report:
         self.pdf.create_table(file=self.pdf,
                               table=input_data,
                               padding=2)
-        self.pdf.chapter_body(name=self.txt_file_path + 'default/line_break.txt', size=10)
+        self.pdf.ln(h=10)
         # Include location map
-        self.pdf.image(name=self.report_path + 'pictures/' + '/location.png', w=180)
+        self.pdf.image(name=self.report_path + 'pictures/' + '/location.png', w=160)
 
     def climate_data(self):
         """
@@ -230,8 +223,8 @@ class Report:
         tmy_data = [[''], tmy_values]
         self.pdf.create_table(file=self.pdf,
                               table=tmy_data,
-                              padding=2)
-        self.pdf.chapter_body(name=self.txt_file_path + 'default/line_break.txt', size=10)
+                              padding=1.5)
+        self.pdf.ln(h=10)
         # 2.1 Solar irradiation
         self.pdf.print_chapter(chapter_type=[False],
                                title=['2.1 Solar irradiation'],
@@ -251,8 +244,8 @@ class Report:
         solar_data = [[''], solar_values]
         self.pdf.create_table(file=self.pdf,
                               table=solar_data,
-                              padding=2)
-        self.pdf.chapter_body(name=self.txt_file_path + 'default/line_break.txt', size=10)
+                              padding=1.5)
+        self.pdf.ln(h=10)
         # 2.2 Wind speed
         self.pdf.print_chapter(chapter_type=[False],
                                title=['2.2 Wind speed'],
@@ -270,7 +263,7 @@ class Report:
         wind_data = [[''], wind_values]
         self.pdf.create_table(file=self.pdf,
                               table=wind_data,
-                              padding=2)
+                              padding=1.5)
 
     def energy_consumption(self):
         """
@@ -359,7 +352,7 @@ class Report:
         for row in self.env.supply_data.index:
             supply_values.append(self.env.supply_data.loc[row, :].values.tolist())
         supply_components = [[''], supply_values]
-        self.pdf.create_table(file=self.pdf, table=supply_components, padding=3)
+        self.pdf.create_table(file=self.pdf, table=supply_components, padding=2)
         self.pdf.chapter_body(name=self.txt_file_path + '4_1_energy_storage.txt',
                               size=10)
         # Get technical data from env.storage_data
@@ -370,7 +363,7 @@ class Report:
         for row in self.env.storage_data.index:
             storage_values.append(self.env.storage_data.loc[row, :].values.tolist())
         storage_components = [[''], storage_values]
-        self.pdf.create_table(file=self.pdf, table=storage_components, padding=3)
+        self.pdf.create_table(file=self.pdf, table=storage_components, padding=2)
         self.pdf.chapter_body(name=self.txt_file_path + '4_1_system_configuration_description.txt', size=8)
         # Chapter 4 - Monthly data
         self.pdf.print_chapter(chapter_type=[False],
