@@ -236,30 +236,33 @@ class Environment:
 
     def add_pv(self,
                p_n: float = None,
-               pv_profile: pd.Series = None,
-               pv_module: str = None,
-               inverter: str = None,
-               modules_per_string: int = 1,
-               strings_per_inverter: int = 1,
-               surface_tilt: int = None,
-               surface_azimuth: int = None):
+               min_module_power: float = None,
+               max_module_power: float = None,
+               inverter_power_range: float = None,
+               pv_data: dict = None,
+               pv_profile: pd.Series = None):
         """
         Add PV system to environment
-        :return:
+        :return: None
         """
         # TODO: Implement Saschas method (pick PV-system - Mail 20.12.22)
         name = 'PV_' + str(len(self.pv) + 1)
-        self.pv.append(PV(env=self,
-                          name=name,
-                          p_n=p_n,
-                          pv_profile=pv_profile,
-                          location=self.location,
-                          pv_module=pv_module,
-                          inverter=inverter,
-                          modules_per_string=modules_per_string,
-                          strings_per_inverter=strings_per_inverter,
-                          surface_tilt=surface_tilt,
-                          surface_azimuth=surface_azimuth))
+        if pv_profile is not None:
+            self.pv.append(PV(env=self,
+                              name=name,
+                              pv_profile=pv_profile))
+        elif p_n is not None:
+            self.pv.append(PV(env=self,
+                              name=name,
+                              p_n=p_n,
+                              pv_data=pv_data))
+        elif pv_data is not None:
+            self.pv.append(PV(env=self,
+                              name=name,
+                              pv_data=pv_data))
+
+        else:
+            pass
         self.df[name + ': P [W]'] = self.pv[-1].df['P [W]']
         self.df['PV total power [W]'] += self.df[name + ': P [W]']
         self.add_component_data(component=self.pv[-1], supply=True)

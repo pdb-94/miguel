@@ -146,22 +146,25 @@ if __name__ == '__main__':
                                            'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'})
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
-    environment.add_pv(p_n=None,
-                       pv_profile=None,
-                       pv_module='ET_Solar_Industry_ET_A_M672285B',
-                       inverter='ABB__PVI_3_0_OUTD_S_US__208V_',
-                       modules_per_string=4,
-                       strings_per_inverter=2,
-                       surface_tilt=20,
-                       surface_azimuth=180)
-    environment.add_pv(p_n=None,
-                       pv_profile=None,
-                       pv_module='ET_Solar_Industry_ET_A_M672285B',
-                       inverter='ABB__PVI_3_0_OUTD_S_US__208V_',
-                       modules_per_string=6,
-                       strings_per_inverter=3,
-                       surface_tilt=20,
-                       surface_azimuth=180)
+    environment.add_pv(p_n=9000,
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+                                'max_module_power': 350, 'inverter_power_range': 3000})
+    # environment.add_pv(p_n=None,
+    #                    pv_profile=None,
+    #                    pv_data={'pv_module': 'ET_Solar_Industry_ET_A_M672285B',
+    #                             'inverter': 'ABB__PVI_3_0_OUTD_S_US__208V_',
+    #                             'modules_per_string': 4,
+    #                             'strings_per_inverter': 2,
+    #                             'surface_tilt': 20,
+    #                             'surface_azimuth': 180})
+    # environment.add_pv(p_n=None,
+    #                    pv_profile=None,
+    #                    pv_data={'pv_module': 'ET_Solar_Industry_ET_A_M672285B',
+    #                             'inverter': 'ABB__PVI_3_0_OUTD_S_US__208V_',
+    #                             'modules_per_string': 6,
+    #                             'strings_per_inverter': 3,
+    #                             'surface_tilt': 20,
+    #                             'surface_azimuth': 180})
     # environment.add_grid()
     environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
     environment.add_diesel_generator(p_n=10000, fuel_consumption=9.7, fuel_price=1.20, low_load_behavior=False)
@@ -171,5 +174,5 @@ if __name__ == '__main__':
     # operator.env.df.plot()
     # operator.env.df.to_csv('env.csv')
     # plt.show()
-    report = Report(environment=environment, operator=operator)
+    # report = Report(environment=environment, operator=operator)
     print('Runtime: %s seconds' % (time.time() - start_time))

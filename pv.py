@@ -1,32 +1,29 @@
+import random
 import pandas as pd
 import numpy as np
 import datetime as dt
 import pvlib
-
-# TODO: Sascha: Module and inverter database? Temperature and dc_model? Errors
 
 
 class PV:
     """
     Class to represent PV Systems
     """
+
     def __init__(self,
                  env,
                  name: str = None,
                  p_n: float = None,
-                 location: dict = None,
-                 pv_profile: pd.DataFrame = None,
-                 pv_module: str = None,
-                 inverter: str = None,
-                 modules_per_string: int = 1,
-                 strings_per_inverter: int = 1,
-                 surface_tilt: int = None,
-                 surface_azimuth: int = None):
+                 min_module_power: float = None,
+                 max_module_power: float = None,
+                 inverter_power_range: float = None,
+                 pv_profile: pd.Series = None,
+                 pv_data: dict = None):
         """
         :param env: env.Environment
         :param name: str
             name of PV system
-        :param p_n: int
+        :param p_n: float
             nominal power
         :param location: dict
             longitude: float
@@ -34,60 +31,71 @@ class PV:
             altitude: float
         :param pv_profile: pd.Series
             PV production profile
-        :param pv_module: str
-            PV module
-        :param inverter: str
-            Inverter
-        :param modules_per_string: int
-        :param strings_per_inverter: int
-        :param surface_tilt: int
-            PV module tilt
-        :param surface_azimuth: int
-            orientation
+        :param pv_data: pd.dict
+            pv_module: str
+            inverter: str
+            modules_per_string: int
+            strings_per_inverter: int
+            surface_tilt: int
+            surface_azimuth: int
         """
         self.env = env
         self.name = name
-        self.p_n = p_n
+        self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         # Location
-        self.longitude = location.get('longitude')
-        self.latitude = location.get('latitude')
-        self.altitude = location.get('altitude')
-        self.surface_tilt = surface_tilt
-        self.surface_azimuth = surface_azimuth
-        # PV Components
-        self.module_lib = list(pvlib.pvsystem.retrieve_sam('CECMod'))
-        self.inverter_lib = list(pvlib.pvsystem.retrieve_sam('CECInverter'))
-        self.pv_module_parameters = pvlib.pvsystem.retrieve_sam('CECMod')[pv_module]
-        self.inverter_parameters = pvlib.pvsystem.retrieve_sam('CECInverter')[inverter]
-        self.modules_per_string = modules_per_string
-        self.strings_per_inverter = strings_per_inverter
-        if self.p_n is None:
-            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] \
-                       * self.modules_per_string * strings_per_inverter
-        # Economic parameters
-        self.c_invest_n = 875  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 79
-        self.c_op_main_n = self.c_invest_n * 0.02  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
-        self.c_var = 0.0
-
-        # Create Location, PVSystem and ModelChain
-        self.location = self.create_location()
-        self.pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
-                                        surface_tilt=20,
-                                        surface_azimuth=180,
-                                        strings_per_inverter=self.strings_per_inverter,
-                                        modules_per_string=self.modules_per_string)
-        self.modelchain = self.create_modelchain(pv_system=self.pv_system)
+        self.longitude = self.env.location.get('longitude')
+        self.latitude = self.env.location.get('latitude')
+        self.altitude = self.env.location.get('altitude')
         # Weather data
         self.weather_data = self.env.weather_data[0]
-        # TODO: self.model_chain(): aoi_Model = no_loss --> KEY Error 'precipitable_water'
         self.weather_data['precipitable_water'] = np.nan
+        self.module_lib = pvlib.pvsystem.retrieve_sam('CECMod')
+        self.inverter_lib = pvlib.pvsystem.retrieve_sam('CECInverter')
 
-        # DataFrame
-        self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         if pv_profile is not None:
             # Create DataFrame from existing pv profile
             self.df['P [W]'] = pv_profile
-        else:
+        elif p_n is not None:
+            self.p_n = p_n
+            self.longitude = self.env.location.get('longitude')
+            self.latitude = self.env.location.get('latitude')
+            self.altitude = self.env.location.get('altitude')
+            self.surface_tilt = pv_data.get('surface_tilt')
+            self.surface_azimuth = pv_data.get('surface_azimuth')
+            system_parameters = self.pick_pv_system(min_module_power=pv_data.get('min_module_power'),
+                                                    max_module_power=pv_data.get('max_module_power'),
+                                                    inverter_power_range=pv_data.get('inverter_power_range'))
+            self.pv_module_parameters = system_parameters[0]
+            self.inverter_parameters = system_parameters[1]
+            self.modules_per_string = system_parameters[2]
+            self.strings_per_inverter = system_parameters[3]
+            # Create Location, PVSystem and ModelChain
+            pvlib_parameters = self.create_pvlib_parameters()
+            self.location = pvlib_parameters[0]
+            self.pv_system = pvlib_parameters[1]
+            self.modelchain = pvlib_parameters[2]
+            self.annual_pv_yield = self.run(weather_data=self.weather_data)
+            self.annual_pv_yield.index = self.convert_index_time()
+            self.pv_yield = self.annual_pv_yield.loc[self.env.time_series[0]:self.env.time_series[-1]]
+            self.pv_yield = self.interpolate_values()
+            self.df['P [W]'] = self.pv_yield
+        elif pv_data is not None:
+            self.surface_tilt = pv_data.get('surface_tilt')
+            self.surface_azimuth = pv_data.get('surface_azimuth')
+            # PV Components
+            self.pv_module = pv_data.get('pv_module')
+            self.inverter = pv_data.get('inverter')
+            self.modules_per_string = pv_data.get('modules_per_string')
+            self.strings_per_inverter = pv_data.get('strings_per_inverter')
+            self.pv_module_parameters = pvlib.pvsystem.retrieve_sam('CECMod')[self.pv_module]
+            self.inverter_parameters = pvlib.pvsystem.retrieve_sam('CECInverter')[self.inverter]
+            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] \
+                       * self.modules_per_string * self.strings_per_inverter
+            # Create Location, PVSystem and ModelChain
+            pvlib_parameters = self.create_pvlib_parameters()
+            self.location = pvlib_parameters[0]
+            self.pv_system = pvlib_parameters[1]
+            self.modelchain = pvlib_parameters[2]
             # Create Profile and run pvlib
             self.annual_pv_yield = self.run(weather_data=self.weather_data)
             self.annual_pv_yield.index = self.convert_index_time()
@@ -95,14 +103,31 @@ class PV:
             self.pv_yield = self.interpolate_values()
             self.df['P [W]'] = self.pv_yield
 
+        # Economic parameters
+        self.c_invest_n = 875  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 79
+        self.c_op_main_n = self.c_invest_n * 0.02  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_var = 0.0
         # Dict with technical data
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,
-                               'Nominal Power [kW]': round(self.p_n/1000, 3),
+                               'Nominal Power [kW]': round(self.p_n / 1000, 3),
                                'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
-                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n*self.p_n/1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
-                               'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
+                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n * self.p_n / 1000),
+                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(
+                                   self.c_op_main_n),
+                               'Operation maintenance cost [' + self.env.currency + '/a]': int(
+                                   self.c_op_main_n * self.p_n / 1000)}
+
+    def create_pvlib_parameters(self):
+        location = self.create_location()
+        pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
+                                   surface_tilt=self.surface_tilt,
+                                   surface_azimuth=self.surface_azimuth,
+                                   strings_per_inverter=self.strings_per_inverter,
+                                   modules_per_string=self.modules_per_string)
+        modelchain = self.create_modelchain(pv_system=pv_system, location=location)
+
+        return location, pv_system, modelchain
 
     def create_pv(self,
                   temperature_model: str = 'open_rack_glass_glass',
@@ -160,6 +185,7 @@ class PV:
 
     def create_modelchain(self,
                           pv_system,
+                          location,
                           dc_model='cec'):
         """
         :param pv_system: pv.PVSystem
@@ -170,7 +196,7 @@ class PV:
         """
         # TODO: dc_model sapm: raise ValueError(model + ' selected for the DC model but )'
         modelchain = pvlib.modelchain.ModelChain(system=pv_system,
-                                                 location=self.location,
+                                                 location=location,
                                                  name=self.name + ' ModelChain',
                                                  dc_model=dc_model,
                                                  aoi_model='no_loss')
@@ -183,7 +209,6 @@ class PV:
         :return: pd.Series
             AC power output
         """
-        # TODO: aoi_coeff = [module['B5'], module['B4'], module['B3'], module['B2'], - KeyError: 'B5'
         self.modelchain.run_model(weather=weather_data)
         simulation_results = self.modelchain.results.ac
 
@@ -226,4 +251,56 @@ class PV:
 
             return pv_yield
 
+    def pick_pv_system(self,
+                       min_module_power: float,
+                       max_module_power: float,
+                       inverter_power_range):
+        modules = []
+        # Choose modules depending on module power
+        for module in self.module_lib.columns:
+            if (max_module_power > self.module_lib[module].I_mp_ref * self.module_lib[
+                module].V_mp_ref > min_module_power):
+                modules.append(module)
+        # Pick random module from list
+        module_name = modules[random.randint(0, (len(modules) - 1))]
+        module = self.module_lib[module_name]
 
+        # Calculate amount of modules needed to reach power
+        n_modules = (self.p_n / (module.I_mp_ref * module.V_mp_ref))
+
+        # Calculate modules per string and strings per inverter
+        if round(n_modules, 0) % 3 == 0:
+            modules_per_string = round(n_modules / 3, 0)
+            strings_per_inverter = 3
+
+        elif round(n_modules, 0) % 4 == 0:
+            modules_per_string = round(n_modules / 4, 0)
+            strings_per_inverter = 4
+
+        else:
+            modules_per_string = round(n_modules / 2, 0)
+            strings_per_inverter = 2
+
+        inverters = []
+
+        while len(inverters) == 0:
+            for inverter in self.inverter_lib.columns:
+                if (self.inverter_lib[inverter].Paco
+                    > (module.I_mp_ref * module.V_mp_ref *
+                       modules_per_string * strings_per_inverter)) \
+                        and (self.inverter_lib[inverter].Paco
+                             < (module.I_mp_ref * module.V_mp_ref *
+                                modules_per_string * strings_per_inverter) + inverter_power_range):
+                    inverters.append(inverter)
+            # Increase power range of inverter if no inverter was found
+            inverter_power_range += 100
+
+        inverter_name = inverters[random.randint(0, (len(inverters) - 1))]
+        inverter = self.inverter_lib[inverter_name]
+
+        print(module)
+        print(inverter)
+        print(modules_per_string)
+        print(strings_per_inverter)
+
+        return module, inverter, modules_per_string, strings_per_inverter
