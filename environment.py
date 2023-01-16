@@ -18,13 +18,15 @@ class Environment:
     Negative power values are power consumption (load, storage)
     Positive power values are power production (PV, DieselGenerator, WindTurbine, Grid, Storage)
     """
-
     def __init__(self,
                  name: str = None,
                  time: dict = None,
                  economy: dict = None,
                  ecology: dict = None,
-                 location: dict = None):
+                 location: dict = None,
+                 grid_connection: bool = None,
+                 blackout: bool = False,
+                 blackout_data: pd.Series = None):
         """
         :param time: dict:
             Parameter for time series
@@ -66,7 +68,8 @@ class Environment:
             self.i_rate = 0.03
             self.lifetime = 20
             self.feed_in = 0.00
-            self.electricity_price = 0.00
+            self.electricity_price = 0.40  # US$/kWh
+            self.diesel_price = 1.20  # US$/kWh
             self.co2_price = {2021: 25, 2022: 30, 2023: 35, 2024: 40, 2025: 55, 2026: 65}
             self.currency = 'US$'
         else:
@@ -92,6 +95,12 @@ class Environment:
         self.weather_data = self.get_weather_data()
         self.wt_weather_data = self.create_wt_weather_data()
         self.monthly_weather_data = self.monthly_weather_data()
+
+        # Grid connection
+        self.grid_connection = grid_connection
+        self.blackout = blackout
+        if self.blackout is True:
+            self.df['Blackout'] = blackout_data.values
 
         # Container
         self.grid = []
@@ -236,16 +245,12 @@ class Environment:
 
     def add_pv(self,
                p_n: float = None,
-               min_module_power: float = None,
-               max_module_power: float = None,
-               inverter_power_range: float = None,
                pv_data: dict = None,
                pv_profile: pd.Series = None):
         """
         Add PV system to environment
         :return: None
         """
-        # TODO: Implement Saschas method (pick PV-system - Mail 20.12.22)
         name = 'PV_' + str(len(self.pv) + 1)
         if pv_profile is not None:
             self.pv.append(PV(env=self,
@@ -273,7 +278,7 @@ class Environment:
                          wt_profile: pd.Series = None):
         """
         Add Wind Turbine to environment
-        :return:
+        :return: None
         """
         name = 'WT_' + str(len(self.wind_turbine) + 1)
         self.wind_turbine.append(WindTurbine(env=self,
@@ -294,7 +299,7 @@ class Environment:
                              fuel_price: float = None):
         """
         Add Diesel Generator to environment
-        :return:
+        :return: None
         """
         name = 'DG_' + str(len(self.diesel_generator) + 1)
         self.diesel_generator.append(DieselGenerator(env=self,
@@ -308,26 +313,34 @@ class Environment:
 
     def add_storage(self,
                     p_n: float = None,
-                    c: float = None):
+                    c: float = None,
+                    soc: float = 0.5,
+                    soc_max: float = 0.95,
+                    soc_min: float = 0.05):
         """
         Add Energy Storage to environment
-        :return:
+        :return: None
         """
         name = 'ES_' + str(len(self.storage) + 1)
         self.storage.append(Storage(env=self,
                                     name=name,
                                     p_n=p_n,
-                                    c=c))
+                                    c=c,
+                                    soc=soc,
+                                    soc_min=soc_min,
+                                    soc_max=soc_max))
         self.df[name + ': P [W]'] = self.storage[-1].df['P [W]']
         self.add_component_data(component=self.storage[-1], supply=False)
 
-    def add_component_data(self, component, supply: bool):
+    def add_component_data(self,
+                           component,
+                           supply: bool):
         """
         Add technical data of component to component df
         :param supply: bool
         :param component: object
             Object of create Component
-        :return:
+        :return: None
         """
         if supply is True:
             self.supply_data = self.supply_data.append(component.technical_data, ignore_index=True)
@@ -354,15 +367,6 @@ class Environment:
         df['Self supply [W]'] = df['WT total power [W]'] + df['PV total power [W]']
         remaining_load = df['P_Res [W]'] - df['WT total power [W]'] - df['PV total power [W]']
         df['P_Res (after RE) [W]'] = np.where(remaining_load < 0, 0, remaining_load)
-
-    def calc_monthly_data(self):
-        """
-
-        :return:
-        """
-        for i in range(12):
-            days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-            monthly_df = self.env.df.iloc[[0, 1440 * days[i]], :].sum(axis=0)
 
     def calc_lcoe(self, system_component: object):
         """

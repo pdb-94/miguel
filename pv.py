@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import pvlib
+import matplotlib.pyplot as plt
 
 
 class PV:
@@ -14,9 +15,6 @@ class PV:
                  env,
                  name: str = None,
                  p_n: float = None,
-                 min_module_power: float = None,
-                 max_module_power: float = None,
-                 inverter_power_range: float = None,
                  pv_profile: pd.Series = None,
                  pv_data: dict = None):
         """
@@ -48,7 +46,8 @@ class PV:
         self.altitude = self.env.location.get('altitude')
         # Weather data
         self.weather_data = self.env.weather_data[0]
-        self.weather_data['precipitable_water'] = np.nan
+        self.weather_data['precipitable_water'] = 0.1
+        # Libraries
         self.module_lib = pvlib.pvsystem.retrieve_sam('CECMod')
         self.inverter_lib = pvlib.pvsystem.retrieve_sam('CECInverter')
 
@@ -60,7 +59,10 @@ class PV:
             self.longitude = self.env.location.get('longitude')
             self.latitude = self.env.location.get('latitude')
             self.altitude = self.env.location.get('altitude')
-            self.surface_tilt = pv_data.get('surface_tilt')
+            if pv_data.get('surface_tilt') is None:
+                self.surface_tilt = 20
+            else:
+                self.surface_tilt = pv_data.get('surface_tilt')
             self.surface_azimuth = pv_data.get('surface_azimuth')
             system_parameters = self.pick_pv_system(min_module_power=pv_data.get('min_module_power'),
                                                     max_module_power=pv_data.get('max_module_power'),
@@ -74,13 +76,17 @@ class PV:
             self.location = pvlib_parameters[0]
             self.pv_system = pvlib_parameters[1]
             self.modelchain = pvlib_parameters[2]
+            # Run pvlib
             self.annual_pv_yield = self.run(weather_data=self.weather_data)
             self.annual_pv_yield.index = self.convert_index_time()
             self.pv_yield = self.annual_pv_yield.loc[self.env.time_series[0]:self.env.time_series[-1]]
             self.pv_yield = self.interpolate_values()
             self.df['P [W]'] = self.pv_yield
         elif pv_data is not None:
-            self.surface_tilt = pv_data.get('surface_tilt')
+            if pv_data.get('surface_tilt') is None:
+                self.surface_tilt = 20
+            else:
+                self.surface_tilt = pv_data.get('surface_tilt')
             self.surface_azimuth = pv_data.get('surface_azimuth')
             # PV Components
             self.pv_module = pv_data.get('pv_module')
@@ -89,8 +95,7 @@ class PV:
             self.strings_per_inverter = pv_data.get('strings_per_inverter')
             self.pv_module_parameters = pvlib.pvsystem.retrieve_sam('CECMod')[self.pv_module]
             self.inverter_parameters = pvlib.pvsystem.retrieve_sam('CECInverter')[self.inverter]
-            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] \
-                       * self.modules_per_string * self.strings_per_inverter
+            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] * self.modules_per_string * self.strings_per_inverter
             # Create Location, PVSystem and ModelChain
             pvlib_parameters = self.create_pvlib_parameters()
             self.location = pvlib_parameters[0]
@@ -119,6 +124,10 @@ class PV:
                                    self.c_op_main_n * self.p_n / 1000)}
 
     def create_pvlib_parameters(self):
+        """
+        Create pvlib parameters
+        :return: location, pv_system, modelchain
+        """
         location = self.create_location()
         pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
                                    surface_tilt=self.surface_tilt,
