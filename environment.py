@@ -108,6 +108,7 @@ class Environment:
         self.pv = []
         self.diesel_generator = []
         self.wind_turbine = []
+        self.re_supply = []
         self.storage = []
         self.supply_data = pd.DataFrame(columns=['Component',
                                                  'Name',
@@ -268,6 +269,7 @@ class Environment:
 
         else:
             pass
+        self.re_supply.append(self.pv[-1])
         self.df[name + ': P [W]'] = self.pv[-1].df['P [W]']
         self.df['PV total power [W]'] += self.df[name + ': P [W]']
         self.add_component_data(component=self.pv[-1], supply=True)
@@ -287,6 +289,7 @@ class Environment:
                                              turbine_data=turbine_data,
                                              location=self.location,
                                              wt_profile=wt_profile))
+        self.re_supply.append(self.wind_turbine[-1])
         self.df[name + ': P [W]'] = self.wind_turbine[-1].df['P [W]']
         self.df['WT total power [W]'] += self.df[name + ': P [W]']
         self.add_component_data(component=self.wind_turbine[-1], supply=True)

@@ -7,12 +7,19 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import environment as en
+from pv import PV
+from windturbine import WindTurbine
 from report.report import Report
 
 
 # TODO:
 #   - Develop dispatch strategies
 #   - Research optimization algorithm python
+#   - Optimize:
+#       - PV/WT size
+#       - Energy storage Y/N
+#       - Energy Storage for peak shaving to use smaller Generator
+#       - Generator type
 
 
 class Operator:
@@ -29,11 +36,13 @@ class Operator:
         self.energy_data = self.env.calc_energy_consumption_parameters()
         self.energy_consumption = self.energy_data[0]
         self.peak_load = self.energy_data[1]
+        self.system = {0: 'Off Grid System', 1: 'Stable Grid connection', 2: 'Unstable Grid connection'}
         self.df = self.build_df()
         self.run()
 
     def build_df(self):
         """
+        Assign columns to pd.DataFrame
         :return: pd.DataFrame
             DataFrame with component columns
         """
@@ -45,9 +54,11 @@ class Operator:
         for pv in self.env.pv:
             pv_col = pv.name + ' [W]'
             df[pv_col] = 0
+            df[pv.name + ' production [W]'] = pv.df['P [W]']
         for wt in self.env.wind_turbine:
             wt_col = wt.name + ' [W]'
             df[wt_col] = 0
+            df[wt.name + ' production [W]'] = wt.df['P [W]']
         for es in self.env.storage:
             es_col = es.name + ' [W]'
             df[es_col] = 0
@@ -62,149 +73,149 @@ class Operator:
 
     def run(self):
         """
-        run dispatch
+        run dispatch:
+        Component priorities for On Grid Systems:
+            1) RE self-consumption
+            2) Charge storage from RE
+            Stable grid connection:
+                3) Cover residual load from Storage
+                4) Cover residual load from Grid
+            Unstable Grid connection:
+                No Blackout:
+                    3) Cover residual load from Grid
+                Blackout:
+                    4.1) Cover load from Storage
+                    4.2) Cover load from Diesel Generator
+        Component priorities for of Grid systems:
+            1) RE self consumption
+            2) Charge storage from RE
+            3) Cover load from Storage
+            4) Cover load from Diesel Generator
+
         :return: None
         """
         env = self.env
         if env.grid_connection is True:
             if env.blackout is True:
-                """
-                Priorities for on grid system with Blackouts:
-                1) RE self consumption
-                2) Charge storage from RE
-                3) Cover Residual load from Grid
-                4) If Blackout:
-                    4.1) Cover load from Storage
-                    4.2) Cover load from Diesel Generator
-                """
-                print('Grid connection with blackouts')
-                # Priority 1: RE supply
-                for pv in env.pv:
-                    self.pv_profile(pv=pv)
-                    # Priority 2 charge storage
-                    for es in env.storage:
-                        for clock in self.df.index:
-                            charging_power = es.charge(clock=clock, power=self.df.loc[clock, pv.name + ' remain [W]'])
-                            self.df.loc[clock, es.name + ' [W]'] = es.df.loc[clock, 'P [W]']
-                            self.df.loc[clock, pv.name + ' remain [W]'] -= charging_power
-                            # print(clock, self.df.loc[clock, es.name + ' [W]'], es.df.loc[clock, 'Q [Wh]'])
-                # Priority 1: RE supply
-                for wt in env.wind_turbine:
-                    self.wt_profile(wt=wt)
-                    # Priority 2 charge storage
-                    for es in env.storage:
-                        for clock in self.df.index:
-                            charging_power = es.charge(clock=clock, power=self.df.loc[clock, wt.name + ' remain [W]'])
-                            self.df.loc[clock, es.name + ' [W]'] = es.df.loc[clock, 'P [W]']
-                            self.df.loc[clock, wt.name + ' remain [W]'] -= charging_power
+                system = self.system[2]
             else:
-                print('Grid connection without blackouts')
-                # Priority 1: RE supply
-                for pv in env.pv:
-                    self.pv_profile(pv=pv)
-                    # Priority 2 charge storage
-                    for es in env.storage:
-                        for clock in self.df.index:
-                            charging_power = es.charge(clock=clock, power=self.df.loc[clock, pv.name + ' remain [W]'])
-                            self.df.loc[clock, es.name + ' [W]'] = es.df.loc[clock, 'P [W]']
-                            self.df.loc[clock, pv.name + ' remain [W]'] -= charging_power
-                            # print(clock, self.df.loc[clock, es.name + ' [W]'], es.df.loc[clock, 'Q [Wh]'])
-                # Priority 1: RE supply
-                for wt in env.wind_turbine:
-                    self.wt_profile(wt=wt)
-                    # Priority 2 charge storage
-                    for es in env.storage:
-                        for clock in self.df.index:
-                            charging_power = es.charge(clock=clock, power=self.df.loc[clock, wt.name + ' remain [W]'])
-                            self.df.loc[clock, es.name + ' [W]'] = es.df.loc[clock, 'P [W]']
-                            self.df.loc[clock, wt.name + ' remain [W]'] -= charging_power
+                system = self.system[1]
         else:
-            print('Off Grid system')
+            system = self.system[0]
+        print(system)
+        # Time step iteration
+        for clock in self.df.index:
+            for component in env.re_supply:
+                # Priority 1: RE self supply
+                self.re_self_supply(clock=clock, component=component)
+                # Priority 2: Charge Storage from RE
+                for es in env.storage:
+                    self.re_charge(clock=clock, es=es, component=component)
+            if env.grid_connection is True:
+                if env.blackout is True:
+                    # System: Unstable grid connection
+                    if env.df.loc[clock, 'Blackout'] is False:
+                        # No Blackout: Priority 3 cover load from grid
+                        self.grid_profile(clock=clock)
+                    else:
+                        # Blackout: Priority 3 cover load from storage
+                        for es in env.storage:
+                            if self.df.loc[clock, 'P_Res [W]'] > 0:
+                                power = self.df.loc[clock, 'P_Res [W]']
+                                discharge_power = es.discharge(clock=clock, power=power)
+                                self.df.loc[clock, es.name + ' [W]'] += discharge_power
+                                self.df.loc[clock, 'P_Res [W]'] += discharge_power
+                        # Priority 4 cover load with diesel generator
+                        for dg in env.diesel_generator:
+                            if self.df.loc[clock, 'P_Res [W]'] > 0:
+                                self.dg_profile(clock=clock, dg=dg)
+                else:
+                    # System: Stable grid connection
+                    # Priority 3: Cover load from storage
+                    for es in env.storage:
+                        if self.df.loc[clock, 'P_Res [W]'] > 0:
+                            power = self.df.loc[clock, 'P_Res [W]']
+                            discharge_power = es.discharge(clock=clock, power=power)
+                            self.df.loc[clock, es.name + ' [W]'] += discharge_power
+                            self.df.loc[clock, 'P_Res [W]'] += discharge_power
+                    # Priority 4: Cover load from grid
+                    self.grid_profile(clock=clock)
+            else:
+                # System: Off grid system
+                for es in env.storage:
+                    if self.df.loc[clock, 'P_Res [W]'] > 0:
+                        power = self.df.loc[clock, 'P_Res [W]']
+                        discharge_power = es.discharge(clock=clock, power=power)
+                        self.df.loc[clock, es.name + ' [W]'] += discharge_power
+                        self.df.loc[clock, 'P_Res [W]'] += discharge_power
+                for dg in env.diesel_generator:
+                    if self.df.loc[clock, 'P_Res [W]'] > 0:
+                        self.dg_profile(clock=clock, dg=dg)
 
-    def pv_profile(self, pv):
+    def re_self_supply(self, clock: dt.datetime, component: object):
+        """
+        Calculate re self-consumption
+        :param clock: dt.datetime
+             time stamp
+        :param component: object
+            re component (pv, wind turbine)
+        :return: None
+        """
+        df = self.df
+        df.loc[clock, component.name + ' [W]'] = np.where(df.loc[clock, 'P_Res [W]'] > component.df.loc[clock, 'P [W]'],
+                                                          component.df.loc[clock, 'P [W]'], df.loc[clock, 'P_Res [W]'])
+        df.loc[clock, component.name + ' [W]'] = np.where(df.loc[clock, component.name + ' [W]'] < 0, 0,
+                                                          df.loc[clock, component.name + ' [W]'])
+        df.loc[clock, component.name + ' remain [W]'] = np.where(
+            component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'] < 0,
+            0, component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'])
+        df.loc[clock, 'P_Res [W]'] -= df.loc[clock, component.name + ' [W]']
+
+    def re_charge(self, clock: dt.datetime, es: object, component: object):
+        """
+        Charge energy storage from renewable pv, wind turbine
+        :param clock: dt.datetime
+            time stamp
+        :param es: object
+            energy storage
+        :param component: object
+            re component (pv, wind turbine)
+        :return: None
+        """
+        env = self.env
+        index = env.re_supply.index(component)
+        if clock == self.df.index[0]:
+            if index == 0:
+                # Set values for first time step
+                es.df.loc[clock, 'P [W]'] = 0
+                es.df.loc[clock, 'SOC'] = es.soc
+                es.df.loc[clock, 'Q [Wh]'] = es.soc * es.c
+        # Charge storage
+        charge_power = es.charge(clock=clock,
+                                 power=self.df.loc[clock, component.name + ' remain [W]'])
+        self.df.loc[clock, es.name + ' [W]'] += es.df.loc[clock, 'P [W]']
+        self.df.loc[clock, component.name + ' remain [W]'] -= charge_power
+
+    def grid_profile(self, clock: dt.datetime):
+        """
+        Cover load from power grid
+        :param clock: dt.datetime
+            time stamp
+        :return: None
+        """
+        df = self.df
+        grid = self.env.grid[0].name
+        df.loc[clock, grid + ' [W]'] = self.df.loc[clock, 'P_Res [W]']
+        df.loc[clock, 'P_Res [W]'] = 0
+
+    def dg_profile(self, clock: dt.datetime, dg: object):
         """
 
-        :return:
+        :return: None
         """
-        self.df[pv.name + ' [W]'] = np.where(self.df['P_Res [W]'] > pv.df['P [W]'], pv.df['P [W]'], self.df['P_Res [W]'])
-        self.df[pv.name + ' [W]'] = np.where(self.df[pv.name + ' [W]'] < 0, 0, self.df[pv.name + ' [W]'])
-        self.df[pv.name + ' remain [W]'] = np.where(pv.df['P [W]'] - self.df['P_Res [W]'] < 0, 0, pv.df['P [W]'] - self.df['P_Res [W]'])
-        self.df['P_Res [W]'] -= self.df[pv.name + ' [W]']
-
-    def wt_profile(self, wt):
-        self.df[wt.name + ' [W]'] = np.where(self.df['P_Res [W]'] > wt.df['P [W]'], wt.df['P [W]'], self.df['P_Res [W]'])
-        self.df[wt.name + ' [W]'] = np.where(self.df[wt.name + ' [W]'] < 0, 0, self.df[wt.name + ' [W]'])
-        self.df[wt.name + ' remain [W]'] = np.where(wt.df['P [W]'] - self.df['P_Res [W]'] < 0, 0, wt.df['P [W]'] - self.df['P_Res [W]'])
-        self.df['P_Res [W]'] -= self.df[wt.name + ' [W]']
-
-    def es_profile(self):
-        """
-
-        :return:
-        """
-
-    def grid_profile(self):
-        """
-
-        :return:
-        """
-
-    def dg_profile(self):
-        """
-
-        :return:
-        """
-
-    # def dispatch_3(self):
-    #     """
-    #     dispatch strategy 3:
-    #         Components: PV-System, Wind Turbine, Load, Diesel Generator
-    #         - Off grid system
-    #         - max. PV/WT self-consumption
-    #         - Curtail remaining PV/WT production
-    #         - Cover remaining load with Diesel Generator
-    #     :return: None
-    #     """
-    #     env = self.env
-    #     # Calculate PV Curtailment
-    #     env.df['PV Curtail [W]'] = 0
-    #     pv_curtail = env.df['P_Res [W]'] - env.df['PV total power [W]']
-    #     env.df['PV Curtail [W]'] = np.where(pv_curtail > 0, 0, pv_curtail)
-    #     # Calculate WT Curtailment
-    #     env.df['WT Curtail [W]'] = 0
-    #     wt_curtail = env.df['P_Res [W]'] - env.df['WT total power [W]']
-    #     env.df['WT Curtail [W]'] = np.where(wt_curtail > 0, 0, wt_curtail)
-    #     env.calc_self_supply()
-    #     # Run generator model
-    #     for generator in env.diesel_generator:
-    #         generator.run()
-    #         env.df[generator.name + ': P [W]'] = generator.df['P [W]'].values
-    #     # Calculate RE load
-    #     re_load_adjusted = env.df['P_Res [W]'] - env.df['DG_1: P [W]']
-    #     env.df['RE self consumption [W]'] = np.where(re_load_adjusted > env.df['Self supply [W]'],
-    #                                                  env.df['Self supply [W]'],
-    #                                                  re_load_adjusted)
-    #     env.df['RE Curtailment adjusted [W]'] = -(env.df['Self supply [W]'] - env.df['RE self consumption [W]'])
-
-    # def system_comparison(self, component: str = None):
-    #     """
-    #     TODO: Compare system components, single components and all components. Optimization based on levelized cost of energy
-    #         - PV/WT plant size
-    #         - Diesel generator model (Standard)
-    #         - ES Y/N (size)
-    #         - Problem:
-    #             - all components influence each other (recursive behavior)
-    #
-    #     :param component: str
-    #         system component to compare
-    #     :return: None
-    #     """
-    #     if component == 'Diesel Generator':
-    #         print('Compare Diesel Generator with Generator Model.')
-    #     elif component == 'PV':
-    #         print('Compare PV plant size +-20%.')
-    #     elif component == 'WT':
-    #         print('Compare System')
+        df = self.df
+        df.loc[clock, dg.name + ' [W]'] = self.df.loc[clock, 'P_Res [W]']
+        df.loc[clock, 'P_Res [W]'] = 0
 
 
 if __name__ == '__main__':
@@ -217,7 +228,7 @@ if __name__ == '__main__':
                                            'latitude': 6.0442,
                                            'altitude': 50,
                                            'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                                 grid_connection=True)
+                                 grid_connection=False)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
     environment.add_pv(p_n=65000,
@@ -229,13 +240,12 @@ if __name__ == '__main__':
 
     environment.add_grid()
     # environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
-    environment.add_diesel_generator(p_n=10000, fuel_consumption=9.7, fuel_price=1.20, low_load_behavior=False)
+    environment.add_diesel_generator(p_n=10000, fuel_consumption=9.7, fuel_price=1.20, low_load_behavior=True)
     environment.add_storage(p_n=5000, c=50000, soc=0.5)
     operator = Operator(env=environment)
     print(operator.df)
-    # print(operator.df.columns)
+    operator.df.to_csv('env.csv')
     operator.df.plot()
     plt.show()
-    operator.df.to_csv('env.csv')
     # report = Report(environment=environment, operator=operator)
     print('Runtime: %s seconds' % (time.time() - start_time))

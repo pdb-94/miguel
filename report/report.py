@@ -199,11 +199,11 @@ class Report:
         month_max = calendar.month_name[month_max]
         wind_speed_average = round(self.env.monthly_weather_data['wind_speed'].mean(), 3)
         wind_direction_average = round(self.env.monthly_weather_data['wind_direction'].mean(), 3)
-        wind_tabel_text = 'The main wind direction is ' + str(wind_direction_average) + '°. The annual average wind speed is ' \
-                          + str(wind_direction_average) + ' m/s. The highest monthly wind speed occurs in ' \
+        wind_table_text = 'The main wind direction is ' + str(wind_direction_average) + '°. The annual average wind speed is ' \
+                          + str(wind_speed_average) + ' m/s. The highest monthly wind speed occurs in ' \
                           + month_max + ' and is ' + str(wind_speed_max) + ' m/s.'
         self.create_txt(file_name='2_2_table_description',
-                        text=wind_tabel_text)
+                        text=wind_table_text)
         self.pdf.chapter_body(name=self.txt_file_path + '2_2_table_description.txt', size=10)
 
     def energy_consumption(self):
