@@ -65,6 +65,7 @@ class Report:
         self.climate_data()
         self.energy_consumption()
         self.energy_supply()
+        self.dispatch()
         # Create report
         self.pdf.output(self.report_path + self.name + '.pdf')
 
@@ -85,6 +86,7 @@ class Report:
         """
         Create chapter 1 - Base data
         :return: None
+        TODO: Add system type (grid connection/blackout) to input data
         """
         # Create txt-file
         base_data = 'The following parameters are provided through the user. If no values were entered default values will be used.' \
@@ -252,6 +254,7 @@ class Report:
         """
         Create chapter - System configuration
         :return: None
+        TODO: Add grid connection and blackout data
         """
         system_config_4 = 'The chapter system configuration contains detailed information about the selected system components.' \
                           ' This includes parameters such as nominal power/capacity, specific investment and operation and' \
@@ -330,6 +333,36 @@ class Report:
                                file=[self.txt_file_path + '4_2_re_energy_supply.txt'],
                                size=10)
         self.pdf.image(name=self.report_path + 'pictures/' + '/re_supply.png', w=150, x=30)
+
+    def dispatch(self):
+        """
+        Create chapter 5 - dispatch
+        :return: None
+        """
+        env = self.env
+        dispatch_5 = "This chapter presents the dispatch of the power system. The system is considered a '" \
+                     + self.env.system + "'. The plot below shows the load profile and the power the system components supply in kW. "\
+                     + "Energy storage systems can both consume and supply power. Negative values correspond to " \
+                     + "power output (power source), positive loads to power input (power sink).\n\n "
+        self.create_txt(file_name='5_dispatch', text=dispatch_5)
+        self.pdf.print_chapter(chapter_type=[True],
+                               title=['5 Dispatch'],
+                               file=[self.txt_file_path + '5_dispatch.txt'],
+                               size=10)
+        columns = ['Load [W]']
+        for pv in env.pv:
+            columns.append(pv.name + ' [W]')
+        for wt in env.wind_turbine:
+            columns.append(wt.name + ' [W]')
+        for es in env.storage:
+            columns.append(es.name + ' [W]')
+        for grid in env.grid:
+            columns.append(grid.name + ' [W]')
+        for dg in env.diesel_generator:
+            columns.append(dg.name + ' [W]')
+        self.create_plot(df=self.operator.df, columns=columns, file_name='dispatch', y_label='P [kW]',
+                         factor=1000)
+        self.pdf.image(name=self.report_path + 'pictures/' + '/dispatch.png', w=150, x=30)
 
     def create_input_parameter(self):
         """

@@ -68,138 +68,144 @@ class DieselGenerator:
                                'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
                                'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
 
-    def run(self):
+    def low_load_model(self, clock: dt.datetime, power: float):
         """
-        Run diesel generator based on load behavior
-        :return:
+
+        :param clock: dt.datetime
+            timestamp
+        :param power: float
+            power [W]
+        :return: None
         """
-        if self.low_load_behavior is True:
-            self.low_load_model()
-        elif self.low_load_behavior is False:
-            self.conventional_model()
+        if power > self.p_n:
+            power = self.p_n
         else:
-            pass
-        self.calc_energy_consumption()
+            power = power
+        self.df.loc[clock, 'P [W]'] = power
 
-    def low_load_model(self):
-        """
-        Run low load model (load < 30% nominal power possible)
-        :return:
-        """
-        env = self.env
-        df = self.df
-        df['P (after RE) [W]'] = np.where(env.df['P_Res (after RE) [W]'] > self.p_n, self.p_n,
-                                          env.df['P_Res (after RE) [W]'])
-        df['P [W]'] = df['P (after RE) [W]']
-
-    def conventional_model(self):
+    def conventionaal_model(self, clock: dt.datetime, power: float):
         """
         Run conventional load model with restrictions from self.load_duration
-        :return: None
-        """
-        env = self.env
-        df = self.df
-        df['P (after RE) [W]'] = np.where(env.df['P_Res (after RE) [W]'] > self.p_n, self.p_n,
-                                          env.df['P_Res (after RE) [W]'])
-        df['P [W]'] = df['P (after RE) [W]']
-        for i in range(0, len(df.index) - 239, 240):
-            # Set clock
-            clock = self.df.index[i]
-            end = clock + dt.timedelta(minutes=239)
-            self.calc_load_percentage(clock=clock, end=end)
-            gen_status = self.check_status(clock=clock, end=end)
-            keys = list(gen_status.keys())
-            # Calculate possible power ups to 51%
-            if 1 in keys:
-                power_50 = int(120 - gen_status[1])
-            else:
-                power_50 = int(120)
-            # Calculate power ups tp 71%
-            if 0 in keys:
-                if gen_status[0] - power_50 - 30 < 0:
-                    power_30 = int(0)
-                else:
-                    power_30 = int(gen_status[0] - power_50 - 30)
-            else:
-                power_30 = int(0)
-            self.change_generator_load(end=end, power_30=power_30, power_50=power_50)
-
-    def calc_load_percentage(self, clock: dt.datetime, end: dt.datetime):
-        """
         :param clock: dt.datetime
-            time frame start
-        :param end: dt.datetime
-            time frame end
+            timestamp
+        :param power: float
+            power [W]
         :return: None
         """
-        df = self.df
-        df.loc[clock:end, 'Load Percentage'] = df.loc[clock:end, 'P (after RE) [W]'] / self.p_n
+        if power > self.p_n:
+            power = self.p_n
+        else:
+            power = power
+        # Calculate
 
-    def check_status(self, clock: dt.datetime, end: dt.datetime):
-        """
-        :param clock: dt.datetime
-            time frame start
-        :param end: dt.datetime
-            time frame end
-        :return: dict
-            generator status during timeframe
-        """
-        df = self.df
-        df.loc[clock:end, 'Generator Status'] = np.where(df.loc[clock:end, 'Load Percentage'] <= 0.3, 0,
-                                                         np.where(df.loc[clock:end, 'Load Percentage'] <= 0.5, 1, 2))
-        gen_status = dict(df.loc[clock:end, 'Generator Status'].value_counts())
-
-        return gen_status
-
-    def change_generator_load(self, end: dt.datetime, power_30: int, power_50: int):
-        """
-        :param end: dt.datetime
-            time frame end
-        :param power_30: int
-            number of time steps to power up to 71%
-        :param power_50: int
-            number of time steps to power up to 51%
-        :return: None
-        """
-        df = self.df
-        df.loc[end - dt.timedelta(minutes=power_50 + power_30):end - dt.timedelta(minutes=power_30), 'P [W]'] = self.p_n * 0.51
-        df.loc[end - dt.timedelta(minutes=power_30):end, 'P [W]'] = self.p_n * 0.71
-        df['P [W]'] = np.where(df['P [W]'] > df['P (after RE) [W]'], df['P [W]'], df['P (after RE) [W]'])
-
-    # Economical and ecological parameters
-    def calc_energy_consumption(self):
-        """
-        Calculate energy consumption per time step
-        :return:
-        """
-        # Calculate energy consumption per time step
-        self.df['Energy [kWh]'] = self.df['P [W]'] / 60 * self.env.i_step / 1000
-
-    def calc_fuel_consumption(self):
-        """
-        Calculate fuel consumption per time step with fuel ticks
-        :return: None
-        """
-        # Interpolate fuel ticks
-        self.df['Fuel consumption [%/h]'] = np.interp(x=self.df['P [%]'],
-                                                      xp=self.fuel_tick_percentage,
-                                                      fp=self.fuel_consumption_percentage)
-        # Calculate fuel consumption
-        self.df['Fuel consumption [l/h]'] = round(self.df['Fuel consumption [%/h]'] * self.fuel_consumption, 3)
-        self.df['Fuel consumption [l]'] = round(
-            self.df['Fuel consumption [%/h]'] * self.fuel_consumption / 60 * self.env.i_step, 3)
-
-    def calc_fuel_cost(self):
-        """
-        Calculate fuel cost per time step with fuel price
-        :return: None
-        """
-        self.df['Fuel Cost ' + self.env.currency] = self.df['Fuel consumption [l]'] * self.fuel_price
-
-    def calc_co2_emissions(self):
-        """
-        Calculate CO2-Emissions per time step with CO2 factor
-        :return: None
-        """
-        self.df['CO2-Emission [kg]'] = self.df['Energy [kWh]'] * self.env.co2_diesel
+    # def conventional_model(self):
+    #     """
+    #     Run conventional load model with restrictions from self.load_duration
+    #     :return: None
+    #     """
+    #     env = self.env
+    #     df = self.df
+    #     df['P (after RE) [W]'] = np.where(env.df['P_Res (after RE) [W]'] > self.p_n, self.p_n,
+    #                                       env.df['P_Res (after RE) [W]'])
+    #     df['P [W]'] = df['P (after RE) [W]']
+    #     for i in range(0, len(df.index) - 239, 240):
+    #         # Set clock
+    #         clock = self.df.index[i]
+    #         end = clock + dt.timedelta(minutes=239)
+    #         self.calc_load_percentage(clock=clock, end=end)
+    #         gen_status = self.check_status(clock=clock, end=end)
+    #         keys = list(gen_status.keys())
+    #         # Calculate possible power ups to 51%
+    #         if 1 in keys:
+    #             power_50 = int(120 - gen_status[1])
+    #         else:
+    #             power_50 = int(120)
+    #         # Calculate power ups tp 71%
+    #         if 0 in keys:
+    #             if gen_status[0] - power_50 - 30 < 0:
+    #                 power_30 = int(0)
+    #             else:
+    #                 power_30 = int(gen_status[0] - power_50 - 30)
+    #         else:
+    #             power_30 = int(0)
+    #         self.change_generator_load(end=end, power_30=power_30, power_50=power_50)
+    #
+    # def calc_load_percentage(self, clock: dt.datetime, end: dt.datetime):
+    #     """
+    #     :param clock: dt.datetime
+    #         time frame start
+    #     :param end: dt.datetime
+    #         time frame end
+    #     :return: None
+    #     """
+    #     df = self.df
+    #     df.loc[clock:end, 'Load Percentage'] = df.loc[clock:end, 'P (after RE) [W]'] / self.p_n
+    #
+    # def check_status(self, clock: dt.datetime, end: dt.datetime):
+    #     """
+    #     :param clock: dt.datetime
+    #         time frame start
+    #     :param end: dt.datetime
+    #         time frame end
+    #     :return: dict
+    #         generator status during timeframe
+    #     """
+    #     df = self.df
+    #     df.loc[clock:end, 'Generator Status'] = np.where(df.loc[clock:end, 'Load Percentage'] <= 0.3, 0,
+    #                                                      np.where(df.loc[clock:end, 'Load Percentage'] <= 0.5, 1, 2))
+    #     gen_status = dict(df.loc[clock:end, 'Generator Status'].value_counts())
+    #
+    #     return gen_status
+    #
+    # def change_generator_load(self, end: dt.datetime, power_30: int, power_50: int):
+    #     """
+    #     :param end: dt.datetime
+    #         time frame end
+    #     :param power_30: int
+    #         number of time steps to power up to 71%
+    #     :param power_50: int
+    #         number of time steps to power up to 51%
+    #     :return: None
+    #     """
+    #     df = self.df
+    #     df.loc[end - dt.timedelta(minutes=power_50 + power_30):end - dt.timedelta(minutes=power_30), 'P [W]'] = self.p_n * 0.51
+    #     df.loc[end - dt.timedelta(minutes=power_30):end, 'P [W]'] = self.p_n * 0.71
+    #     df['P [W]'] = np.where(df['P [W]'] > df['P (after RE) [W]'], df['P [W]'], df['P (after RE) [W]'])
+    #
+    # # Economical and ecological parameters
+    # def calc_energy_consumption(self):
+    #     """
+    #     Calculate energy consumption per time step
+    #     :return:
+    #     """
+    #     # Calculate energy consumption per time step
+    #     self.df['Energy [kWh]'] = self.df['P [W]'] / 60 * self.env.i_step / 1000
+    #
+    # def calc_fuel_consumption(self):
+    #     """
+    #     Calculate fuel consumption per time step with fuel ticks
+    #     :return: None
+    #     """
+    #     # Interpolate fuel ticks
+    #     self.df['Fuel consumption [%/h]'] = np.interp(x=self.df['P [%]'],
+    #                                                   xp=self.fuel_tick_percentage,
+    #                                                   fp=self.fuel_consumption_percentage)
+    #     # Calculate fuel consumption
+    #     self.df['Fuel consumption [l/h]'] = round(self.df['Fuel consumption [%/h]'] * self.fuel_consumption, 3)
+    #     self.df['Fuel consumption [l]'] = round(
+    #         self.df['Fuel consumption [%/h]'] * self.fuel_consumption / 60 * self.env.i_step, 3)
+    #
+    # def calc_fuel_cost(self):
+    #     """
+    #     Calculate fuel cost per time step with fuel price
+    #     :return: None
+    #     """
+    #     self.df['Fuel Cost ' + self.env.currency] = self.df['Fuel consumption [l]'] * self.fuel_price
+    #
+    # def calc_co2_emissions(self):
+    #     """
+    #     Calculate CO2-Emissions per time step with CO2 factor
+    #     :return: None
+    #     """
+    #     self.df['CO2-Emission [kg]'] = self.df['Energy [kWh]'] * self.env.co2_diesel
 

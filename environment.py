@@ -99,8 +99,15 @@ class Environment:
         # Grid connection
         self.grid_connection = grid_connection
         self.blackout = blackout
-        if self.blackout is True:
-            self.df['Blackout'] = blackout_data.values
+        system = {0: 'Off Grid System', 1: 'Stable Grid connection', 2: 'Unstable Grid connection'}
+        if self.grid_connection is True:
+            if self.blackout is True:
+                self.df['Blackout'] = blackout_data.values
+                self.system = system[2]
+            else:
+                self.system = system[1]
+        else:
+            self.system = system[0]
 
         # Container
         self.grid = []

@@ -102,7 +102,6 @@ class Operator:
                 system = self.system[1]
         else:
             system = self.system[0]
-        print(system)
         # Time step iteration
         for clock in self.df.index:
             for component in env.re_supply:
@@ -119,6 +118,9 @@ class Operator:
                         self.grid_profile(clock=clock)
                     else:
                         # Blackout: Priority 3 cover load from storage
+                        # TODO: Integrate low_load_behavior here??
+                        #  --> if low_load_behavior is False different Priorities (same for off Grid system)
+                        #
                         for es in env.storage:
                             if self.df.loc[clock, 'P_Res [W]'] > 0:
                                 power = self.df.loc[clock, 'P_Res [W]']
@@ -213,9 +215,11 @@ class Operator:
 
         :return: None
         """
-        df = self.df
-        df.loc[clock, dg.name + ' [W]'] = self.df.loc[clock, 'P_Res [W]']
-        df.loc[clock, 'P_Res [W]'] = 0
+        if dg.low_load_behavior is True:
+            power = self.df.loc[clock, 'P_Res [W]']
+            dg.low_load_model(clock=clock, power=power)
+        else:
+            print('Buy a f***ing new generator.')
 
 
 if __name__ == '__main__':
@@ -228,7 +232,7 @@ if __name__ == '__main__':
                                            'latitude': 6.0442,
                                            'altitude': 50,
                                            'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                                 grid_connection=False)
+                                 grid_connection=True, blackout=False)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
     environment.add_pv(p_n=65000,
@@ -243,9 +247,9 @@ if __name__ == '__main__':
     environment.add_diesel_generator(p_n=10000, fuel_consumption=9.7, fuel_price=1.20, low_load_behavior=True)
     environment.add_storage(p_n=5000, c=50000, soc=0.5)
     operator = Operator(env=environment)
-    print(operator.df)
-    operator.df.to_csv('env.csv')
-    operator.df.plot()
-    plt.show()
-    # report = Report(environment=environment, operator=operator)
+    # print(operator.df)
+    # operator.df.to_csv('env.csv')
+    # operator.df.plot()
+    # plt.show()
+    report = Report(environment=environment, operator=operator)
     print('Runtime: %s seconds' % (time.time() - start_time))
