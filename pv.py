@@ -101,7 +101,7 @@ class PV:
             self.location = pvlib_parameters[0]
             self.pv_system = pvlib_parameters[1]
             self.modelchain = pvlib_parameters[2]
-            # Create Profile and run pvlib
+            # Create Profile and dispatch pvlib
             self.annual_pv_yield = self.run(weather_data=self.weather_data)
             self.annual_pv_yield.index = self.convert_index_time()
             self.pv_yield = self.annual_pv_yield.loc[self.env.time_series[0]:self.env.time_series[-1]]

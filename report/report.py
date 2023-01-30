@@ -74,13 +74,32 @@ class Report:
         Create Introduction and Summary
         :return: None
         """
-        summary = "The most important findings are displayed in the upcoming chapter."
+        if self.operator.system_covered is True:
+            summary = "With the selected system configuration, the energy demand is covered."
+        else:
+            summary = "With the selected system configuration, the energy demand is not covered. " \
+                      "The maximum power to be covered equals " + str(self.operator.power_sink_max) + "W. " + \
+                      "The table shows the time stamps and the power to be covered. \n\n"
+            summary_header = ['Time stamps', 'P [W]']
+            # Define table values
+            summary_values = [summary_header]
+            # Get technical data from env.supply_data
+            for row in self.operator.power_sink.index:
+                data = []
+                data.append(row)
+                data.append(self.operator.power_sink.loc[row, 'P [W]'])
+                summary_values.append(data)
+            summary_data = [[''], summary_values]
         self.create_txt(file_name='summary',
                         text=summary)
         self.pdf.print_chapter(chapter_type=[False, False],
                                title=['Introduction', 'Summary'],
                                file=[self.txt_file_path + 'default/introduction.txt',
                                      self.txt_file_path + 'summary.txt'])
+        if self.operator.system_covered is False:
+            self.pdf.create_table(file=self.pdf,
+                                  table=summary_data,
+                                  padding=1.5)
 
     def base_data(self):
         """
@@ -241,8 +260,8 @@ class Report:
                 int(self.operator.energy_consumption / 1000 * self.env.electricity_price),
                 int(self.operator.energy_consumption / 1000 * self.env.diesel_price)]
         co2_emission = ['CO2 emissions [t]',
-                        int(self.operator.energy_consumption / 1e6 * self.env.co2_grid),
-                        int(self.operator.energy_consumption / 1e6 * self.env.co2_diesel)]
+                        round(self.operator.energy_consumption / 1e6 * self.env.co2_grid, 3),
+                        round(self.operator.energy_consumption / 1e6 * self.env.co2_diesel, 3)]
         energy_con_values = [energy_con_header, total_energy_con, peak_load, cost, co2_emission]
         energy_con_data = [[''], energy_con_values]
         self.pdf.create_table(file=self.pdf,
@@ -349,6 +368,7 @@ class Report:
                                title=['5 Dispatch'],
                                file=[self.txt_file_path + '5_dispatch.txt'],
                                size=10)
+        # Create Dispatch plot
         columns = ['Load [W]']
         for pv in env.pv:
             columns.append(pv.name + ' [W]')
@@ -360,8 +380,7 @@ class Report:
             columns.append(grid.name + ' [W]')
         for dg in env.diesel_generator:
             columns.append(dg.name + ' [W]')
-        self.create_plot(df=self.operator.df, columns=columns, file_name='dispatch', y_label='P [kW]',
-                         factor=1000)
+        self.create_plot(df=self.operator.df, columns=columns, file_name='dispatch', y_label='P [W]')
         self.pdf.image(name=self.report_path + 'pictures/' + '/dispatch.png', w=150, x=30)
 
     def create_input_parameter(self):

@@ -6,7 +6,7 @@ import pandas as pd
 import windpowerlib
 
 # TODO:
-#  - self.interpolate_values/run: interpolate values only for env.df.index
+#  - self.interpolate_values/dispatch: interpolate values only for env.df.index
 #  - create container for wind farm: https://windpowerlib.readthedocs.io/en/stable/modules.html#data-container
 
 

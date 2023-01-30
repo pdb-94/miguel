@@ -236,15 +236,14 @@ class Environment:
                               name=name))
         self.df[name + ': P [W]'] = self.grid[-1].df['P [W]']
         self.df[name + ': Blackout'] = self.grid[-1].df['Blackout']
+        self.grid_connection = True
 
     def add_load(self,
-                 load_profile: str = None,
-                 lp: bool = None):
+                 load_profile: str = None):
         """
         Add Load to environment
         :return:
         """
-        # TODO: Differentiate between LPC and load profile
         name = 'Load_' + str(len(self.load) + 1)
         self.load.append(Load(env=self,
                               name=name,
@@ -304,7 +303,6 @@ class Environment:
     def add_diesel_generator(self,
                              p_n: float = None,
                              fuel_consumption: float = None,
-                             low_load_behavior: bool = None,
                              fuel_ticks: dict = None,
                              fuel_price: float = None):
         """
@@ -316,7 +314,6 @@ class Environment:
                                                      name=name,
                                                      p_n=p_n,
                                                      fuel_consumption=fuel_consumption,
-                                                     low_load_behavior=low_load_behavior,
                                                      fuel_ticks=fuel_ticks,
                                                      fuel_price=fuel_price))
         self.add_component_data(component=self.diesel_generator[-1], supply=True)
