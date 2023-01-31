@@ -1,28 +1,16 @@
 import time
-from typing import Union
-
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 import pandas as pd
 # MiGUEL modules
-from pandas import DataFrame, Series
-
 from report.report import Report
 from environment import Environment
-from evaluation import Evaluation
 from pv import PV
 from dieselgenerator import DieselGenerator
 from windturbine import WindTurbine
 from storage import Storage
-
-
-# TODO:
-#   - Optimize:
-#       - PV/WT size
-#       - Energy storage Y/N
-#       - Energy Storage for peak shaving to use smaller Generator
-#       - Generator type
+from lcoe.lcoe import lcoe as py_lcoe
 
 
 class Operator:
@@ -47,8 +35,11 @@ class Operator:
         self.df = self.build_df()
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
+        self.evaluation = self.evaluate_system()
+        print(self.evaluation)
 
     ''' Basic Functions'''
+
     def build_df(self):
         """
         Assign columns to pd.DataFrame
@@ -81,6 +72,7 @@ class Operator:
         return df
 
     ''' Simulation '''
+
     def dispatch(self):
         """
         dispatch dispatch:
@@ -310,54 +302,71 @@ class Operator:
 
         return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
-    ''' Optimize System'''
-    def optimize_system(self, component: str):
+    ''' Economical and Ecological parameters '''
+
+    def evaluate_system(self):
         """
-        Optimize system component
-        :param component: str
+
         :return:
         """
-        if component == 'PV':
-            print('Optimize PV system')
-        elif component == 'Wind Turbine':
-            print('Optimize Wind Turbine')
-        elif component == 'Energy Storage':
-            print('Optimize Energy Storage')
-        elif component == 'Diesel Generator':
-            print('Optimize Diesel Generator')
+        env = self.env
+        pv_lcoe = {}
+        wt_lcoe = {}
+        dg_lcoe = {}
+        for pv in env.pv:
+            lcoe = self.economic_evaluation(pv)
+            pv_lcoe[pv.name] = lcoe
+        for wt in env.wind_turbine:
+            lcoe = self.economic_evaluation(wt)
+            wt_lcoe[wt.name] = lcoe
+        for dg in env.diesel_generator:
+            lcoe = self.economic_evaluation(dg)
+            dg_lcoe[dg.name] = lcoe
 
-    # ''' Economical and Ecological parameters '''
-    # def calc_LCOE(self, component: DieselGenerator or PV or WindTurbine):
-    #     """
-    #     Calculate component levelized cot of energy (LCOE)
-    #     :param component: object
-    #         energy supply component
-    #     :return: float
-    #         LCOE
-    #     """
-    #     name = component.name
-    #     p_n = component.p_n
-    #     investment_cost = component.c_invest_n * p_n / 1000
-    #     o_m_cost = component.c_op_main_n * p_n / 1000
-    #     energy = self.df[name + ' [W]'].sum() * self.env.i_step/60 / 1000
-    #     lifetime = self.env.lifetime
-    #     lcoe = 0
-    #     i = self.env.i_rate
-    #     if isinstance(component, DieselGenerator):
-    #         fuel_cost = component.df['Fuel cost [' + self.env.currency + ']'].sum()
-    #         annual_cost = o_m_cost + fuel_cost + component.c_var * energy
-    #     else:
-    #         annual_cost = o_m_cost
-    #
-    #     for t in range(lifetime):
-    #         if t == 0:
-    #             lcoe += ((investment_cost + annual_cost) / (1+i)**t) / (energy/(1+i)**t)
-    #         else:
-    #             lcoe += (annual_cost / (1 + i) ** t) / (energy / (1 + i) ** t)
-    #
-    #     print(component.name, lcoe)
-    #
-    #     return lcoe
+        return pv_lcoe, wt_lcoe, dg_lcoe
+
+    def economic_evaluation(self, component: DieselGenerator or PV or WindTurbine):
+        """
+        Calculate component levelized cot of energy (LCOE)
+        :param component: object
+            energy supply component
+        :return: float
+            LCOE
+        """
+        capital_cost = component.c_invest_n * component.p_n / 1000
+        # Get component specific parameters
+        if isinstance(component, PV):
+            annual_operating_cost = component.c_op_main_n * component.p_n / 1000
+            annual_output = self.energy_supply_parameters[0]
+        elif isinstance(component, WindTurbine):
+            annual_operating_cost = component.c_op_main_n * component.p_n / 1000
+            annual_output = self.energy_supply_parameters[1]
+        else:
+            annual_output = self.energy_supply_parameters[3]
+            fuel_cost = component.df['Fuel cost [' + self.env.currency + ']'].sum()
+            annual_operating_cost = component.c_op_main_n * component.p_n / 1000 + annual_output * component.c_var + fuel_cost
+        lcoe = self.calc_lcoe(capital_cost=capital_cost,
+                              annual_operating_cost=annual_operating_cost,
+                              annual_output=annual_output)
+        return lcoe
+
+    def calc_lcoe(self, capital_cost, annual_operating_cost, annual_output):
+        """
+        Calculate LCOE with given parameters
+        :param capital_cost: float
+        :param annual_operating_cost: float
+        :param annual_output: float
+        :return: float
+            LCOE
+        """
+        l = self.env.lifetime
+        d = self.env.d_rate
+        lcoe = py_lcoe(annual_output=annual_output,
+                       annual_operating_cost=annual_operating_cost,
+                       capital_cost=capital_cost,
+                       discount_rate=d,
+                       lifetime=l)
+        return lcoe
 
 
 if __name__ == '__main__':
@@ -365,28 +374,23 @@ if __name__ == '__main__':
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
     end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
     environment = Environment(name='St. Dominics Hospital',
-                                 time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
-                                 location={'longitude': -0.7983,
-                                           'latitude': 6.0442,
-                                           'altitude': 50,
-                                           'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                                 grid_connection=False, blackout=False)
+                              time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
+                              location={'longitude': -0.7983,
+                                        'latitude': 6.0442,
+                                        'altitude': 50,
+                                        'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
+                              grid_connection=False, blackout=False)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
-    environment.add_pv(p_n=65000,
-                       pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                                'max_module_power': 350, 'inverter_power_range': 25000})
+    # environment.add_pv(p_n=65000,
+    #                    pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+    #                             'max_module_power': 350, 'inverter_power_range': 25000})
     # environment.add_grid()
-    # environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
+    environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
     environment.add_diesel_generator(p_n=30000, fuel_consumption=9.7, fuel_price=1.20)
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
     operator = Operator(env=environment)
-    eval = Evaluation(operator=operator, environment=environment)
-    # eval.calc_lcoe()
-    # operator.env.diesel_generator[0].calc_fuel_consumption()
-    # operator.calc_LCOE(operator.env.diesel_generator[0])
-    # operator.calc_LCOE(operator.env.pv[0])
-    report = Report(environment=environment, operator=operator)
+    # report = Report(environment=environment, operator=operator)
     # print(operator.df)
     # operator.df.plot()
     # plt.show()

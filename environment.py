@@ -364,49 +364,6 @@ class Environment:
 
         return energy_consumption, peak_load
 
-    # Calculate simulation values
-    def calc_self_supply(self):
-        """
-
-        :return: None
-        """
-        df = self.df
-        df['Self supply [W]'] = df['WT total power [W]'] + df['PV total power [W]']
-        remaining_load = df['P_Res [W]'] - df['WT total power [W]'] - df['PV total power [W]']
-        df['P_Res (after RE) [W]'] = np.where(remaining_load < 0, 0, remaining_load)
-
-    def calc_lcoe(self, system_component: object):
-        """
-        Calculate LCOE
-        :param system_component: object
-            system component
-        :return: list
-            lcoe: float
-            energy_yield: float
-        """
-        d = self.d_rate
-        i_c = system_component.c_invest
-        o_m_c = system_component.c_op_main
-        var_c = system_component.c_var
-        energy_yield = system_component.df['P [W]'] / 1000
-
-        lcoe = 0
-        for n in range(self.lifetime):
-            f = (1+d)**n
-            lcoe += (i_c + o_m_c/f+var_c/f)/(energy_yield/f)
-        print(lcoe)
-
-        return lcoe, energy_yield
-
-    def calc_lcos(self):
-        """
-
-        :return:
-        """
-        lcos = 0
-
-        return lcos
-
 
 if __name__ == '__main__':
     start = dt.datetime(year=2022, month=1, day=1, hour=0, minute=0)

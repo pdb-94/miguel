@@ -75,7 +75,7 @@ class DieselGenerator:
         self.df.loc[clock, 'Fuel Ticks [%]'] = self.fuel_df.loc[self.df.loc[clock, 'P [%]'], 'Fuel Ticks [%]']
         self.df.loc[clock, 'Fuel Consumption [l/h]'] = self.df.loc[clock, 'Fuel Ticks [%]'] * self.fuel_consumption
         self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] = \
-            self.df.loc[clock, 'Fuel Consumption [l/h]'] / 60 * self.env.i_step
+            self.df.loc[clock, 'Fuel Consumption [l/h]'] * self.env.i_step / 60
         self.df.loc[clock, 'Fuel cost [US$]'] = self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] * self.fuel_price
 
         return self.df.loc[clock, 'P [W]']
