@@ -3,14 +3,9 @@ import os
 import calendar
 # import random
 # import numpy as np
-# import pandas as pd
 # import datetime as dt
 import matplotlib.pyplot as plt
-# from matplotlib.sankey import Sankey
-# import folium
-# import fpdf as fpdf
 import io
-# import selenium
 import folium
 import pandas as pd
 from PIL import Image
@@ -56,7 +51,7 @@ class Report:
         # Set author
         self.pdf.set_author('Paul Bohn')
         self.pdf.set_creator('Micro Grid User Energy Planning Tool Library')
-        self.pdf.set_keywords('EnerSHelF, Renewable Energy, Energy systems, Modeling')
+        self.pdf.set_keywords('EnerSHelF, Renewable Energy, Energy systems, MiGUEL, PV-Diesel-Hybrid systems')
         self.pdf.add_page()
         self.pdf.chapter_title(label='Energy system: ' + self.name + '\n\n', size=14)
         # Create Chapters
@@ -66,6 +61,7 @@ class Report:
         self.energy_consumption()
         self.energy_supply()
         self.dispatch()
+        self.evaluation()
         # Create report
         self.pdf.output(self.report_path + self.name + '.pdf')
 
@@ -74,12 +70,40 @@ class Report:
         Create Introduction and Summary
         :return: None
         """
+        # Retrieve energy values from operator
+        total_energy = round(self.operator.energy_data[0] / 1000, 2)
+        pv_energy = round(self.operator.energy_supply_parameters[0], 2)
+        pv_percentage = round(pv_energy / total_energy * 100, 2)
+        wt_energy = round(self.operator.energy_supply_parameters[1], 2)
+        wt_percentage = round(wt_energy / total_energy * 100, 2)
+        grid_energy = round(self.operator.energy_supply_parameters[2], 2)
+        grid_percentage = round(grid_energy / total_energy * 100, 2)
+        dg_energy = round(self.operator.energy_supply_parameters[3], 2)
+        dg_percentage = round(dg_energy / total_energy * 100, 2)
+        es_charge = round(self.operator.energy_supply_parameters[4], 2)
+        es_discharge = round(self.operator.energy_supply_parameters[5], 2)
+        # Write chapter depending if energy consumption is met
         if self.operator.system_covered is True:
-            summary = "With the selected system configuration, the energy demand is covered."
+            system_status = "With the selected system configuration, the energy demand of " + str(total_energy) + \
+                            " kWh is covered."
         else:
-            summary = "With the selected system configuration, the energy demand is not covered. " \
-                      "The maximum power to be covered equals " + str(self.operator.power_sink_max) + "W. " + \
-                      "The table shows the time stamps and the power to be covered. \n\n"
+            system_status = "With the selected system configuration, the energy demand of " + str(total_energy) + \
+                            " kWh is not covered. The maximum remaining power to be covered equals " + \
+                            str(self.operator.power_sink_max) + \
+                            "W. The table shows the time stamps and the power to be covered. "
+        summary = system_status + "The PV system(s) account for " + str(pv_percentage) + "% (" + str(pv_energy) + \
+                  " kWh); The wind turbine(s) account for " + str(wt_percentage) + "% (" + str(wt_energy) + \
+                  " kWh); The grid accounts  " + str(grid_percentage) + "% (" + str(grid_energy) + \
+                  " kWh); The diesel generator(s) account for " + str(dg_percentage) + "% (" + \
+                  str(dg_energy) + " kWh) of the total energy consumption. The energy storage(s) provide " + \
+                  str(abs(es_discharge)) + " kWh and are charged with " + str(abs(es_charge)) + " kWh.\n\n"
+        self.create_txt(file_name='summary',
+                        text=summary)
+        self.pdf.print_chapter(chapter_type=[False, False],
+                               title=['Introduction', 'Summary'],
+                               file=[self.txt_file_path + 'default/introduction.txt',
+                                     self.txt_file_path + 'summary.txt'])
+        if self.operator.system_covered is not True:
             summary_header = ['Time stamps', 'P [W]']
             # Define table values
             summary_values = [summary_header]
@@ -90,13 +114,6 @@ class Report:
                 data.append(self.operator.power_sink.loc[row, 'P [W]'])
                 summary_values.append(data)
             summary_data = [[''], summary_values]
-        self.create_txt(file_name='summary',
-                        text=summary)
-        self.pdf.print_chapter(chapter_type=[False, False],
-                               title=['Introduction', 'Summary'],
-                               file=[self.txt_file_path + 'default/introduction.txt',
-                                     self.txt_file_path + 'summary.txt'])
-        if self.operator.system_covered is False:
             self.pdf.create_table(file=self.pdf,
                                   table=summary_data,
                                   padding=1.5)
@@ -107,17 +124,12 @@ class Report:
         :return: None
         TODO: Add system type (grid connection/blackout) to input data
         """
-        # Create txt-file
-        base_data = 'The following parameters are provided through the user. If no values were entered default values will be used.' \
-                    ' The chapter functions as an overview of the base parameters. The location is displayed  \n\n'
-        self.create_txt(file_name='1_base_data',
-                        text=base_data)
         # Create map
         self.create_map()
         # Create chapter
         self.pdf.print_chapter(chapter_type=[True],
                                title=['1 Base data'],
-                               file=[self.txt_file_path + '1_base_data.txt'])
+                               file=[self.txt_file_path + 'default/1_base_data.txt'])
         input_header = ['Parameter', 'Values']
         input_values = [input_header]
         for row in self.input_parameter.index:
@@ -135,23 +147,6 @@ class Report:
         Create chapter 2 - Weather data
         :return: None
         """
-        # Create txt-file
-        weather_data_2 = 'In the upcoming chapter displays climate conditions at the selected location. ' \
-                         'The provided data originates from the Photovoltaic Geographical Information System (PVGIS) hosted by the European Commission.' \
-                         'The data is created from a typical meteorological year (TMY). For this purpose, the typical meteorological ' \
-                         'month in the period 2005-2016 is selected. ' \
-                         'The table shows the month and the years where the data is taken from.  \n\n'
-        self.create_txt(file_name='2_weather_data',
-                        text=weather_data_2)
-        weather_data_2_1 = 'The plot shows the global horizontal irradiation (GHI), direct normal irradiation (DNI) ' \
-                           'and the direct horizontal irradiation (DHI) at the selected location in an hourly ' \
-                           'resolution based on the TMY. The table shows the average monthly GHI, DNI and DHI values.\n\n'
-        self.create_txt(file_name='2_1_solar_radiation',
-                        text=weather_data_2_1)
-        weather_data_2_2 = 'The plot shows the wind speed at 10m height in hourly-resolution. ' \
-                           'The table shows the monthly average wind speed and direction. \n\n'
-        self.create_txt(file_name='2_2_wind_speed',
-                        text=weather_data_2_2)
         # Create plots
         self.create_plot(df=self.weather_data[0], columns=['ghi', 'dni', 'dhi'], file_name='solar_data',
                          y_label='P [W/m²]')
@@ -161,7 +156,7 @@ class Report:
         # Print chapter 2
         self.pdf.print_chapter(chapter_type=[True],
                                title=['2 Climate data'],
-                               file=[self.txt_file_path + '2_weather_data.txt'])
+                               file=[self.txt_file_path + 'default/2_weather_data.txt'])
         tmy_header = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                       'November', 'December']
         tmy_values = [tmy_header]
@@ -177,7 +172,7 @@ class Report:
         # 2.1 Solar irradiation
         self.pdf.print_chapter(chapter_type=[False],
                                title=['2.1 Solar irradiation'],
-                               file=[self.txt_file_path + '2_1_solar_radiation.txt'])
+                               file=[self.txt_file_path + 'default/2_1_solar_radiation.txt'])
         # Plot solar irradiation
         self.pdf.image(name=self.report_path + 'pictures/' + '/solar_data.png', w=140, x=35)
         # Monthly solar data Table
@@ -199,7 +194,7 @@ class Report:
         # 2.2 Wind speed
         self.pdf.print_chapter(chapter_type=[False],
                                title=['2.2 Wind speed'],
-                               file=[self.txt_file_path + '2_2_wind_speed.txt'])
+                               file=[self.txt_file_path + 'default/2_2_wind_speed.txt'])
         self.pdf.image(name=self.report_path + 'pictures/' + '/wind_data.png', w=140, x=35)
         # Monthly weather data Table
         wind_data_header = ['Month', 'Avg. Wind Speed [m/s]', 'Avg. Wind direction [°]']
@@ -220,7 +215,8 @@ class Report:
         month_max = calendar.month_name[month_max]
         wind_speed_average = round(self.env.monthly_weather_data['wind_speed'].mean(), 3)
         wind_direction_average = round(self.env.monthly_weather_data['wind_direction'].mean(), 3)
-        wind_table_text = 'The main wind direction is ' + str(wind_direction_average) + '°. The annual average wind speed is ' \
+        wind_table_text = 'The main wind direction is ' + str(
+            wind_direction_average) + '°. The annual average wind speed is ' \
                           + str(wind_speed_average) + ' m/s. The highest monthly wind speed occurs in ' \
                           + month_max + ' and is ' + str(wind_speed_max) + ' m/s.'
         self.create_txt(file_name='2_2_table_description',
@@ -232,20 +228,13 @@ class Report:
         Create chapter 3 - Energy consumption
         :return: None
         """
-        # Create txt-file
-        energy_consumption_3 = 'The energy consumption is calculated based on the load profile. ' \
-                               'The total load profile over the considered period is created by repeating the input load profile. ' \
-                               'The total energy consumption, peak load, energy cost and CO2 emissions are calculated using the total load profile. ' \
-                               'The energy costs and CO2 emissions refer to a power generation by the power grid or a diesel generator and are used as comparative values for grid-connected and off-grid systems. \n\n'
-        self.create_txt(file_name='3_energy_consumption',
-                        text=energy_consumption_3)
         # Create plot
         self.create_plot(df=self.env.load[0].load_profile, columns=['P [W]'], file_name='load_profile',
                          x_label='Time', y_label='P [kW]', factor=1000)
         # Print Chapters
         self.pdf.print_chapter(chapter_type=[True],
                                title=['3 Energy consumption'],
-                               file=[self.txt_file_path + '3_energy_consumption.txt'])
+                               file=[self.txt_file_path + 'default/3_energy_consumption.txt'])
         self.pdf.image(name=self.report_path + 'pictures/' + 'load_profile.png', w=150, x=30)
         # Create table with reference parameters
         energy_con_header = ['', 'Power Grid', 'Diesel Generator']
@@ -275,27 +264,6 @@ class Report:
         :return: None
         TODO: Add grid connection and blackout data
         """
-        system_config_4 = 'The chapter system configuration contains detailed information about the selected system components.' \
-                          ' This includes parameters such as nominal power/capacity, specific investment and operation and' \
-                          'maintenance cost (chapter 4.1). Furthermore the renewable energy energy supply is displayed (chapter 4.2).\n '
-        self.create_txt(file_name='4_system_configuration',
-                        text=system_config_4)
-        system_config_4_1_supply = 'The upcoming tables list all system components of the energy system. ' \
-                                   'The system components are split up into the categories energy supply and energy storage. \n\n' \
-                                   'Energy supply:'
-        self.create_txt(file_name='4_1_system_components',
-                        text=system_config_4_1_supply)
-        system_config_4_1_storage = '\nEnergy Storage:'
-        self.create_txt(file_name='4_1_energy_storage',
-                        text=system_config_4_1_storage)
-        system_config_4_1_description = '\nP : \t\t\t\t\t\t\t Nominal power  \n' \
-                                        + 'i_c: \t\t\t\t\t\t Specific investment cost \n' \
-                                        + 'I_c: \t\t\t\t\t\t Investment cost \n' \
-                                        + 'om_c: \t\t Specific operation maintenance cost \n' \
-                                        + 'OM_c: \t Operation maintenance cost \n' \
-                                        + 'W: \t\t\t\t\t\t\t Capacity\n\n'
-        self.create_txt(file_name='4_1_system_configuration_description',
-                        text=system_config_4_1_description)
         # 4.2 RE Supply - contains annual RE production with system configurations
         # Create Plot
         columns = []
@@ -318,10 +286,10 @@ class Report:
                         text=re_production)
         self.pdf.print_chapter(chapter_type=[True],
                                title=['4 System configuration'],
-                               file=[self.txt_file_path + '4_system_configuration.txt'])
+                               file=[self.txt_file_path + 'default/4_system_configuration.txt'])
         self.pdf.print_chapter(chapter_type=[False],
                                title=['4.1 System components'],
-                               file=[self.txt_file_path + '4_1_system_components.txt'],
+                               file=[self.txt_file_path + 'default/4_1_system_components.txt'],
                                size=10)
         # Create Supply table
         supply_header = ['Component', 'Name', 'P [kW]', 'i_c ' + '[' + self.env.currency + '/kW]',
@@ -334,7 +302,7 @@ class Report:
             supply_values.append(self.env.supply_data.loc[row, :].values.tolist())
         supply_components = [[''], supply_values]
         self.pdf.create_table(file=self.pdf, table=supply_components, padding=2)
-        self.pdf.chapter_body(name=self.txt_file_path + '4_1_energy_storage.txt',
+        self.pdf.chapter_body(name=self.txt_file_path + 'default/4_1_energy_storage.txt',
                               size=10)
         # Get technical data from env.storage_data
         storage_header = ['Component', 'Name', 'P [kW]', 'W [kWh]', 'i_c ' + '[' + self.env.currency + '/kWh]',
@@ -345,7 +313,7 @@ class Report:
             storage_values.append(self.env.storage_data.loc[row, :].values.tolist())
         storage_components = [[''], storage_values]
         self.pdf.create_table(file=self.pdf, table=storage_components, padding=2)
-        self.pdf.chapter_body(name=self.txt_file_path + '4_1_system_configuration_description.txt', size=8)
+        self.pdf.chapter_body(name=self.txt_file_path + 'default/4_1_system_configuration_description.txt', size=8)
         # Chapter 4 - Monthly data
         self.pdf.print_chapter(chapter_type=[False],
                                title=['4.2 Renewable energy supply'],
@@ -360,7 +328,7 @@ class Report:
         """
         env = self.env
         dispatch_5 = "This chapter presents the dispatch of the power system. The system is considered a '" \
-                     + self.env.system + "'. The plot below shows the load profile and the power the system components supply in kW. "\
+                     + self.env.system + "'. The plot below shows the load profile and the power the system components supply in kW. " \
                      + "Energy storage systems can both consume and supply power. Negative values correspond to " \
                      + "power output (power source), positive loads to power input (power sink).\n\n "
         self.create_txt(file_name='5_dispatch', text=dispatch_5)
@@ -382,6 +350,22 @@ class Report:
             columns.append(dg.name + ' [W]')
         self.create_plot(df=self.operator.df, columns=columns, file_name='dispatch', y_label='P [W]')
         self.pdf.image(name=self.report_path + 'pictures/' + '/dispatch.png', w=150, x=30)
+
+    def evaluation(self):
+        """
+        Chapter 6 - evaluation
+        :return: None
+        """
+        self.pdf.print_chapter(chapter_type=[True],
+                               title=['6 Evaluation'],
+                               file=[self.txt_file_path + 'default/6_evaluation.txt'],
+                               size=10)
+        economic_6_1 = ""
+        self.create_txt(file_name='6_1_economic_evaluation', text=economic_6_1)
+        self.pdf.print_chapter(chapter_type=[False],
+                               title=['6.1 Economic evaluation'],
+                               file=[self.txt_file_path + '6_1_economic_evaluation.txt'],
+                               size=10)
 
     def create_input_parameter(self):
         """

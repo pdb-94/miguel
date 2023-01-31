@@ -7,7 +7,6 @@ class DieselGenerator:
     """
     Class to represent Diesel Generators
     """
-
     def __init__(self,
                  env,
                  name: str = None,
@@ -61,11 +60,13 @@ class DieselGenerator:
 
     def run(self, clock: dt.datetime, power: float):
         """
+        Calculate power output, fuel consumption and cost per time step
         :param clock: dt.datetime
             time stamp
         :param power: float
             power [W]
-        :return: None
+        :return: float
+            power [W]
         """
         if power > self.p_n:
             power = self.p_n
@@ -73,7 +74,8 @@ class DieselGenerator:
         self.df.loc[clock, 'P [%]'] = round(self.df.loc[clock, 'P [W]'] / self.p_n, 2)
         self.df.loc[clock, 'Fuel Ticks [%]'] = self.fuel_df.loc[self.df.loc[clock, 'P [%]'], 'Fuel Ticks [%]']
         self.df.loc[clock, 'Fuel Consumption [l/h]'] = self.df.loc[clock, 'Fuel Ticks [%]'] * self.fuel_consumption
-        self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] = self.df.loc[clock, 'Fuel Consumption [l/h]'] / 60 * self.env.i_step
+        self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] = \
+            self.df.loc[clock, 'Fuel Consumption [l/h]'] / 60 * self.env.i_step
         self.df.loc[clock, 'Fuel cost [US$]'] = self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] * self.fuel_price
 
         return self.df.loc[clock, 'P [W]']

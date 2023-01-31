@@ -359,7 +359,7 @@ class Environment:
 
         :return: energy_consumption, peak_load
         """
-        energy_consumption = self.df['P_Res [W]'].sum()
+        energy_consumption = self.df['P_Res [W]'].sum() * self.i_step / 60
         peak_load = self.df['P_Res [W]'].max()
 
         return energy_consumption, peak_load
