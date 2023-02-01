@@ -5,10 +5,6 @@ import datetime as dt
 import pandas as pd
 import windpowerlib
 
-# TODO:
-#  - self.interpolate_values/dispatch: interpolate values only for env.df.index
-#  - create container for wind farm: https://windpowerlib.readthedocs.io/en/stable/modules.html#data-container
-
 
 class WindTurbine:
     """
@@ -45,6 +41,7 @@ class WindTurbine:
         self.c_invest_n = 1325.0  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 63
         self.c_op_main_n = self.c_invest_n * 0.052  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
         self.c_var = 0.0035  # USD/kWh Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.co2_init = 0
         # Location
         self.longitude = location.get('longitude')
         self.latitude = location.get('latitude')

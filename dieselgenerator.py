@@ -35,6 +35,7 @@ class DieselGenerator:
         self.c_var = 0.021  # USD/kWh Sustainable Energy Handbook Moduele 6.1 Simplified Financial Models
         self.fuel_consumption = fuel_consumption  # [l/p_n]
         self.fuel_price = fuel_price  # [US$/l]
+        self.co2_init = 0
         self.df = pd.DataFrame(columns=['P [W]',
                                         'P [%]',
                                         'Fuel Consumption [l/h]',
