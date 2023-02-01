@@ -9,6 +9,7 @@ import io
 import folium
 import pandas as pd
 from PIL import Image
+import selenium
 from report.pdf import PDF
 
 
@@ -35,6 +36,7 @@ class Report:
         # Weather data
         self.weather_data = self.env.weather_data
         self.input_parameter = self.create_input_parameter()
+        self.evaluation_df = self.create_evaluation_parameter()
         # Root path
         self.root = sys.path[1]
         self.report_path = self.root + '/report/'
@@ -65,29 +67,33 @@ class Report:
         # Create report
         self.pdf.output(self.report_path + self.name + '.pdf')
 
+    '''Functions to create chapters'''
     def introduction_summary(self):
         """
         Create Introduction and Summary
         :return: None
         """
         # Retrieve energy values from operator
-        total_energy = round(self.operator.energy_data[0] / 1000, 2)
-        pv_energy = round(self.operator.energy_supply_parameters[0], 2)
+        total_energy = int(self.operator.energy_data[0])
+        energy_parameters = self.retrieve_energy_parameters()
+        pv_energy = energy_parameters[0]
         pv_percentage = round(pv_energy / total_energy * 100, 2)
-        wt_energy = round(self.operator.energy_supply_parameters[1], 2)
+        wt_energy = energy_parameters[1]
         wt_percentage = round(wt_energy / total_energy * 100, 2)
-        grid_energy = round(self.operator.energy_supply_parameters[2], 2)
+        grid_energy = energy_parameters[2]
         grid_percentage = round(grid_energy / total_energy * 100, 2)
-        dg_energy = round(self.operator.energy_supply_parameters[3], 2)
+        dg_energy = energy_parameters[3]
         dg_percentage = round(dg_energy / total_energy * 100, 2)
-        es_charge = round(self.operator.energy_supply_parameters[4], 2)
-        es_discharge = round(self.operator.energy_supply_parameters[5], 2)
+        es_charge = energy_parameters[4]
+        es_discharge = energy_parameters[5]
         # Write chapter depending if energy consumption is met
         if self.operator.system_covered is True:
-            system_status = "With the selected system configuration, the energy demand of " + str(total_energy) + \
+            system_status = "The selected system is considered an '" + self.env.system + \
+                            "'. With the selected system configuration, the energy demand of " + str(total_energy) + \
                             " kWh is covered."
         else:
-            system_status = "With the selected system configuration, the energy demand of " + str(total_energy) + \
+            system_status = "The selected system is considered an '" + self.env.system + \
+                            "'. With the selected system configuration, the energy demand of " + str(total_energy) + \
                             " kWh is not covered. The maximum remaining power to be covered equals " + \
                             str(self.operator.power_sink_max) + \
                             "W. The table shows the time stamps and the power to be covered. "
@@ -103,20 +109,37 @@ class Report:
                                title=['Introduction', 'Summary'],
                                file=[self.txt_file_path + 'default/introduction.txt',
                                      self.txt_file_path + 'summary.txt'])
-        if self.operator.system_covered is not True:
-            summary_header = ['Time stamps', 'P [W]']
-            # Define table values
-            summary_values = [summary_header]
-            # Get technical data from env.supply_data
-            for row in self.operator.power_sink.index:
-                data = []
-                data.append(row)
-                data.append(self.operator.power_sink.loc[row, 'P [W]'])
-                summary_values.append(data)
-            summary_data = [[''], summary_values]
-            self.pdf.create_table(file=self.pdf,
-                                  table=summary_data,
-                                  padding=1.5)
+        # if self.operator.system_covered is not True:
+        #     summary_header = ['Time stamps', 'P [W]']
+        #     # Define table values
+        #     summary_values = [summary_header]
+        #     # Get technical data from env.supply_data
+        #     for row in self.operator.power_sink.index:
+        #         data = [row]
+        #         data.append(self.operator.power_sink.loc[row, 'P [W]'])
+        #         summary_values.append(data)
+        #     summary_data = [[''], summary_values]
+        #     self.pdf.create_table(file=self.pdf,
+        #                           table=summary_data,
+        #                           padding=1.5)
+        # Create evaluation table
+        evaluation_header = ['Component',
+                             'Energy production [kWh]',
+                             'Investment Cost [' + self.env.currency + ']',
+                             'LCOE [' + self.env.currency + '/kWh]',
+                             'CO2-emissions [t]']
+        evaluation_values = [evaluation_header]
+        for row in self.evaluation_df.index:
+            data = [row]
+            data.append(round(self.evaluation_df.loc[row, 'Energy production [kWh]'], 0))
+            data.append(round(self.evaluation_df.loc[row, 'Investment Cost [' + self.env.currency + ']'], 0))
+            data.append(round(self.evaluation_df.loc[row, 'LCOE [' + self.env.currency + '/kWh]'], 2))
+            data.append(round(self.evaluation_df.loc[row, 'CO2-emissions [t]'], 3))
+            evaluation_values.append(data)
+        evaluation_data = [[''], evaluation_values]
+        self.pdf.create_table(file=self.pdf,
+                              table=evaluation_data,
+                              padding=2)
 
     def base_data(self):
         """
@@ -179,8 +202,7 @@ class Report:
         solar_data_header = ['Month', 'Avg. GHI [W/m²]', 'Avg. DNI [W/m²]', 'Avg. DHI [W/m²]']
         solar_values = [solar_data_header]
         for row in self.env.monthly_weather_data.index:
-            data = []
-            data.append(calendar.month_name[row])
+            data = [calendar.month_name[row]]
             data.append(round(self.env.monthly_weather_data.iloc[row - 1, 2], 3))
             data.append(round(self.env.monthly_weather_data.iloc[row - 1, 3], 3))
             data.append(round(self.env.monthly_weather_data.iloc[row - 1, 4], 3))
@@ -190,7 +212,6 @@ class Report:
                               table=solar_data,
                               padding=1.5)
         self.pdf.ln(h=10)
-        solar_table_description = ''
         # 2.2 Wind speed
         self.pdf.print_chapter(chapter_type=[False],
                                title=['2.2 Wind speed'],
@@ -200,8 +221,7 @@ class Report:
         wind_data_header = ['Month', 'Avg. Wind Speed [m/s]', 'Avg. Wind direction [°]']
         wind_values = [wind_data_header]
         for row in self.env.monthly_weather_data.index:
-            data = []
-            data.append(calendar.month_name[row])
+            data = [calendar.month_name[row]]
             data.append(round(self.env.monthly_weather_data.iloc[row - 1, 6], 3))
             data.append(round(self.env.monthly_weather_data.iloc[row - 1, 7], 3))
             wind_values.append(data)
@@ -367,6 +387,7 @@ class Report:
                                file=[self.txt_file_path + '6_1_economic_evaluation.txt'],
                                size=10)
 
+    '''Functions to create chapter data'''
     def create_input_parameter(self):
         """
         Create DataFrame with input Parameters
@@ -386,6 +407,53 @@ class Report:
         df = pd.DataFrame.from_dict(data=data)
 
         return df
+
+    def create_evaluation_parameter(self):
+        """
+        Create df with system evaluation parameters
+        :return: pd.DataFrame
+            Parameters for system evaluation
+        """
+        env = self.env
+        df = self.operator.evaluation_df
+        df = df.set_index('Component')
+        for pv in self.env.pv:
+            df.loc[pv.name, 'Investment Cost [' + env.currency + ']'] = pv.c_invest_n*pv.p_n/1000
+        for wt in self.env.wind_turbine:
+            df.loc[wt.name, 'Investment Cost [' + env.currency + ']'] = wt.c_invest_n*wt.p_n/1000
+        for dg in self.env.diesel_generator:
+            df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = dg.c_invest_n*dg.p_n/1000
+        df.loc['System', 'Investment Cost [' + env.currency + ']'] = df['Investment Cost [' + env.currency + ']'].sum()
+
+        return df
+
+    def retrieve_energy_parameters(self):
+        """
+        Retrieve and calculate energy supply per component group
+        :return: list
+            energy supply values
+        """
+        env = self.env
+        data = self.operator.energy_supply_parameters
+        pv_energy = 0
+        wt_energy = 0
+        grid_energy = 0
+        dg_energy = 0
+        es_charge = 0
+        es_discharge = 0
+        for pv in env.pv:
+            pv_energy += int(data[0][pv.name])
+        for wt in env.wind_turbine:
+            wt_energy += int(data[1][wt.name])
+        for grid in env.grid:
+            grid_energy += int(data[2][grid.name])
+        for dg in env.diesel_generator:
+            dg_energy += int(data[3][dg.name])
+        for es in env.storage:
+            es_charge += int(data[4][es.name])
+            es_discharge += int(data[5][es.name])
+
+        return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
     def create_plot(self, df: pd.DataFrame, columns: list, file_name: str, x_label: str = None, y_label: str = None,
                     factor: float = None):

@@ -37,7 +37,6 @@ class Operator:
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
         self.evaluation_df = self.evaluate_system()
-        print(self.evaluation_df)
 
     ''' Basic Functions'''
     def build_df(self):
@@ -295,8 +294,8 @@ class Operator:
             discharge_values = []
             charge_values.extend(np.where(self.df[col] > 0, self.df[col], 0).tolist())
             discharge_values.extend(np.where(self.df[col] < 0, self.df[col], 0).tolist())
-            es_charge[col] = sum(charge_values) * self.env.i_step / 60 / 1000
-            es_discharge[col] = sum(discharge_values) * self.env.i_step / 60 / 1000
+            es_charge[es.name] = sum(charge_values) * self.env.i_step / 60 / 1000
+            es_discharge[es.name] = sum(discharge_values) * self.env.i_step / 60 / 1000
 
         return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
@@ -310,27 +309,27 @@ class Operator:
         """
         df = pd.DataFrame(columns=['Component',
                                    'Energy production [kWh]',
-                                   'LCOE [' + self.env.currency,
-                                   'CO2-emissions [kg]'])
+                                   'LCOE [' + self.env.currency + '/kWh]',
+                                   'CO2-emissions [t]'])
         env = self.env
         for pv in env.pv:
             lcoe = self.economic_evaluation(pv)
-            co2 = self.ecological_evaluation(pv)
+            co2 = self.ecological_evaluation(pv)/1000
             parameters = [pv.name, self.energy_supply_parameters[0][pv.name], lcoe, co2]
             df.loc[len(df)] = parameters
         for wt in env.wind_turbine:
             lcoe = self.economic_evaluation(wt)
-            co2 = self.ecological_evaluation(wt)
+            co2 = self.ecological_evaluation(wt)/1000
             parameters = [wt.name, self.energy_supply_parameters[1][wt.name], lcoe, co2]
             df.loc[len(df)] = parameters
         for grid in env.grid:
             lcoe = self.economic_evaluation(grid)
-            co2 = self.ecological_evaluation(grid)
+            co2 = self.ecological_evaluation(grid)/1000
             parameters = [grid.name, self.energy_supply_parameters[2][grid.name], lcoe, co2]
             df.loc[len(df)] = parameters
         for dg in env.diesel_generator:
             lcoe = self.economic_evaluation(dg)
-            co2 = self.ecological_evaluation(dg)
+            co2 = self.ecological_evaluation(dg)/1000
             parameters = [dg.name, self.energy_supply_parameters[3][dg.name], lcoe, co2]
             df.loc[len(df)] = parameters
 
@@ -434,8 +433,9 @@ class Operator:
         """
         system_lcoe = 0
         for i in range(len(df)):
-            if df.loc[i, 'LCOE'] is not None:
-                system_lcoe += df.loc[i, 'LCOE'] * df.loc[i, 'Energy production [kWh]'] / self.energy_consumption
+            if df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] is not None:
+                system_lcoe += df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] \
+                               * df.loc[i, 'Energy production [kWh]'] / self.energy_consumption
         system_lcoe = system_lcoe
 
         return system_lcoe
@@ -448,7 +448,7 @@ class Operator:
         :return: float
             system CO2-emissions
         """
-        total_co2_emission = df['CO2-emissions [kg]'].sum()
+        total_co2_emission = df['CO2-emissions [t]'].sum()
 
         return total_co2_emission
 
@@ -456,7 +456,7 @@ class Operator:
 if __name__ == '__main__':
     start_time = time.time()
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2021, month=12, day=31, hour=23, minute=59)
+    end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
     environment = Environment(name='St. Dominics Hospital',
                               time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
                               location={'longitude': -0.7983,
@@ -474,7 +474,7 @@ if __name__ == '__main__':
     environment.add_diesel_generator(p_n=30000, fuel_consumption=9.7, fuel_price=1.20)
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
     operator = Operator(env=environment)
-    # report = Report(environment=environment, operator=operator)
+    report = Report(environment=environment, operator=operator)
     # print(operator.df)
     # operator.df.plot()
     # plt.show()

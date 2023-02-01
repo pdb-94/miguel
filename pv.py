@@ -106,7 +106,7 @@ class PV:
             self.annual_pv_yield.index = self.convert_index_time()
             self.pv_yield = self.annual_pv_yield.loc[self.env.time_series[0]:self.env.time_series[-1]]
             self.pv_yield = self.interpolate_values()
-            self.df['P [W]'] = self.pv_yield
+            self.df['P [W]'] = np.where(self.pv_yield < 0, 0, self.pv_yield)
 
         # Economic parameters
         self.c_invest_n = 875  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 79

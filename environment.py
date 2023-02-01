@@ -99,7 +99,7 @@ class Environment:
         # Grid connection
         self.grid_connection = grid_connection
         self.blackout = blackout
-        system = {0: 'Off Grid System', 1: 'Stable Grid connection', 2: 'Unstable Grid connection'}
+        system = {0: 'Off Grid System', 1: 'On Grid System (stable)', 2: 'On Grid System (unstable)'}
         if self.grid_connection is True:
             if self.blackout is True:
                 self.df['Blackout'] = blackout_data.values
@@ -363,6 +363,8 @@ class Environment:
         peak_load = self.df['P_Res [W]'].max()
 
         return energy_consumption, peak_load
+
+
 
 
 if __name__ == '__main__':
