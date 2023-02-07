@@ -71,6 +71,7 @@ class Operator:
         return df
 
     ''' Simulation '''
+
     def dispatch(self):
         """
         dispatch dispatch:
@@ -99,6 +100,12 @@ class Operator:
             else:
                 # Off grid system
                 self.off_grid(clock=clock)
+        for pv in self.env.pv:
+            col = pv.name + ' [W]'
+            self.df[col] = np.where(self.df[col] < 0, 0, self.df[col])
+        if self.env.feed_in is True:
+            for component in env.re_supply:
+                self.feed_in(component=component)
         power_sink = self.check_dispatch()
         self.power_sink = pd.concat([self.power_sink, power_sink])
         self.power_sink_max = float(self.power_sink.max())
@@ -110,7 +117,7 @@ class Operator:
     def check_dispatch(self):
         """
         Check if all load is covered with current system components
-        :return:
+        :return: None
         """
         power_sink = {}
         for clock in self.df.index:
@@ -191,28 +198,41 @@ class Operator:
         for dg in env.diesel_generator:
             self.dg_profile(clock=clock, dg=dg)
 
-    def re_self_supply(self, clock: dt.datetime, component: object):
+    def feed_in(self, component: PV or WindTurbine):
+        """
+        Calculate RE feed-in power and revenues
+        :param component: PV/WindTurbine
+        :return: None
+        """
+        self.df[component.name + ' Feed in [W]'] = self.df[component.name + ' remain [W]']
+        if isinstance(component, PV):
+            self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
+                = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.pv_feed_in_tariff
+        elif isinstance(component, WindTurbine):
+            self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
+                = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
+
+    def re_self_supply(self, clock: dt.datetime, component: PV or WindTurbine):
         """
         Calculate re self-consumption
         :param clock: dt.datetime
              time stamp
-        :param component: object
-            re component (pv, wind turbine)
+        :param component: PV/Windturbine
+            RE component
         :return: None
         """
-        if isinstance(component, PV) or isinstance(component, WindTurbine):
-            df = self.df
-            df.loc[clock, component.name + ' [W]'] = np.where(
-                df.loc[clock, 'P_Res [W]'] > component.df.loc[clock, 'P [W]'],
-                component.df.loc[clock, 'P [W]'], df.loc[clock, 'P_Res [W]'])
-            df.loc[clock, component.name + ' [W]'] = np.where(
-                df.loc[clock, component.name + ' [W]'] < 0, 0, df.loc[clock, component.name + ' [W]'])
-            df.loc[clock, component.name + ' remain [W]'] = np.where(
-                component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'] < 0,
-                0, component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'])
-            df.loc[clock, 'P_Res [W]'] -= df.loc[clock, component.name + ' [W]']
-            if df.loc[clock, 'P_Res [W]'] < 0:
-                df.loc[clock, 'P_Res [W]'] = 0
+        df = self.df
+        df.loc[clock, component.name + ' [W]'] = np.where(
+            df.loc[clock, 'P_Res [W]'] > component.df.loc[clock, 'P [W]'],
+            component.df.loc[clock, 'P [W]'], df.loc[clock, 'P_Res [W]'])
+        df.loc[clock, component.name + ' [W]'] = np.where(
+            df.loc[clock, component.name + ' [W]'] < 0, 0, df.loc[clock, component.name + ' [W]'])
+        df.loc[clock, component.name + ' remain [W]'] = np.where(
+            component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'] < 0,
+            0, component.df.loc[clock, 'P [W]'] - df.loc[clock, 'P_Res [W]'])
+        df.loc[clock, 'P_Res [W]'] -= df.loc[clock, component.name + ' [W]']
+        if df.loc[clock, 'P_Res [W]'] < 0:
+            df.loc[clock, 'P_Res [W]'] = 0
 
     def re_charge(self, clock: dt.datetime, es: Storage, component: PV or WindTurbine):
         """
@@ -237,6 +257,7 @@ class Operator:
         charge_power = es.charge(clock=clock,
                                  power=self.df.loc[clock, component.name + ' remain [W]'])
         self.df.loc[clock, es.name + ' [W]'] = charge_power
+        self.df.loc[clock, component.name + '_charge [W]'] = charge_power
         self.df.loc[clock, component.name + ' remain [W]'] -= charge_power
 
     def grid_profile(self, clock: dt.datetime):
@@ -268,7 +289,8 @@ class Operator:
     def calc_energy_parameters(self):
         """
         Calculate total energy supply for each component group.
-        :return:
+        :return:float
+            annual energy supply [kWh/a]
         """
         pv_energy = {}
         wt_energy = {}
@@ -300,7 +322,6 @@ class Operator:
         return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
     ''' Economical and Ecological parameters '''
-
     def evaluate_system(self):
         """
         Evaluate the system configuration
@@ -310,64 +331,89 @@ class Operator:
         df = pd.DataFrame(columns=['Component',
                                    'Energy production [kWh]',
                                    'LCOE [' + self.env.currency + '/kWh]',
-                                   'CO2-emissions [t]'])
+                                   'Total CO2-emissions [t]',
+                                   'Initial CO2-emissions [t]',
+                                   'Annual CO2-emissions [t/a]'])
         env = self.env
         for pv in env.pv:
-            lcoe = self.economic_evaluation(pv)
-            co2 = self.ecological_evaluation(pv)/1000
-            parameters = [pv.name, self.energy_supply_parameters[0][pv.name], lcoe, co2]
+            co2 = self.ecological_evaluation(pv)
+            lcoe = self.economic_evaluation(component=pv, co2=co2[0]/env.lifetime)
+            parameters = [pv.name, self.energy_supply_parameters[0][pv.name], lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for wt in env.wind_turbine:
-            lcoe = self.economic_evaluation(wt)
-            co2 = self.ecological_evaluation(wt)/1000
-            parameters = [wt.name, self.energy_supply_parameters[1][wt.name], lcoe, co2]
+            co2 = self.ecological_evaluation(wt)
+            lcoe = self.economic_evaluation(component=wt, co2=co2[0]/env.lifetime)
+            parameters = [wt.name, self.energy_supply_parameters[1][wt.name], lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for grid in env.grid:
-            lcoe = self.economic_evaluation(grid)
-            co2 = self.ecological_evaluation(grid)/1000
-            parameters = [grid.name, self.energy_supply_parameters[2][grid.name], lcoe, co2]
+            co2 = self.ecological_evaluation(grid)
+            lcoe = self.economic_evaluation(component=grid, co2=co2[0]/env.lifetime)
+            parameters = [grid.name, self.energy_supply_parameters[2][grid.name], lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for dg in env.diesel_generator:
-            lcoe = self.economic_evaluation(dg)
-            co2 = self.ecological_evaluation(dg)/1000
-            parameters = [dg.name, self.energy_supply_parameters[3][dg.name], lcoe, co2]
+            co2 = self.ecological_evaluation(dg)
+            lcoe = self.economic_evaluation(component=dg, co2=co2[0]/env.lifetime)
+            parameters = [dg.name, self.energy_supply_parameters[3][dg.name], lcoe, co2[0], co2[1], co2[2]]
+            df.loc[len(df)] = parameters
+        for es in env.storage:
+            co2 = self.ecological_evaluation(es)
+            lcoe = self.economic_evaluation(component=es, co2=co2[0]/env.lifetime)
+            parameters = [es.name, self.energy_supply_parameters[4][es.name], lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
 
         # Calculate System LCOE and CO2-Emissions
-        system_lcoe = self.total_lcoe(df=df)
         system_co2 = self.total_co2_emissions(df=df)
-        system_parameters = ['System', self.energy_consumption, system_lcoe, system_co2]
+        system_lcoe = self.total_lcoe(df=df)
+        system_parameters = ['System', self.energy_consumption, system_lcoe, system_co2[0], system_co2[1], system_co2[2]]
         df.loc[len(df)] = system_parameters
 
         return df
 
-    def economic_evaluation(self, component: object):
+    def economic_evaluation(self, component: object, co2: float):
         """
         Calculate component levelized cot of energy (LCOE)
         :param component: object
             energy supply component
+        :param co2: float
+            annual co2_emissions
         :return: float
             LCOE
         """
+        env = self.env
         name = component.name
         # Get component specific parameters
         if isinstance(component, PV):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            annual_operating_cost = component.c_op_main_n * component.p_n / 1000
+            annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
+            annual_cost = component.c_op_main_n * component.p_n / 1000
+            co2_cost = co2 * env.avg_co2_price
+            annual_operating_cost = annual_cost - annual_revenues + co2_cost
             annual_output = self.energy_supply_parameters[0][name]
         elif isinstance(component, WindTurbine):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            annual_operating_cost = component.c_op_main_n * component.p_n / 1000
+            annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
+            annual_cost = component.c_op_main_n * component.p_n / 1000
+            co2_cost = co2 * env.avg_co2_price
+            annual_operating_cost = annual_cost - annual_revenues + co2_cost
             annual_output = self.energy_supply_parameters[1][name]
+        elif isinstance(component, Grid):
+            capital_cost = 0
+            annual_output = self.energy_supply_parameters[2][name]
+            co2_cost = co2 * env.avg_co2_price
+            annual_operating_cost = annual_output * env.electricity_price + co2_cost
         elif isinstance(component, DieselGenerator):
             capital_cost = component.c_invest_n * component.p_n / 1000
             annual_output = self.energy_supply_parameters[3][name]
-            fuel_cost = component.df['Fuel cost [' + self.env.currency + ']'].sum()
-            annual_operating_cost = component.c_op_main_n * component.p_n / 1000 + annual_output * component.c_var + fuel_cost
+            co2_cost = co2 * env.avg_co2_price
+            fuel_cost = component.df['Fuel cost [' + env.currency + ']'].sum()
+            annual_operating_cost = component.c_op_main_n * component.p_n / 1000 + annual_output * component.c_var + fuel_cost + co2_cost
+        elif isinstance(component, Storage):
+            capital_cost = component.c_invest_n * component.c / 1000
+            co2_cost = co2 * env.avg_co2_price
+            annual_output = abs(self.energy_supply_parameters[5][name])
+            annual_operating_cost = component.c_op_main_n * component.c / 1000 + co2_cost
         else:
-            capital_cost = 0
-            annual_output = self.energy_supply_parameters[2][name]
-            annual_operating_cost = annual_output * self.env.electricity_price
+            return None
         if annual_output == 0:
             return None
         # Calculate LCOE
@@ -394,7 +440,7 @@ class Operator:
                        lifetime=l)
         return lcoe
 
-    def ecological_evaluation(self, component: DieselGenerator or PV or WindTurbine or Grid):
+    def ecological_evaluation(self, component: object):
         """
         Calculate CO2-emissions
         :param component: object
@@ -406,22 +452,29 @@ class Operator:
         if isinstance(component, PV):
             annual_output = self.energy_supply_parameters[0][name]
             co2_o = 0
-            co2_init = component.co2_init
+            co2_init = component.co2_init * component.p_n / 1e6
         elif isinstance(component, WindTurbine):
             annual_output = self.energy_supply_parameters[1][name]
             co2_o = 0
-            co2_init = component.co2_init
+            co2_init = component.co2_init * component.p_n / 1e6
         elif isinstance(component, Grid):
             annual_output = self.energy_supply_parameters[2][name]
             co2_o = self.env.co2_grid
             co2_init = 0
-        else:
+        elif isinstance(component, DieselGenerator):
             annual_output = self.energy_supply_parameters[3][name]
             co2_o = self.env.co2_diesel
-            co2_init = component.co2_init
-        co2_emissions = co2_init + co2_o * annual_output * self.env.lifetime
+            co2_init = component.co2_init * component.p_n / 1e6
+        elif isinstance(component, Storage):
+            annual_output = self.energy_supply_parameters[5][name]
+            co2_o = 0
+            co2_init = component.co2_init * component.c / 1e6
+        else:
+            return None
+        co2_annual = co2_o * annual_output / 1000
+        co2_emissions = co2_init + co2_annual * self.env.lifetime
 
-        return co2_emissions
+        return co2_emissions, co2_init, co2_annual
 
     def total_lcoe(self, df: pd.DataFrame):
         """
@@ -448,22 +501,24 @@ class Operator:
         :return: float
             system CO2-emissions
         """
-        total_co2_emission = df['CO2-emissions [t]'].sum()
+        total_co2_emission = df['Total CO2-emissions [t]'].sum()
+        initial_co2_emission = df['Initial CO2-emissions [t]'].sum()
+        annual_co2_emission = df['Annual CO2-emissions [t/a]'].sum()
 
-        return total_co2_emission
+        return total_co2_emission, initial_co2_emission, annual_co2_emission
 
 
 if __name__ == '__main__':
     start_time = time.time()
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
+    end = dt.datetime(year=2021, month=12, day=31, hour=23, minute=59)
     environment = Environment(name='St. Dominics Hospital',
                               time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
                               location={'longitude': -0.7983,
                                         'latitude': 6.0442,
                                         'altitude': 50,
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                              grid_connection=False, blackout=False)
+                              grid_connection=False, blackout=False, feed_in=True)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
     environment.add_load(load_profile=load_profile)
     environment.add_pv(p_n=65000,
@@ -475,7 +530,6 @@ if __name__ == '__main__':
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
     operator = Operator(env=environment)
     report = Report(environment=environment, operator=operator)
-    # print(operator.df)
     # operator.df.plot()
     # plt.show()
     print('Runtime: %s seconds' % (time.time() - start_time))

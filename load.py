@@ -1,10 +1,5 @@
 import pandas as pd
 import datetime as dt
-import matplotlib.pyplot as plt
-
-# TODO:
-#   - Summarize load profile values if resolution is lower
-#   - adjust resolution
 
 
 class Load:

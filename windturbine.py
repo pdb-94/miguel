@@ -41,7 +41,7 @@ class WindTurbine:
         self.c_invest_n = 1325.0  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 63
         self.c_op_main_n = self.c_invest_n * 0.052  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
         self.c_var = 0.0035  # USD/kWh Sustainable Energy Handbook Module 6.1 Simplified Financial Models
-        self.co2_init = 0
+        self.co2_init = 25  # kg/kW
         # Location
         self.longitude = location.get('longitude')
         self.latitude = location.get('latitude')

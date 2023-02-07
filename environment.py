@@ -26,7 +26,8 @@ class Environment:
                  location: dict = None,
                  grid_connection: bool = None,
                  blackout: bool = False,
-                 blackout_data: pd.Series = None):
+                 blackout_data: pd.Series = None,
+                 feed_in: bool = None):
         """
         :param time: dict:
             Parameter for time series
@@ -64,22 +65,23 @@ class Environment:
         self.address = self.find_location()
         # Economy
         if economy is None:
+            self.currency = 'US$'
             self.d_rate = 0.03
-            self.i_rate = 0.03
-            self.lifetime = 20
-            self.feed_in = 0.00
+            self.lifetime = 20  # a
+            self.pv_feed_in_tariff = 0.05  # US$/kWh
+            self.wt_feed_in_tariff = 0.05  # US$/kWh
             self.electricity_price = 0.40  # US$/kWh
             self.diesel_price = 1.20  # US$/kWh
-            self.co2_price = {2021: 25, 2022: 30, 2023: 35, 2024: 40, 2025: 55, 2026: 65}
-            self.currency = 'US$'
+            self.avg_co2_price = 50  # currency/t
         else:
-            self.d_rate = economy.get('d_rate')
-            self.i_rate = economy.get('i_rate')
-            self.lifetime = economy.get('lifetime')
-            self.electricity_price = economy.get('electricity_price')
-            self.co2_price = economy.get('co2_price')
-            self.feed_in = economy.get('feed-in_tariff')
             self.currency = economy.get('currency')
+            self.d_rate = economy.get('d_rate')
+            self.lifetime = economy.get('lifetime')  # a
+            self.electricity_price = economy.get('electricity_price')  # currency/kWh
+            self.avg_co2_price = economy.get('co2_price')  # currency/kg
+            self.pv_feed_in_tariff = economy.get('pv_feed-in_tariff')  # currency/kWh
+            self.wt_feed_in_tariff = economy.get('wt_feed-in_tariff')  # currency/kWh
+
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
             self.co2_grid = 0.420  # kg CO2/kWh (Germany)
@@ -104,10 +106,16 @@ class Environment:
             if self.blackout is True:
                 self.df['Blackout'] = blackout_data.values
                 self.system = system[2]
+
             else:
                 self.system = system[1]
         else:
             self.system = system[0]
+        if feed_in is True:
+            self.feed_in = True
+        else:
+            self.feed_in = False
+
 
         # Container
         self.grid = []
@@ -272,7 +280,6 @@ class Environment:
             self.pv.append(PV(env=self,
                               name=name,
                               pv_data=pv_data))
-
         else:
             pass
         self.re_supply.append(self.pv[-1])
@@ -356,19 +363,11 @@ class Environment:
 
     def calc_energy_consumption_parameters(self):
         """
-
-        :return: energy_consumption, peak_load
+        Calculate total energy consumption and peak load
+        :return: list
+            energy_consumption [kWh], peak_load [W]
         """
         energy_consumption = self.df['P_Res [W]'].sum() * self.i_step / 60 / 1000
         peak_load = self.df['P_Res [W]'].max()
 
         return energy_consumption, peak_load
-
-
-
-
-if __name__ == '__main__':
-    start = dt.datetime(year=2022, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2022, month=1, day=31, hour=23, minute=59)
-    step = dt.timedelta(minutes=1)
-    environment = Environment(time={'start': start, 'end': end, 'step': step})
