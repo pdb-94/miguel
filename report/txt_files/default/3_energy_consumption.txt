@@ -1,0 +1,2 @@
+The energy consumption is calculated based on the load profile. The total load profile over the considered period is created by repeating the input load profile. The total energy consumption, peak load, energy cost and CO2 emissions are calculated using the total load profile. The energy costs and CO2 emissions refer to a power generation by the power grid or a diesel generator and are used as comparative values for grid-connected and off-grid systems. 
+

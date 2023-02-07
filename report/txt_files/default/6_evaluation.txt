@@ -1,0 +1,2 @@
+In this chapter, the selected system configuration is evaluated from an ecological and economic point of view. The economic evaluation is based on the levelized cost of energy (LCOE). The ecological evaluation focuses on the CO2 emissions.
+ 

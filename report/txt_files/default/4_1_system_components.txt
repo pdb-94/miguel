@@ -1,0 +1,3 @@
+The upcoming tables list all system components of the energy system. The system components are split up into the categories energy supply and energy storage. 
+
+Energy supply:
