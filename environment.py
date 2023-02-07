@@ -29,6 +29,7 @@ class Environment:
                  blackout_data: pd.Series = None,
                  feed_in: bool = None):
         """
+        :type location: dict
         :param time: dict:
             Parameter for time series
             {start: dt.datetime,
@@ -37,11 +38,12 @@ class Environment:
         :param economy: dict
             Parameter for economical calculation
             {d_rate: float,
-             i_rate: float,
-             lifetime: float,
+             lifetime: int,
              electricity_price: float
              co2_price: dict
-             feed-in_tariff: list}
+             pv_feed_in_tariff: float,
+             wt_feed_in_tariff: float,
+             currency: str}
         :param ecology: dict
             Parameter for ecological calculations
             {co2_diesel: float,
@@ -79,8 +81,8 @@ class Environment:
             self.lifetime = economy.get('lifetime')  # a
             self.electricity_price = economy.get('electricity_price')  # currency/kWh
             self.avg_co2_price = economy.get('co2_price')  # currency/kg
-            self.pv_feed_in_tariff = economy.get('pv_feed-in_tariff')  # currency/kWh
-            self.wt_feed_in_tariff = economy.get('wt_feed-in_tariff')  # currency/kWh
+            self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # currency/kWh
+            self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # currency/kWh
 
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
@@ -115,7 +117,6 @@ class Environment:
             self.feed_in = True
         else:
             self.feed_in = False
-
 
         # Container
         self.grid = []
@@ -194,8 +195,9 @@ class Environment:
 
     def create_wt_weather_data(self):
         """
-
+        Create weather dataframe
         :return: pd.DataFrame
+            wt_data
         """
         # Drop unnecessary columns
         wt_hourly_data = self.weather_data[0].drop(['ghi', 'dni', 'dhi', 'IR(h)'], axis=1)
@@ -237,7 +239,7 @@ class Environment:
     def add_grid(self):
         """
         Add Grid to environment
-        :return:
+        :return: None
         """
         name = 'Grid_' + str(len(self.grid) + 1)
         self.grid.append(Grid(env=self,
@@ -247,14 +249,16 @@ class Environment:
         self.grid_connection = True
 
     def add_load(self,
+                 annual_consumption: float = None,
                  load_profile: str = None):
         """
         Add Load to environment
-        :return:
+        :return: None
         """
         name = 'Load_' + str(len(self.load) + 1)
         self.load.append(Load(env=self,
                               name=name,
+                              annual_consumption=annual_consumption,
                               load_profile=load_profile))
         self.df['P_Res [W]'] = self.load[-1].df['P [W]']
 

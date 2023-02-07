@@ -127,7 +127,8 @@ class PV:
     def create_pvlib_parameters(self):
         """
         Create pvlib parameters
-        :return: location, pv_system, modelchain
+        :return: list
+            location, pv_system, modelchain
         """
         location = self.create_location()
         pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
@@ -204,7 +205,6 @@ class PV:
         :return: pvlib.modelchain.ModelChain
             ModelChain object
         """
-        # TODO: dc_model sapm: raise ValueError(model + ' selected for the DC model but )'
         modelchain = pvlib.modelchain.ModelChain(system=pv_system,
                                                  location=location,
                                                  name=self.name + ' ModelChain',
@@ -265,6 +265,14 @@ class PV:
                        min_module_power: float,
                        max_module_power: float,
                        inverter_power_range):
+        """
+        Pick PV system based on nominal power
+        :param min_module_power: float
+        :param max_module_power: float
+        :param inverter_power_range: float
+        :return: list
+            module, inverter, modules_per_string, strings_per_inverter
+        """
         modules = []
         # Choose modules depending on module power
         for module in self.module_lib.columns:

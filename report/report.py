@@ -18,11 +18,10 @@ class Report:
     """
     Class to create results and report
     """
-
     def __init__(self,
-                 environment=None,
+                 env=None,
                  operator=None):
-        self.env = environment
+        self.env = env
         self.operator = operator
         # Name
         if self.env.name is not None:
@@ -113,19 +112,6 @@ class Report:
                                     title=['Introduction', 'Summary'],
                                     file=[self.txt_file_path + 'default/introduction.txt',
                                           self.txt_file_path + 'summary.txt'])
-        # if self.operator.system_covered is not True:
-        #     summary_header = ['Time stamps', 'P [W]']
-        #     # Define table values
-        #     summary_values = [summary_header]
-        #     # Get technical data from env.supply_data
-        #     for row in self.operator.power_sink.index:
-        #         data = [row]
-        #         data.append(self.operator.power_sink.loc[row, 'P [W]'])
-        #         summary_values.append(data)
-        #     summary_data = [[''], summary_values]
-        #     self.pdf.create_table(file=self.pdf,
-        #                           table=summary_data,
-        #                           padding=1.5)
         # Create evaluation table
         evaluation_header = ['Component',
                              'Energy [kWh]',
@@ -450,12 +436,13 @@ class Report:
                                    table=ecologic_evaluation_data,
                                    padding=2)
         self.pdf_file.ln(h=10)
-        ecologic_table_description = "."
+        ecologic_table_description = "The bar chart displays the total CO2-emissions over the system lifetime for every component. " \
+                                     "The orange part shows the CO2-emissions during production and installation. " \
+                                     "The blue part balances the CO2-emissions during use."
         self.create_txt(file_name="6_2_table_description", text=ecologic_table_description)
         self.create_bar_plot(df=self.evaluation_df,
                              columns=['Initial CO2-emissions [t]', 'Annual CO2-emissions [t/a]'],
                              file_name='co2-emissions',
-                             x_label='Components',
                              y_label='CO2-emissions [t]')
         self.pdf_file.image(name=self.report_path + 'pictures/co2-emissions.png', w=150)
 
@@ -578,6 +565,7 @@ class Report:
         fig, ax = plt.subplots()
         ax.bar(df.index, df[columns[1]]*self.env.lifetime, 0.5, label='Operational CO2-emissions [t]')
         ax.bar(df.index, df[columns[0]], 0.5, label='Initial CO2-emissions [t]')
+        ax.set_ylabel(y_label)
         ax.set_ylabel(y_label)
         ax.legend()
         plt.tight_layout()

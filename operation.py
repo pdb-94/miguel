@@ -520,7 +520,8 @@ if __name__ == '__main__':
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
                               grid_connection=False, blackout=False, feed_in=True)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
-    environment.add_load(load_profile=load_profile)
+    # environment.add_load(load_profile=load_profile)
+    environment.add_load(annual_consumption=153573.0)
     environment.add_pv(p_n=65000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                                 'max_module_power': 350, 'inverter_power_range': 25000})
@@ -529,7 +530,7 @@ if __name__ == '__main__':
     environment.add_diesel_generator(p_n=30000, fuel_consumption=9.7, fuel_price=1.20)
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
     operator = Operator(env=environment)
-    report = Report(environment=environment, operator=operator)
+    report = Report(env=environment, operator=operator)
     # operator.df.plot()
     # plt.show()
     print('Runtime: %s seconds' % (time.time() - start_time))
