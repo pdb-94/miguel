@@ -66,10 +66,9 @@ class Report:
         self.dispatch()
         self.evaluation()
         # Create report
-        self.pdf_file.output(self.report_path + self.name + '.pdf')
+        self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
-
     def introduction_summary(self):
         """
         Create Introduction and Summary

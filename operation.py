@@ -1,3 +1,4 @@
+import sys
 import time
 import numpy as np
 import datetime as dt
@@ -37,6 +38,7 @@ class Operator:
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
         self.evaluation_df = self.evaluate_system()
+        self.export_data()
 
     ''' Basic Functions'''
     def build_df(self):
@@ -431,13 +433,11 @@ class Operator:
         :return: float
             LCOE
         """
-        l = self.env.lifetime
-        d = self.env.d_rate
         lcoe = py_lcoe(annual_output=annual_output,
                        annual_operating_cost=annual_operating_cost,
                        capital_cost=capital_cost,
-                       discount_rate=d,
-                       lifetime=l)
+                       discount_rate=self.env.d_rate,
+                       lifetime=self.env.lifetime)
         return lcoe
 
     def ecological_evaluation(self, component: object):
@@ -471,6 +471,7 @@ class Operator:
             co2_init = component.co2_init * component.c / 1e6
         else:
             return None
+        # Calculate annual and total CO2-emissions
         co2_annual = co2_o * annual_output / 1000
         co2_emissions = co2_init + co2_annual * self.env.lifetime
 
@@ -507,21 +508,30 @@ class Operator:
 
         return total_co2_emission, initial_co2_emission, annual_co2_emission
 
+    def export_data(self):
+        """
+        Export data after simulation
+        :return: None
+        """
+        root = sys.path[1]
+        self.df.to_csv(root + '/export/operator.csv', sep=',', decimal='.')
+
 
 if __name__ == '__main__':
     start_time = time.time()
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
     end = dt.datetime(year=2021, month=12, day=31, hour=23, minute=59)
-    environment = Environment(name='St. Dominics Hospital',
+    environment = Environment(name='St. Dominics Hospital Akwatia',
                               time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
                               location={'longitude': -0.7983,
                                         'latitude': 6.0442,
                                         'altitude': 50,
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
                               grid_connection=False, blackout=False, feed_in=True)
-    load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/load/St. Dominics Hospital.csv'
+    load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
     # environment.add_load(load_profile=load_profile)
-    environment.add_load(annual_consumption=153573.0)
+    # print(environment.df['P_Res [W]'].sum())
+    environment.add_load(annual_consumption=614293394)
     environment.add_pv(p_n=65000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                                 'max_module_power': 350, 'inverter_power_range': 25000})

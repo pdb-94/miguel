@@ -253,6 +253,10 @@ class Environment:
                  load_profile: str = None):
         """
         Add Load to environment
+        :param: annual_consumption: float
+            annual energy demand [kWh]
+        :param: load_profile: str
+            load profile path
         :return: None
         """
         name = 'Load_' + str(len(self.load) + 1)
