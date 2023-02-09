@@ -15,7 +15,7 @@ class Load:
 
         self.env = env
         self.name = name
-        self.annual_consumption = annual_consumption  # kWh
+        self.annual_consumption = annual_consumption  # Wh
         self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         self.sum = self.df['P [W]'].sum()
 
@@ -98,7 +98,7 @@ class Load:
         """
         root = sys.path[1]
         s_lp = pd.read_csv(root + '/data/load/standard_load_profile.csv', sep=';', decimal=',', index_col=0)
-        daily_consumption = self.annual_consumption / 365  # kWh
+        daily_consumption = self.annual_consumption / 365  # Wh/d
         daily_sum = s_lp['Percentage [P/P_max]'].sum()
         scale = daily_consumption / daily_sum
         s_lp['P [W]'] = s_lp['Percentage [P/P_max]'] * scale

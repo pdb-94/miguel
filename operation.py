@@ -206,13 +206,16 @@ class Operator:
         :param component: PV/WindTurbine
         :return: None
         """
-        self.df[component.name + ' Feed in [W]'] = self.df[component.name + ' remain [W]']
-        if isinstance(component, PV):
-            self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
-                = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.pv_feed_in_tariff
-        elif isinstance(component, WindTurbine):
-            self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
-                = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
+        if self.env.grid_connection is False:
+            pass
+        else:
+            self.df[component.name + ' Feed in [W]'] = self.df[component.name + ' remain [W]']
+            if isinstance(component, PV):
+                self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
+                    = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.pv_feed_in_tariff
+            elif isinstance(component, WindTurbine):
+                self.df[component.name + ' Feed in [' + self.env.currency + ']'] \
+                    = self.df[component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
 
     def re_self_supply(self, clock: dt.datetime, component: PV or WindTurbine):
         """
@@ -386,14 +389,20 @@ class Operator:
         # Get component specific parameters
         if isinstance(component, PV):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
+            if env.feed_in or env.grid_connection is False:
+                annual_revenues = 0
+            else:
+                annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
             annual_cost = component.c_op_main_n * component.p_n / 1000
             co2_cost = co2 * env.avg_co2_price
             annual_operating_cost = annual_cost - annual_revenues + co2_cost
             annual_output = self.energy_supply_parameters[0][name]
         elif isinstance(component, WindTurbine):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
+            if env.feed_in or env.grid_connection is False:
+                annual_revenues = 0
+            else:
+                annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
             annual_cost = component.c_op_main_n * component.p_n / 1000
             co2_cost = co2 * env.avg_co2_price
             annual_operating_cost = annual_cost - annual_revenues + co2_cost
@@ -527,12 +536,12 @@ if __name__ == '__main__':
                                         'latitude': 6.0442,
                                         'altitude': 50,
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                              grid_connection=False, blackout=False, feed_in=True)
+                              grid_connection=False, blackout=False, feed_in=False)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
     # environment.add_load(load_profile=load_profile)
     # print(environment.df['P_Res [W]'].sum())
     environment.add_load(annual_consumption=614293394)
-    environment.add_pv(p_n=65000,
+    environment.add_pv(p_n=50000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                                 'max_module_power': 350, 'inverter_power_range': 25000})
     # environment.add_grid()
