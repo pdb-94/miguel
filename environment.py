@@ -26,10 +26,11 @@ class Environment:
                  location: dict = None,
                  grid_connection: bool = None,
                  blackout: bool = False,
-                 blackout_data: pd.Series = None,
+                 blackout_data: str = None,
                  feed_in: bool = None):
         """
         :type location: dict
+            Parameter to create location
         :param time: dict:
             Parameter for time series
             {start: dt.datetime,
@@ -40,7 +41,7 @@ class Environment:
             {d_rate: float,
              lifetime: int,
              electricity_price: float
-             co2_price: dict
+             co2_price: float
              pv_feed_in_tariff: float,
              wt_feed_in_tariff: float,
              currency: str}
@@ -80,17 +81,16 @@ class Environment:
             self.d_rate = economy.get('d_rate')
             self.lifetime = economy.get('lifetime')  # a
             self.electricity_price = economy.get('electricity_price')  # currency/kWh
+            self.diesel_price = economy.get('diesel_price')
             self.avg_co2_price = economy.get('co2_price')  # currency/kg
             self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # currency/kWh
             self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # currency/kWh
-
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
             self.co2_grid = 0.420  # kg CO2/kWh (Germany)
         else:
             self.co2_diesel = ecology.get('co2_diesel')
             self.co2_grid = ecology.get('co2_grid')
-
         # Environment DataFrame
         columns = ['P_Res [W]', 'PV total power [W]', 'WT total power [W]']
         self.df = pd.DataFrame(columns=columns, index=self.time)
@@ -106,7 +106,8 @@ class Environment:
         system = {0: 'Off Grid System', 1: 'On Grid System (stable)', 2: 'On Grid System (unstable)'}
         if self.grid_connection is True:
             if self.blackout is True:
-                self.df['Blackout'] = blackout_data.values
+                blackout_df = pd.read_csv(blackout_data, sep=';')
+                self.df['Blackout'] = blackout_df['Blackout'].values
                 self.system = system[2]
 
             else:

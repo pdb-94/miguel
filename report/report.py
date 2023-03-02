@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import calendar
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -479,10 +480,16 @@ class Report:
         df = df.set_index('Component')
         for pv in self.env.pv:
             df.loc[pv.name, 'Investment Cost [' + env.currency + ']'] = int(pv.c_invest_n * pv.p_n / 1000)
-            df.loc[pv.name, 'Feed in [' + env.currency + ']'] = op.df[pv.name + ' Feed in [' + env.currency + ']'].sum()
+            if env.grid_connection or env.feed_in is False:
+                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = None
+            else:
+                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = op.df[pv.name + ' Feed in [' + env.currency + ']'].sum()
         for wt in self.env.wind_turbine:
             df.loc[wt.name, 'Investment Cost [' + env.currency + ']'] = int(wt.c_invest_n * wt.p_n / 1000)
-            df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[wt.name + ' Feed in [' + env.currency + ']'].sum()
+            if env.grid_connection or env.feed_in is False:
+                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = None
+            else:
+                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[wt.name + ' Feed in [' + env.currency + ']'].sum()
         for dg in self.env.diesel_generator:
             df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = int(dg.c_invest_n * dg.p_n / 1000)
             df.loc[dg.name, 'Feed in [' + env.currency + ']'] = None
@@ -589,7 +596,8 @@ class Report:
         for pv in env.pv:
             pv_sc += op.df[pv.name + ' [W]'].sum() * time_factor
             pv_charge += op.df[pv.name + '_charge [W]'].sum() * time_factor
-            pv_feed_in += op.df[pv.name + ' Feed in [W]'].sum() * time_factor
+            if env.grid_connection and env.feed_in is True:
+                pv_feed_in += op.df[pv.name + ' Feed in [W]'].sum() * time_factor
         pv_production = pv_sc
         wt_sc = 0
         wt_charge = 0
@@ -597,7 +605,8 @@ class Report:
         for wt in env.wind_turbine:
             wt_sc += op.df[wt.name + ' [W]'].sum() * time_factor
             wt_charge += op.df[wt.name + '_charge [W]'].sum() * time_factor
-            wt_feed_in += op.df[wt.name + ' Feed in [W]'].sum() * time_factor
+            if env.grid_connection and env.feed_in is True:
+                wt_feed_in += op.df[wt.name + ' Feed in [W]'].sum() * time_factor
         wt_production = wt_sc
         grid_production = 0
         for grid in env.grid:

@@ -164,7 +164,7 @@ class Operator:
         :return: None
         """
         env = self.env
-        if env.df.loc[clock, 'Blackout'] is False:
+        if not env.df.loc[clock, 'Blackout']:
             self.grid_profile(clock=clock)
         else:
             for es in env.storage:
@@ -389,7 +389,7 @@ class Operator:
         # Get component specific parameters
         if isinstance(component, PV):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            if env.feed_in or env.grid_connection is False:
+            if env.feed_in is False or env.grid_connection is False:
                 annual_revenues = 0
             else:
                 annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
@@ -399,7 +399,7 @@ class Operator:
             annual_output = self.energy_supply_parameters[0][name]
         elif isinstance(component, WindTurbine):
             capital_cost = component.c_invest_n * component.p_n / 1000
-            if env.feed_in or env.grid_connection is False:
+            if env.feed_in is False or env.grid_connection is False:
                 annual_revenues = 0
             else:
                 annual_revenues = self.df[component.name + ' Feed in [' + env.currency + ']'].sum()
@@ -529,27 +529,23 @@ class Operator:
 if __name__ == '__main__':
     start_time = time.time()
     start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2021, month=12, day=31, hour=23, minute=59)
+    end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
+    blackout_data = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv'
     environment = Environment(name='St. Dominics Hospital Akwatia',
                               time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
                               location={'longitude': -0.7983,
                                         'latitude': 6.0442,
                                         'altitude': 50,
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                              grid_connection=False, blackout=False, feed_in=False)
+                              grid_connection=True, blackout=True, blackout_data=blackout_data, feed_in=False)
     load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
-    # environment.add_load(load_profile=load_profile)
-    # print(environment.df['P_Res [W]'].sum())
-    environment.add_load(annual_consumption=614293394)
+    environment.add_load(load_profile=load_profile)
+    environment.add_grid()
     environment.add_pv(p_n=50000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                                 'max_module_power': 350, 'inverter_power_range': 25000})
-    # environment.add_grid()
-    # environment.add_wind_turbine(p_n=4200000, turbine_data={"turbine_type": "E-126/4200", "hub_height": 135})
-    environment.add_diesel_generator(p_n=30000, fuel_consumption=9.7, fuel_price=1.20)
+    environment.add_diesel_generator(p_n=35000, fuel_consumption=9.7, fuel_price=1.20)
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
     operator = Operator(env=environment)
     report = Report(env=environment, operator=operator)
-    # operator.df.plot()
-    # plt.show()
     print('Runtime: %s seconds' % (time.time() - start_time))
