@@ -27,7 +27,8 @@ class Environment:
                  grid_connection: bool = None,
                  blackout: bool = False,
                  blackout_data: str = None,
-                 feed_in: bool = None):
+                 feed_in: bool = None,
+                 weather_data: str = None):
         """
         :type location: dict
             Parameter to create location
@@ -96,9 +97,13 @@ class Environment:
         self.df = pd.DataFrame(columns=columns, index=self.time)
         self.df['PV total power [W]'] = 0
         self.df['WT total power [W]'] = 0
-        self.weather_data = self.get_weather_data()
-        self.wt_weather_data = self.create_wt_weather_data()
-        self.monthly_weather_data = self.monthly_weather_data()
+        if weather_data is None:
+            # Include weather data for remote access
+            self.weather_data = self.get_weather_data()
+            self.wt_weather_data = self.create_wt_weather_data()
+            self.monthly_weather_data = self.create_monthly_weather_data()
+        else:
+            self.weather_data = pd.read_csv(weather_data)
 
         # Grid connection
         self.grid_connection = grid_connection
@@ -226,7 +231,7 @@ class Environment:
 
         return wt_data
 
-    def monthly_weather_data(self):
+    def create_monthly_weather_data(self):
         """
         Create monthly weather data
         :return: pd.DataFrame

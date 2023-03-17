@@ -198,11 +198,11 @@ class Report:
         # Monthly solar data Table
         solar_data_header = ['Month', 'Avg. GHI [W/m²]', 'Avg. DNI [W/m²]', 'Avg. DHI [W/m²]']
         solar_values = [solar_data_header]
-        for row in self.env.monthly_weather_data.index:
+        for row in self.env.create_monthly_weather_data.index:
             data = [calendar.month_name[row]]
-            data.append(round(self.env.monthly_weather_data.iloc[row - 1, 2], 3))
-            data.append(round(self.env.monthly_weather_data.iloc[row - 1, 3], 3))
-            data.append(round(self.env.monthly_weather_data.iloc[row - 1, 4], 3))
+            data.append(round(self.env.create_monthly_weather_data.iloc[row - 1, 2], 3))
+            data.append(round(self.env.create_monthly_weather_data.iloc[row - 1, 3], 3))
+            data.append(round(self.env.create_monthly_weather_data.iloc[row - 1, 4], 3))
             solar_values.append(data)
         solar_data = [[''], solar_values]
         self.pdf_file.create_table(file=self.pdf_file,
@@ -217,20 +217,20 @@ class Report:
         # Monthly weather data Table
         wind_data_header = ['Month', 'Avg. Wind Speed [m/s]', 'Avg. Wind direction [°]']
         wind_values = [wind_data_header]
-        for row in self.env.monthly_weather_data.index:
-            data = [calendar.month_name[row], round(self.env.monthly_weather_data.iloc[row - 1, 6], 3),
-                    round(self.env.monthly_weather_data.iloc[row - 1, 7], 3)]
+        for row in self.env.create_monthly_weather_data.index:
+            data = [calendar.month_name[row], round(self.env.create_monthly_weather_data.iloc[row - 1, 6], 3),
+                    round(self.env.create_monthly_weather_data.iloc[row - 1, 7], 3)]
             wind_values.append(data)
         wind_data = [[''], wind_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=wind_data,
                                    padding=1.5)
-        wind_speed_max = round(self.env.monthly_weather_data['wind_speed'].max(), 3)
+        wind_speed_max = round(self.env.create_monthly_weather_data['wind_speed'].max(), 3)
         self.pdf_file.ln(h=10)
-        month_max = self.env.monthly_weather_data['wind_speed'].idxmax()
+        month_max = self.env.create_monthly_weather_data['wind_speed'].idxmax()
         month_max = calendar.month_name[month_max]
-        wind_speed_average = round(self.env.monthly_weather_data['wind_speed'].mean(), 3)
-        wind_direction_average = round(self.env.monthly_weather_data['wind_direction'].mean(), 3)
+        wind_speed_average = round(self.env.create_monthly_weather_data['wind_speed'].mean(), 3)
+        wind_direction_average = round(self.env.create_monthly_weather_data['wind_direction'].mean(), 3)
         wind_table_text = 'The main wind direction is ' + str(
             wind_direction_average) + '°. The annual average wind speed is ' \
                           + str(wind_speed_average) + ' m/s. The highest monthly wind speed occurs in ' \

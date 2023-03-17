@@ -524,6 +524,9 @@ class Operator:
         """
         root = sys.path[1]
         self.df.to_csv(root + '/export/operator.csv', sep=',', decimal='.')
+        self.env.weather_data.to_csv(root + '/export/weather_data.csv', sep=',', decimal='.')
+        self.env.wt_weather_data.to_csv(root + '/export/wt_weather_data.csv', sep=',', decimal='.')
+        self.env.monthly_weather_data.to_csv(root + '/export/monthly_weather_data.csv', sep=',', decimal='.')
 
 
 if __name__ == '__main__':

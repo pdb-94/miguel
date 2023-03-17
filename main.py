@@ -1,4 +1,5 @@
 import datetime as dt
+import matplotlib.pyplot as plt
 from environment import Environment
 from operation import Operator
 from report.report import Report
@@ -21,6 +22,8 @@ PROGRAM DESCRIPTION
                          'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges at a distance of approx. 250 meters',
                          'Villages, small towns, agricultural buildings with many or high hedges, woods and very rough and uneven terrain',
                          'Larger cities with tall buildings', 'Large cities, tall buildings, skyscrapers']
+                         
+    DISCLAIMER: to enable off line use. The weather data needs to be imported. The style of the csv input file is the same style the weather data gets exported.
                          
     1.2) Add system components of energy system to Environment:
         - PV: environment.add_pv() --> Check function for parameters
@@ -52,15 +55,22 @@ PROGRAM DESCRIPTION
         ... create report with all relevant output
 """
 
+"""
+In this code example an off-grid system is simulated. The following system components are modeled:
+- PV System 60 kWp
+- Battery storage 10 kW/30kWh
+- Diesel Generator: 30 kW
+"""
+
 # Create environment
-env = Environment(name='St. Dominic Hospital',
+env = Environment(name='St. Dominic Hospital_daily',
                   location={'longitude': -0.7983,
                             'latitude': 6.0442,
                             'altitude': 20,
                             'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
                                        'at a distance of approx. 250 meters'},
-                  time={'start': dt.datetime(year=2022, month=1, day=1, hour=0, minute=0),
-                        'end': dt.datetime(year=2022, month=12, day=31, hour=23, minute=59),
+                  time={'start': dt.datetime(year=2022, month=3, day=7, hour=0, minute=0),
+                        'end': dt.datetime(year=2022, month=3, day=7, hour=23, minute=59),
                         'step': dt.timedelta(minutes=15),
                         'timezone': 'GMT'},
                   economy={'d_rate': 0.03,
@@ -73,24 +83,38 @@ env = Environment(name='St. Dominic Hospital',
                            'currency': 'US$'},
                   ecology={'co2_diesel': 0.2665,
                            'co2_grid': 0.1350},
-                  grid_connection=True,
+                  grid_connection=False,
                   feed_in=False,
-                  blackout=True,
-                  blackout_data='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv')
+                  blackout=False,
+                  blackout_data='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv',
+                  weather_data='test.csv')
+print('Created system environment with basic simulation parameters.')
 # Add system components
 # Load
-env.add_load(load_profile='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv')
-# Grid
-env.add_grid()
-# PV System
-env.add_pv(p_n=60000,
-           pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                    'max_module_power': 350, 'inverter_power_range': 25000})
-# Battery storaage
-env.add_storage(p_n=10000, c=30000, soc=0.5)
-# Diesel generator
-env.add_diesel_generator(p_n=10000, fuel_consumption=10, fuel_price=1.385)
-# Create Operator - Run dispatch
-operator = Operator(env=env)
+# env.add_load(load_profile='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv')
+# env.add_load(annual_consumption=150000)
+# print('Added load profile to environment.')
+# # Grid
+# env.add_grid()
+# # print('Added grid to environment.')
+# # PV System
+# env.add_pv(p_n=60000,
+#            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+#                     'max_module_power': 350, 'inverter_power_range': 25000})
+# print('Added PV system to environment.')
+# # Battery storage
+# env.add_storage(p_n=10000, c=30000, soc=0.5)
+# print('Added battery storage to environment.')
+# # Diesel generator
+# env.add_diesel_generator(p_n=30000, fuel_consumption=10, fuel_price=1.385)
+# print('Added diesel generator to environment.')
+# # Create Operator - Run dispatch
+# print('Creating operator and run dispatch.')
+# operator = Operator(env=env)
+# print('Finished dispatch.')
+# operator.df.plot()
+# plt.show()
 # Create report
-report = Report(env=env, operator=operator)
+# print('Creating report.')
+# report = Report(env=env, operator=operator)
+# print('Finished report.')
