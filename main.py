@@ -63,7 +63,7 @@ In this code example an off-grid system is simulated. The following system compo
 """
 
 # Create environment
-env = Environment(name='St. Dominic Hospital_daily',
+env = Environment(name='Test',
                   location={'longitude': -0.7983,
                             'latitude': 6.0442,
                             'altitude': 20,
@@ -86,35 +86,34 @@ env = Environment(name='St. Dominic Hospital_daily',
                   grid_connection=False,
                   feed_in=False,
                   blackout=False,
-                  blackout_data='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv',
-                  weather_data='test.csv')
+                  blackout_data='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv')
 print('Created system environment with basic simulation parameters.')
 # Add system components
 # Load
-# env.add_load(load_profile='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv')
-# env.add_load(annual_consumption=150000)
-# print('Added load profile to environment.')
-# # Grid
-# env.add_grid()
-# # print('Added grid to environment.')
-# # PV System
-# env.add_pv(p_n=60000,
-#            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-#                     'max_module_power': 350, 'inverter_power_range': 25000})
-# print('Added PV system to environment.')
-# # Battery storage
-# env.add_storage(p_n=10000, c=30000, soc=0.5)
-# print('Added battery storage to environment.')
-# # Diesel generator
-# env.add_diesel_generator(p_n=30000, fuel_consumption=10, fuel_price=1.385)
-# print('Added diesel generator to environment.')
-# # Create Operator - Run dispatch
-# print('Creating operator and run dispatch.')
-# operator = Operator(env=env)
-# print('Finished dispatch.')
-# operator.df.plot()
-# plt.show()
+env.add_load(load_profile='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv')
+env.add_load(annual_consumption=150000)
+print('Added load profile to environment.')
+# Grid
+env.add_grid()
+# print('Added grid to environment.')
+# PV System
+env.add_pv(p_n=60000,
+           pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+                    'max_module_power': 350, 'inverter_power_range': 25000})
+print('Added PV system to environment.')
+# Battery storage
+env.add_storage(p_n=10000, c=30000, soc=0.5)
+print('Added battery storage to environment.')
+# Diesel generator
+env.add_diesel_generator(p_n=30000, fuel_consumption=10, fuel_price=1.385)
+print('Added diesel generator to environment.')
+# Create Operator - Run dispatch
+print('Creating operator and run dispatch.')
+operator = Operator(env=env)
+print('Finished dispatch.')
+operator.df.plot()
+plt.show()
 # Create report
-# print('Creating report.')
-# report = Report(env=env, operator=operator)
-# print('Finished report.')
+print('Creating report.')
+report = Report(env=env, operator=operator)
+print('Finished report.')

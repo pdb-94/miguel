@@ -340,30 +340,31 @@ class Operator:
                                    'Initial CO2-emissions [t]',
                                    'Annual CO2-emissions [t/a]'])
         env = self.env
+        lifetime = self.env.lifetime
         for pv in env.pv:
             co2 = self.ecological_evaluation(pv)
-            lcoe = self.economic_evaluation(component=pv, co2=co2[0]/env.lifetime)
-            parameters = [pv.name, self.energy_supply_parameters[0][pv.name], lcoe, co2[0], co2[1], co2[2]]
+            lcoe = self.economic_evaluation(component=pv, co2=co2[0]/lifetime)
+            parameters = [pv.name, self.energy_supply_parameters[0][pv.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for wt in env.wind_turbine:
             co2 = self.ecological_evaluation(wt)
-            lcoe = self.economic_evaluation(component=wt, co2=co2[0]/env.lifetime)
-            parameters = [wt.name, self.energy_supply_parameters[1][wt.name], lcoe, co2[0], co2[1], co2[2]]
+            lcoe = self.economic_evaluation(component=wt, co2=co2[0]/lifetime)
+            parameters = [wt.name, self.energy_supply_parameters[1][wt.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for grid in env.grid:
             co2 = self.ecological_evaluation(grid)
-            lcoe = self.economic_evaluation(component=grid, co2=co2[0]/env.lifetime)
-            parameters = [grid.name, self.energy_supply_parameters[2][grid.name], lcoe, co2[0], co2[1], co2[2]]
+            lcoe = self.economic_evaluation(component=grid, co2=co2[0]/lifetime)
+            parameters = [grid.name, self.energy_supply_parameters[2][grid.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for dg in env.diesel_generator:
             co2 = self.ecological_evaluation(dg)
-            lcoe = self.economic_evaluation(component=dg, co2=co2[0]/env.lifetime)
-            parameters = [dg.name, self.energy_supply_parameters[3][dg.name], lcoe, co2[0], co2[1], co2[2]]
+            lcoe = self.economic_evaluation(component=dg, co2=co2[0]/lifetime)
+            parameters = [dg.name, self.energy_supply_parameters[3][dg.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for es in env.storage:
             co2 = self.ecological_evaluation(es)
-            lcoe = self.economic_evaluation(component=es, co2=co2[0]/env.lifetime)
-            parameters = [es.name, self.energy_supply_parameters[4][es.name], lcoe, co2[0], co2[1], co2[2]]
+            lcoe = self.economic_evaluation(component=es, co2=co2[0]/lifetime)
+            parameters = [es.name, self.energy_supply_parameters[4][es.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
 
         # Calculate System LCOE and CO2-Emissions

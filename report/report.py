@@ -15,6 +15,8 @@ from report.pdf import PDF
 from dieselgenerator import DieselGenerator
 
 
+# TODO: Check economic evaluation --> Cost difference between grid and system cost
+
 class Report:
     """
     Class to create results and report
@@ -381,13 +383,14 @@ class Report:
                                           self.txt_file_path + 'default/6_1_economic_evaluation.txt'],
                                     size=10)
         # Create economic evaluation table
-        economic_evaluation_header = ['Component',
+        economic_evaluation_header = ['Component', 'Energy [kWh]'
                              'Investment Cost [' + env.currency + ']',
                              'LCOE [' + env.currency + '/kWh]',
                              'Feed in [' + env.currency + ']']
         economic_evaluation_values = [economic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
+            data.append(round(self.evaluation_df.loc[row, 'Energy production [kWh]']))
             data.append(round(self.evaluation_df.loc[row, 'Investment Cost [' + env.currency + ']'], 0))
             if self.evaluation_df.loc[row, 'LCOE [' + env.currency + '/kWh]'] is None:
                 data.append(None)
