@@ -21,10 +21,11 @@ Dependencies:
     numpy
     pandas
     PyQt5
-    pyqtgraph
+    fpdf
     pvlib
     pandapower
-    simses (- windpowerlib) ...
+    windpowerlib
+    folium
 
 History: First draft version and simulation of a PV-Diesel microgrid was created in MATLAB & MATLAB-Simulink in the PV-Diesel project from 2015 to 2018 supervised by Prof. Eberhard Waffenschmidt at the TH Köln. The micro grid implementation guideline and tool-creation in python was developed in the dissertation of Silvan Rummeny with the title "feasibility, planning and operation of renewable based micro grids as a basis for a resilient power grid", supervised by Prof. Dr.-Ing. Markus Zdrallek from the Bergische Universität Wuppertal and Prof. Dr.-Ing. Eberhard Waffenschmidt. As a continuation to the PV-Diesel project, the developement of the tool in python with special focus on micro grids of Ghanaian health facilities continued in the Project EnerSHelF from 2019 to 2022 supervised by Prof. Thorsten Schneiders. Various student contributions are associated to this work, which is described in further detail in the docs. All contributors of associated student contributions and direct contributions to this repository are listed below.
 
