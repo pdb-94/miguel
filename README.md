@@ -6,7 +6,7 @@ MiGUEL is a python-based, open-source modeling tool for PV-Diesel hybrid systems
 2) pdf-report with the most important results and a syste evaluation.
 
 Authors and contributors:
-The main author is Paul Bohn (Technische Hochschule Köln). Co-author of the project is Silvan Rummeny (Technische Hochschule Köln) who created the first approach within his PhD. Other contributors are Moritz End (Technische Hochschule Köln).
+The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rummeny (Technische Hochschule Köln) who created the first approach within his PhD. Other contributors are Moritz End (Technische Hochschule Köln).
 
 Content and structure:
   
