@@ -9,6 +9,7 @@ Authors and contributors:
 The main author is Paul Bohn (Technische Hochschule Köln). Co-author of the project is Silvan Rummeny (Technische Hochschule Köln) who created the first approach within his PhD. Other contributors are Moritz End (Technische Hochschule Köln).
 
 Content and structure:
+  
   main: main file to run MiGUEL simulation
   environment: Environment with all basic simulation parameters and systemcomponents
   operation: Carries out the simulation and system evaluation
