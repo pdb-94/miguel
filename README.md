@@ -13,10 +13,10 @@ Content and structure:
   main: main file to run MiGUEL simulation
   environment: Environment with all basic simulation parameters and systemcomponents
   operation: Carries out the simulation and system evaluation
-  report: creates pdf report
-  pv: Modeling the system component PV based on the library pvlib
+  report: creates pdf report  
+  pv: Modeling the system component PV based on the library pvlib 
   windturbine: Modeling the system component WindTurbine based on the library windpowerlib
-  storage: Modeling the system component Storage with a simple storage model
+  storage: Modeling the system component Storage with a simple storage model  
   dieselgenerator: Modeling the system component DieselGenerator with a simple generator model
   load: Modeling the system component load
   grid: Modeling the system component grid with a simple grid model
