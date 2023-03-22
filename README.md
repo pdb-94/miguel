@@ -8,4 +8,19 @@ MiGUEL is a python-based, open-source modeling tool for PV-Diesel hybrid systems
 Authors and contributors:
 The main author is Paul Bohn (Technische Hochschule Köln). Co-author of the project is Silvan Rummeny (Technische Hochschule Köln) who created the first approach within his PhD. Other contributors are Moritz End (Technische Hochschule Köln).
 
+Content and structure:
+  main: main file to run MiGUEL simulation
+  environment: Environment with all basic simulation parameters and systemcomponents
+  operation: Carries out the simulation and system evaluation
+  report: creates pdf report
+  pv: Modeling the system component PV based on the library pvlib
+  windturbine: Modeling the system component WindTurbine based on the library windpowerlib
+  storage: Modeling the system component Storage with a simple storage model
+  dieselgenerator: Modeling the system component DieselGenerator with a simple generator model
+  load: Modeling the system component load
+  grid: Modeling the system component grid with a simple grid model
+  
+  
+
+
 
