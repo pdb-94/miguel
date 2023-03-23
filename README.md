@@ -93,6 +93,7 @@ The weather data for the project location is retrieved by the Environment. The d
 The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment no specific parameters are needed.
 
 ##### Diesel Generator
+The class DieselGenerator is based on a simplfied generator model. 
 
 ##### Energy storage
 
