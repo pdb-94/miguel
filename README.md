@@ -66,7 +66,10 @@ The system component load represents theload profile of the subject under review
 1) Standard load profile for african hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile the annual electricity consumption needs to be returned to the function (annuala_consumption). The standard load profile has a 15min-time resolution.
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
 
+The accuracy of the simulation resuls inceases with the quality of the input data. Using the adjusted standard load profile will provided less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on theelectric inventory of the subject.
+
 If the resolution of the load profile does not match the environment time resolution the resolution of the load profile will be adjusted by summarizing or filling in the values. If no annual load profile is provided the load profile will be repeated to create an annual load profile.
+
 
 ##### Photovoltaic
 The class Photovoltaic is based on the library [pvlib](https://pvlib-python.readthedocs.io/en/stable/#) [1].
