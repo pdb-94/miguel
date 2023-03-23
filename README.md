@@ -10,7 +10,7 @@ The results are provided in the form of csv files for each simulation step and i
 
 
 ## Authors and contributors
-The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End (TH Köln). Further assistence was provided by Sascha Birk (TH Köln).
+The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End (@moend95). Further assistence was provided by Sascha Birk (@pyosch).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -21,7 +21,9 @@ The class Environment represents the energy system. It takes basic parameters su
 The main file is used to run the program. The main file is the only time the user has to interact with the source code.  The Environment, Operator and Report are created by the user. 
 
 ### Environment
-The class Environment represents the energy system. To create an instance of the class the following parameters have to provided.
+The class Environment represents the energy system. 
+#### Input parameters
+To create an instance of the class the following parameters have to provided. The list displays all input parameters, a brief description and the data type.
 - name: project name (str)
 - time: time data (dict)
   - start: start of annual simulation (datetime.datetime)
@@ -48,7 +50,18 @@ The class Environment represents the energy system. To create an instance of the
 - blackout: True: unstable power grid, False: stable power grid (bool)
 - blackout_data: csv-file with blackout events (str)
 - feed_in: True: Feed-in possible, False: Feed-in not possible (bool)
-- weather_data: csv-file only needed for offline use (str)
+- weather_data: csv-file path with weather data (str) - OPTIONAL only for offline use
+
+#### System copmonents
+MiGUEL features the following system components: 
+- Load
+- Photovoltaic systems
+- Wind turbines
+- Grid
+- Diesel generator
+- Energy Storage
+
+**Load**
 
 
 
