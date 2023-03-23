@@ -2,7 +2,7 @@
 
 
 
-## Introdcation
+## Introdcution
 
 MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln (TH Köln). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation adn evaluation only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
@@ -53,15 +53,20 @@ To create an instance of the class the following parameters have to provided. Th
 - weather_data: csv-file path with weather data (str) - OPTIONAL only for offline use
 
 #### System copmonents
-MiGUEL features the following system components: 
-- Load
-- Photovoltaic systems
-- Wind turbines
-- Grid
-- Diesel generator
-- Energy Storage
+MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the function to add the component to the Environment.
+- Load (.add_load)
+- Photovoltaic systems (.add_pv)
+- Wind turbines (.add_wind_turbine)
+- Grid (.add_grid)
+- Diesel generator (.add_diesel_generator)
+- Energy Storage (.add_storage)
 
-**Load**
+##### Load
+The system component load represents theload profile of the subject under review. The load profile can be generated in two different ways. 
+1) Standard load profile for african hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile the annual electricity consumption needs to be returned to the function (annuala_consumption). The standard load profile has a 15min-time resolution.
+2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file.
+
+If the resolution of the load profile does not match the environment time resolution the resolution of the load profile will be adjusted by summarizing or filling in the values. If no annual load profile is provided the load profile will be repeated to create an annual load profile.
 
 
 
