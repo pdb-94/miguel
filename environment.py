@@ -36,7 +36,8 @@ class Environment:
             Parameter for time series
             {start: dt.datetime,
              end: dt.datetime,
-             step: dt.timedelta)
+             step: dt.timedelta,
+             timezone: str)
         :param economy: dict
             Parameter for economical calculation
             {d_rate: float,
@@ -75,7 +76,7 @@ class Environment:
             self.pv_feed_in_tariff = 0.05  # US$/kWh
             self.wt_feed_in_tariff = 0.05  # US$/kWh
             self.electricity_price = 0.40  # US$/kWh
-            self.diesel_price = 1.20  # US$/kWh
+            self.diesel_price = 1.20  # US$/l
             self.avg_co2_price = 50  # currency/t
         else:
             self.currency = economy.get('currency')
