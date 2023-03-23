@@ -14,7 +14,11 @@ The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rumme
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
-![Structure](/documentation/structure.png)
+
+<p align="center">
+  <img src="/documentation/structure.png" alt="drawing" height="200"/>
+</p>
+
 The class Environment represents the energy system. It takes basic parameters such as time frame, location, economic and ecologic parameters. System components can be added to the Environment. The Operator runs the simulation and evaluation of the designed energy system. The class Report creates the pdf-report. The program is run by the main file.
 
 ### Main
@@ -95,16 +99,26 @@ The class grid represents the power grid. The power grid provides electricity to
 ### Operator
 
 The simulation process is divided in three steps.
-![SimulationProcess](/documentation/simulation_process.png)
+
+<p align="center">
+  <img src="/documentation/simulation_process.png" alt="drawing" height="100"/>
+</p>
 
 
 
 
 
 ## Project partners
-![MiGUEL](/documentation/MiGUEL_logo.png )
-![TH Kön](/documentation/th-koeln.png)
-![EnerSHelF](/documentation/EnerSHelF_logo.png)
+<p align="center">
+  <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
+</p>
+<p align="center">
+  <img src="/documentation/th-koeln_white.png" alt="drawing" height="200" align="center"/>
+</p>
+<p align="center">
+  <img src="/documentation/EnerSHelF_logo.png" alt="drawing" height="200" align="center"/>
+</p>
+
 
 ## References
 
