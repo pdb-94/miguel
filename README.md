@@ -85,15 +85,13 @@ The class WindTurbine is based on the library [windpowerlib](https://windpowerli
 
 The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
-
+### Operator
 
 The simulation process is divided in three steps.
 ![SimulationProcess](/documentation/simulation_process.png)
 
 
-### System components
 
-##
 
 
 ## Project partners
