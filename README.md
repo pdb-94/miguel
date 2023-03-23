@@ -15,6 +15,14 @@ The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rumme
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
 ![Structure](/documentation/structure.png)
+The class Environment represents the energy system. It takes basic parameters such as time frame, location, economic and ecologic parameters. System components can be added to the Environment. The Operator runs the simulation and evaluation of the designed energy system. The class Report creates the pdf-report. The program is run by the main file.
+
+### Main
+The main file is used to run the program. The main file is the only time the user has to interact with the source code.  The Environment, Operator and Report are created by the user. 
+
+### Environment
+The class Environment represents the energy system. To create an instance of the class the following parameters have to provided
+
 
 
 The simulation process is divided in three steps.
