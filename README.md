@@ -21,7 +21,35 @@ The class Environment represents the energy system. It takes basic parameters su
 The main file is used to run the program. The main file is the only time the user has to interact with the source code.  The Environment, Operator and Report are created by the user. 
 
 ### Environment
-The class Environment represents the energy system. To create an instance of the class the following parameters have to provided
+The class Environment represents the energy system. To create an instance of the class the following parameters have to provided.
+- name: project name (str)
+- time: time data (dict)
+  - start: start of annual simulation (datetime.datetime)
+  - end: end of annual simulation (datetime.datetime)
+  - step: time resolution: 1min, 15min, 60min (datetime.timedelta)
+  - timezone: timezone (str)
+- location: project location (dict)
+  - longitude (float)
+  - latitude (float)
+  - altitude (float)
+  - terrain (str)
+- economy: economical parameters (dict)
+  - currency: project currency (US$)
+  - d_rate: discount rate (float)
+  - lifetime: project lifetime [a] (int)
+  - electricity_price: grid price [US$/kWh] (float)
+  - diesel_price: Dieseel price [US$/l] (float)
+  - co2_price: CO2 price [US$/t] (float)
+  - pv_feed_in_teriff: PV feed-in tariff [US$/kWh] (float)
+  - wt_feed_in_teriff: wind turbine feed-in tariff [US$/kWh] (float)
+- ecology: ecological parameters (dict)
+  - co2_grid: specific CO2 emissions per kWh power grid [kg/kWh] (float)
+  - co2_diesel: specific CO2 emissions per kWh diesel [kg/kWh] (float)
+- blackout: True: unstable power grid, False: stable power grid (bool)
+- blackout_data: csv-file with blackout events (str)
+- feed_in: True: Feed-in possible, False: Feed-in not possible (bool)
+- weather_data: csv-file only needed for offline use (str)
+
 
 
 
