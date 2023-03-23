@@ -13,10 +13,20 @@ The results are provided in the form of csv files for each simulation step and i
 The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End (TH Köln). Further assistence was provided by Sascha Birk (TH Köln).
 
 ## Content and structure
-The simulation process is devided in three steps. 
+The basic structure of MiGUEL is displayed below. 
+![Structure](/documentation/structure.png)
+
+
+The simulation process is divided in three steps.
+![SimulationProcess](/documantation/simulation_process.png)
+
+
+### System components
+
+##
 
 
 ## Project partners
-![MiGUEL](/documentation/pictures/MiGUEL_logo.png )
-![TH Kön](/documentation/pictures/th-koeln.png)
-![EnerSHelF](/documentation/pictures/EnerSHelF_logo.png)
+![MiGUEL](/documentation/MiGUEL_logo.png )
+![TH Kön](/documentation/th-koeln.png)
+![EnerSHelF](/documentation/EnerSHelF_logo.png)
