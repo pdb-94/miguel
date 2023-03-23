@@ -14,7 +14,11 @@ The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rumme
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
-![Structure](/documentation/structure.png)
+
+<p align="center">
+  <img src="/documentation/structure.png" alt="drawing" height="200"/>
+</p>
+
 The class Environment represents the energy system. It takes basic parameters such as time frame, location, economic and ecologic parameters. System components can be added to the Environment. The Operator runs the simulation and evaluation of the designed energy system. The class Report creates the pdf-report. The program is run by the main file.
 
 ### Main
@@ -80,26 +84,41 @@ The class Photovoltaic is based on the library [pvlib](https://pvlib-python.read
 pvlib will run the PV simulation based on the selected system parameters. The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission.
 
 
-##### WindTurbine
+##### Wind turbine
 The class WindTurbine is based on the library [windpowerlib](https://windpowerlib.readthedocs.io/en/stable/index.html) [2]. To add wind turbines to the Environment the [turbine type](https://github.com/wind-python/windpowerlib/blob/master/windpowerlib/oedb/turbine_data.csv) and the turbine height [m] need to be returned.
 
 The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
+##### Grid
+The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment no specific parameters are needed.
 
+##### Diesel Generator
+
+##### Energy storage
+
+### Operator
 
 The simulation process is divided in three steps.
-![SimulationProcess](/documentation/simulation_process.png)
+
+<p align="center">
+  <img src="/documentation/simulation_process.png" alt="drawing" height="100"/>
+</p>
 
 
-### System components
 
-##
 
 
 ## Project partners
-![MiGUEL](/documentation/MiGUEL_logo.png )
-![TH Kön](/documentation/th-koeln.png)
-![EnerSHelF](/documentation/EnerSHelF_logo.png)
+<p align="center">
+  <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
+</p>
+<p align="center">
+  <img src="/documentation/th-koeln_white.png" alt="drawing" height="200" align="center"/>
+</p>
+<p align="center">
+  <img src="/documentation/EnerSHelF_logo.png" alt="drawing" height="200" align="center"/>
+</p>
+
 
 ## References
 
