@@ -45,7 +45,7 @@ To create an instance of the class the following parameters have to provided. Th
 | latitude | Latitude | float || °||
 | altitude | Altitude | float || m||
 | terrain | Terrain type | str ||| Terrain types mentioned in main.py description|
-| **economy** | **economical parameters** | **dict** ||
+| **economy** | **Economical parameters** | **dict** ||
 | d_rate | Discount rate | float ||
 |lifetime | Project lifetime | int |20| a|
 |currency| Currency| str| US$||If other currencies are used conversion rate needs to be applied|
@@ -136,6 +136,8 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 6) System configuration: Overview of selected system components
 7) Dispatch: Annual simulation results
 8) Evaluation: System evaluation based on LCOE and CO2-emissions over system lifetime
+
+The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can used as a projekt brochure. 
 
 
 
