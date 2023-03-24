@@ -10,7 +10,7 @@ The results are provided in the form of csv files for each simulation step and i
 
 
 ## Authors and contributors
-The main author is Paul Bohn (@pdb-94). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End (@moend95). Further assistence was provided by Sascha Birk (@pyosch).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
