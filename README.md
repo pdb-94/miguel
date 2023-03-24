@@ -126,6 +126,12 @@ MiGUEL provides two types of outputs. The first begin a csv-file with every ever
 
 #### csv-files
 
+The csv-files display the raw data of the annual simulation. The file lists every time step of the simulation, the load and all system components, as well as their generation power.
+
+<p align="center">
+  <img src="/documentation/csv_example.png" alt="drawing" height="200"/>
+</p>
+
 #### Report
 
 The pdf-Report is automatically creted by MiGUEL. It gives an overview of the simulation results and features the system evaluation based on the LCOE and CO2-emissions. The report is structured in the following chapters:
@@ -158,6 +164,27 @@ The report focuses not only on the energetic results of the system evaluation bu
    <img src="/documentation/EnerSHelF_logo.png" alt="drawing" height="200"/>
 </p>
 
+## Dependencies
+
+[pandas](https://pandas.pydata.org/)
+
+[numpy](https://numpy.org)
+
+[matplotlib](https://matplotlib.org/)
+
+[folium](https://python-visualization.github.io/folium/)
+
+[geopy](https://geopy.readthedocs.io/en/stable/)
+
+[fpdf](http://www.fpdf.org/)
+
+[pvlib](https://pvlib-python.readthedocs.io/en/stable/)
+
+[windpowerlib](https://windpowerlib.readthedocs.io/en/stable/)
+
+[selenium](https://selenium-python.readthedocs.io/)
+
+[plotly](https://plotly.com/python/)
 
 
 ## References
