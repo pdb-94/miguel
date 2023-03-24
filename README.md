@@ -4,7 +4,18 @@
   <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
 </p>
 
-## Introdcution
+## Table of contents
+- [Introduction](#introduction)
+- [Content and structure](#content-and-structure)
+  - [Main](#main)
+  - [Environment](#environment)
+  - [Operator](#operator)
+  - [Output](#output)
+- [Project partners](#project-partners)
+- [Dependencies](#dependencies)
+- [References](#references)
+
+## Introduction
 MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation adn evaluation only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
 The results are provided in the form of csv files for each simulation step and in the form of an automatically generated pdf report. The csv files are understood as raw data for further processing. The pdf report serves as a project brochure. Here, the results are presented clearly and graphically, and an economic and ecological evaluation of the system is carried out.
@@ -127,7 +138,12 @@ The figure displays the dispatch strategies for all system components. If a syst
 
 #### System evaluation
 The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
-The LCOE is [4]
+
+##### Levelized Cost of Energy
+The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy supply component [4]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance cost. Cost for recycling are neglected in this evaluation. The investment adn operation and maintenance cost are based on specific cost from literature values. The specfic cost are scaled by the power (energy supply components) or capacity (energy storage).
+
+##### CO2-emissions
+The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
 
 ### Output
 MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
