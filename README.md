@@ -57,18 +57,18 @@ To create an instance of the class the following parameters have to provided. Th
 | d_rate | Discount rate | float ||
 |lifetime | Project lifetime | int |20| a|
 |currency| Currency| str| US$||If other currencies are used conversion rate needs to be applied|
-|electricity_price |Electricity price|float||currency/kWh||
-|diesel_price| Diesel price|float||currency/l|
-|co2_price| Average CO2-price over system lifetime|float||currency/t||
-|pv_feed_in_tariff| PV feed-in traiff | float ||currency/kWh||
-|wt_feed_in_tariff| Wind turbine feed-in traiff | float ||currency/kWh||
+|electricity_price |Electricity price|float||US$/kWh||
+|diesel_price| Diesel price|float||US$/l|
+|co2_price| Average CO2-price over system lifetime|float||US$/t||
+|pv_feed_in_tariff| PV feed-in traiff | float ||US$/kWh||
+|wt_feed_in_tariff| Wind turbine feed-in traiff | float ||US$/kWh||
 |**ecology**| **Ecological parameters** | **dict** |||
 |co2_grid| Specific CO2-emissions power grid |float||kg/kWh||
 |co2_diesel| Specific CO2-emissions diesel |float |0.2665|kg/kWh||
 | **blackout** | **Stable or unstable power grid** | **bool** | **False** ||**True: Unstable power grid; False: Stable power grid**|
 |**blackout_data**|**csv-file path with blackout data**|**str**|||**csv-file with bool-values for every timestep**|
 |**feed_in**| **Feed-in possible** |**bool**|**False**||**True: Feed-in possible, False: Feed-in not possible**|
-|**weather_data**|**csv-file with weather data set**|**str**|||**Enables off-line usage**|
+|**weather_data**|**csv-file path with weather data set**|**str**|||**Enables off-line usage**|
 
 
 #### System components
