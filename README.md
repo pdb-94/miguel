@@ -128,14 +128,14 @@ MiGUEL provides two types of outputs. The first begin a csv-file with every ever
 
 The pdf-Report is automatically creted by MiGUEL. It gives an overview of the simulation results and features the system evaluation based on the LCOE and CO2-emissions. The report is structured in the following chapters:
 
-Introduction: Brief description of MiGUEL and EnerSHelF
-Summary: Summary of the most important simulation results and system evaluation
-1) Base data: Displays input parameters 
-2) Climate data: Solar and wind data from PVGIS at the selected location
-3) Energy consumption: Load profile
-4) System configuration: Overview of selected system components
-5) Dispatch: Annual simulation results
-6) Evaluation: System evaluation based on LCOE and CO2-emissions over system lifetime
+1) Introduction: Brief description of MiGUEL and EnerSHelF
+2) Summary: Summary of the most important simulation results and system evaluation
+3) Base data: Displays input parameters 
+4) Climate data: Solar and wind data from PVGIS at the selected location
+5) Energy consumption: Load profile
+6) System configuration: Overview of selected system components
+7) Dispatch: Annual simulation results
+8) Evaluation: System evaluation based on LCOE and CO2-emissions over system lifetime
 
 
 
