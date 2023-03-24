@@ -104,6 +104,8 @@ The class grid represents the power grid. The power grid provides electricity to
 ##### Diesel Generator
 The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. 
 
+The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. 
+
 ##### Energy storage
 
 ### Operator
