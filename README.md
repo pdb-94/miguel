@@ -102,7 +102,7 @@ The weather data for the project location is retrieved by the Environment. The d
 The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment no specific parameters are needed.
 
 ##### Diesel Generator
-The class DieselGenerator is based on a simplfied generator model. 
+The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. 
 
 ##### Energy storage
 
@@ -163,3 +163,6 @@ The report focuses not only on the energetic results of the system evaluation bu
 [1] William F. Holmgren, Clifford W. Hansen, and Mark A. Mikofski. “pvlib python: a python package for modeling solar energy systems.” Journal of Open Source Software, 3(29), 884, (2018). [https://doi.org/10.21105/joss.00884](https://doi.org/10.21105/joss.00884)
 
 [2] Sabine Haas, Uwe Krien, Birgit Schachler, Stickler Bot, kyri-petrou, Velibor Zeli, Kumar Shivam, & Stephen Bosch. (2021). wind-python/windpowerlib: Silent Improvements (v0.2.1). Zenodo. [https://doi.org/10.5281/zenodo.4591809](https://doi.org/10.5281/zenodo.4591809)
+
+[3] PV Magazine; "Low-load generators make photovoltaic diesel applications cleaner and more efficient"; 06. October 2015; online available:
+[Niedrig-Last-Generatoren machen Photovoltaik-Diesel-Anwendungen sauberer und effizienter](https://www.pv-magazine.de/2015/10/06/niedrig-last-generatoren-machen-photovoltaik-diesel-anwendungen-sauberer-und-effizienter/)
