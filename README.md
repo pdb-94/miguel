@@ -4,16 +4,13 @@
   <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
 </p>
 
-
 ## Introdcution
-
 MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation adn evaluation only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
 The results are provided in the form of csv files for each simulation step and in the form of an automatically generated pdf report. The csv files are understood as raw data for further processing. The pdf report serves as a project brochure. Here, the results are presented clearly and graphically, and an economic and ecological evaluation of the system is carried out.
 
-
 ## Authors and contributors
-The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders (TH Köln).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -63,7 +60,7 @@ To create an instance of the class the following parameters have to provided. Th
 |**weather_data**|**csv-file with weather data set**|**str**|||**Enables off-line usage**|
 
 
-#### System copmonents
+#### System components
 MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the function to add the component to the Environment.
 |System component|Function|
 |-|-|
@@ -109,23 +106,33 @@ The input parameters for diesel generators are the nominal power [W], the fuel c
 ##### Energy storage
 
 ### Operator
-
-The simulation process is divided in three steps.
+The simulation process is divided in three steps. 
 
 <p align="center">
   <img src="/documentation/simulation_process.png" alt="drawing" height="100"/>
 </p>
 
+The system design is the only time the user needs to interact with the program code. Here the Environment ([create Environment](#environment)) and the system components are created ([system components](#system-components)). The annual simulaton and the system evaluation are carried out by the [Operator](#operator).
+
 #### Annual simulation
+The energy system type depends on the input parameters and the system components in the energy system. A distinction is made between off-grid systems and on-grid systems. On-grid systems are further divided into stable systems (without blackouts) and unstable systems (with blackouts). Depending on the type of energy system different dispatch strategies are applied for the annual simulation.
+
+<p align="center">
+  <img src="/documentation/dispatch_priorities.svg" alt="drawing" height="400"/>
+</p>
+
+RE = Renewable energies &emsp; ES = Energy storage &emsp; DG = Diesel generator
+
+The figure displays the dispatch strategies for all system components. If a system component is noot added to the system this component will be skipped in the dispatch.
 
 #### System evaluation
+The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
+The LCOE is [4]
 
 ### Output
-
 MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
 
 #### csv-files
-
 The csv-files display the raw data of the annual simulation. The file lists every time step of the simulation, the load and all system components, as well as their generation power.
 
 <p align="center">
@@ -133,7 +140,6 @@ The csv-files display the raw data of the annual simulation. The file lists ever
 </p>
 
 #### Report
-
 The pdf-Report is automatically creted by MiGUEL. It gives an overview of the simulation results and features the system evaluation based on the LCOE and CO2-emissions. The report is structured in the following chapters:
 
 1) Introduction: Brief description of MiGUEL and EnerSHelF
@@ -146,13 +152,6 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 8) Evaluation: System evaluation based on LCOE and CO2-emissions over system lifetime
 
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can used as a projekt brochure. 
-
-
-
-
-
-
-
 
 
 ## Project partners
@@ -195,3 +194,5 @@ The report focuses not only on the energetic results of the system evaluation bu
 
 [3] PV Magazine; "Low-load generators make photovoltaic diesel applications cleaner and more efficient"; 06. October 2015; online available:
 [Niedrig-Last-Generatoren machen Photovoltaik-Diesel-Anwendungen sauberer und effizienter](https://www.pv-magazine.de/2015/10/06/niedrig-last-generatoren-machen-photovoltaik-diesel-anwendungen-sauberer-und-effizienter/)
+
+[4] Michael Papapetrou, George Kosmadakis, Chapter 9 - Resource, environmental, and economic aspects of SGHE, Editor(s): Alessandro Tamburini, Andrea Cipollina, Giorgio Micale, In Woodhead Publishing Series in Energy, Salinity Gradient Heat Engines, Woodhead Publishing, 2022, Pages 319-353, ISBN 9780081028476, [https://doi.org/10.1016/B978-0-08-102847-6.00006-1](https://doi.org/10.1016/B978-0-08-102847-6.00006-1)
