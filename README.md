@@ -4,13 +4,13 @@
 
 ## Introdcution
 
-MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln (TH Köln). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
+MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation adn evaluation only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
 The results are provided in the form of csv files for each simulation step and in the form of an automatically generated pdf report. The csv files are understood as raw data for further processing. The pdf report serves as a project brochure. Here, the results are presented clearly and graphically, and an economic and ecological evaluation of the system is carried out.
 
 
 ## Authors and contributors
-The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders (TH Köln).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -28,42 +28,48 @@ The main file is used to run the program. The main file is the only time the use
 The class Environment represents the energy system. 
 #### Input parameters
 To create an instance of the class the following parameters have to provided. The list displays all input parameters, a brief description and the data type.
-- name: project name (str)
-- time: time data (dict)
-  - start: start of annual simulation (datetime.datetime)
-  - end: end of annual simulation (datetime.datetime)
-  - step: time resolution: 1min, 15min, 60min (datetime.timedelta)
-  - timezone: timezone (str)
-- location: project location (dict)
-  - longitude (float)
-  - latitude (float)
-  - altitude (float)
-  - terrain (str)
-- economy: economical parameters (dict)
-  - currency: project currency (US$)
-  - d_rate: discount rate (float)
-  - lifetime: project lifetime [a] (int)
-  - electricity_price: grid price [US$/kWh] (float)
-  - diesel_price: Dieseel price [US$/l] (float)
-  - co2_price: CO2 price [US$/t] (float)
-  - pv_feed_in_teriff: PV feed-in tariff [US$/kWh] (float)
-  - wt_feed_in_teriff: wind turbine feed-in tariff [US$/kWh] (float)
-- ecology: ecological parameters (dict)
-  - co2_grid: specific CO2 emissions per kWh power grid [kg/kWh] (float)
-  - co2_diesel: specific CO2 emissions per kWh diesel [kg/kWh] (float)
-- blackout: True: unstable power grid, False: stable power grid (bool)
-- blackout_data: csv-file with blackout events (str)
-- feed_in: True: Feed-in possible, False: Feed-in not possible (bool)
-- weather_data: csv-file path with weather data (str) - OPTIONAL only for offline use
+
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-----------|-------------|-------|---------|-|-|
+| **name** | **Project name** | **str** |**MiGUEL Project**|
+| **time** | **Project time data** | **dict** ||
+| start | Start time | datetime.datetime ||
+| end | End time | datetime.datetime ||
+| step | Time resolution | datetime.timedelta |15|min|Possible resolutions: 1min, 15min, 60min|
+| timezone | Time zone | str ||
+| **location** | **Project location** | **dict** ||
+| longitude | Longitude | float ||°||
+| latitude | Latitude | float || °||
+| altitude | Altitude | float || m||
+| terrain | Terrain type | str ||| Terrain types mentioned in main.py description|
+| **economy** | **economical parameters** | **dict** ||
+| d_rate | Discount rate | float ||
+|lifetime | Project lifetime | int |20| a|
+|currency| Currency| str| US$||If other currencies are used conversion rate needs to be applied|
+|electricity_price |Electricity price|float||currency/kWh||
+|diesel_price| Diesel price|float||currency/l|
+|co2_price| Average CO2-price over system lifetime|float||currency/t||
+|pv_feed_in_tariff| PV feed-in traiff | float ||currency/kWh||
+|wt_feed_in_tariff| Wind turbine feed-in traiff | float ||currency/kWh||
+|**ecology**| **Ecological parameters** | **dict** |||
+|co2_grid| Specific CO2-emissions power grid |float||kg/kWh||
+|co2_diesel| Specific CO2-emissions diesel |float |0.2665|kg/kWh||
+| **blackout** | **Stable or unstable power grid** | **bool** | **False** ||**True: Unstable power grid; False: Stable power grid**|
+|**blackout_data**|**csv-file path with blackout data**|**str**|||**csv-file with bool-values for every timestep**|
+|**feed_in**| **Feed-in possible** |**bool**|**False**||**True: Feed-in possible, False: Feed-in not possible**|
+|**weather_data**|**csv-file with weather data set**|**str**|||**Enables off-line usage**|
+
 
 #### System copmonents
 MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the function to add the component to the Environment.
-- Load (.add_load)
-- Photovoltaic systems (.add_pv)
-- Wind turbines (.add_wind_turbine)
-- Grid (.add_grid)
-- Diesel generator (.add_diesel_generator)
-- Energy Storage (.add_storage)
+|System component|Function|
+|-|-|
+|Load|.add_load|
+|Photovoltaic|.add_PV|
+|Wind turbine|.add_wind_turbine|
+|Grid| .add_grid|
+|Diesel generator|.add_diesel_generator|
+|Energy storage|.add_storage|
 
 ##### Load
 The system component load represents theload profile of the subject under review. The load profile can be generated in two different ways. 
@@ -105,6 +111,21 @@ The simulation process is divided in three steps.
   <img src="/documentation/simulation_process.png" alt="drawing" height="100"/>
 </p>
 
+#### Annual simulation
+
+#### System evaluation
+
+### Output
+
+MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
+
+#### csv-files
+
+#### Report
+
+
+
+
 
 
 
@@ -114,11 +135,10 @@ The simulation process is divided in three steps.
   <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
 </p>
 <p align="center">
-  <img src="/documentation/th-koeln_white.png" alt="drawing" height="200" align="center"/>
+  <img src="/documentation/th-koeln_white.png" alt="drawing" height="200"/>
+   <img src="/documentation/EnerSHelF_logo.png" alt="drawing" height="200"/>
 </p>
-<p align="center">
-  <img src="/documentation/EnerSHelF_logo.png" alt="drawing" height="200" align="center"/>
-</p>
+
 
 
 ## References
