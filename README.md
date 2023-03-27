@@ -199,7 +199,7 @@ The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy 
 
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
 |-|-|-|-|-|
-|PV|496.13|7.55|US$/kW|[6] [7]|
+|PV|496|7.55|US$/kW|[6] [7]|
 |Wind turbine|1160|43|US$/kW|[8] [9]|
 |Diesel generator|468|Investment cost *0.03; 0.021 US$/kWh|US$/kW|[10] [11]|
 |Energy storage|1200|30|US$/kWh|[12]|
