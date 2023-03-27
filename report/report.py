@@ -21,6 +21,7 @@ class Report:
     """
     Class to create results and report
     """
+
     def __init__(self,
                  env=None,
                  operator=None):
@@ -72,6 +73,7 @@ class Report:
         self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
+
     def introduction_summary(self):
         """
         Create Introduction and Summary
@@ -136,6 +138,7 @@ class Report:
                 data.append(round(self.evaluation_df.loc[row, 'Feed in [' + self.env.currency + ']'], 2))
             data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
             evaluation_values.append(data)
+            print(evaluation_values)
         evaluation_data = [[''], evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=evaluation_data,
@@ -383,10 +386,11 @@ class Report:
                                           self.txt_file_path + 'default/6_1_economic_evaluation.txt'],
                                     size=10)
         # Create economic evaluation table
-        economic_evaluation_header = ['Component', 'Energy [kWh]'
-                             'Investment Cost [' + env.currency + ']',
-                             'LCOE [' + env.currency + '/kWh]',
-                             'Feed in [' + env.currency + ']']
+        economic_evaluation_header = ['Component',
+                                      'Energy [kWh]',
+                                      'Investment Cost [' + env.currency + ']',
+                                      'LCOE [' + env.currency + '/kWh]',
+                                      'Feed in [' + env.currency + ']']
         economic_evaluation_values = [economic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
@@ -410,11 +414,12 @@ class Report:
         total_energy_cost = round(system_LCOE * total_energy, 2)
         total_energy_cost_grid = round(env.electricity_price * total_energy, 2)
         economic_table_description = "The overall systems LCOE is " + str(system_LCOE) + " " + env.currency + \
-                            "/kWh. The energy costs incurred in the period under consideration amount to " + \
-                            str(total_energy_cost) + " " + env.currency + \
-                            ". In comparison, the energy costs from a complete supply from the power grid amount to " + \
-                            str(total_energy_cost_grid) + " " + env.currency + ". The cost difference in the energy supply costs is " \
-                            + str(round(total_energy_cost-total_energy_cost_grid, 2)) + " " + env.currency + ".\n\n"
+                                     "/kWh. The energy costs incurred in the period under consideration amount to " + \
+                                     str(total_energy_cost) + " " + env.currency + \
+                                     ". In comparison, the energy costs from a complete supply from the power grid amount to " + \
+                                     str(total_energy_cost_grid) + " " + env.currency + ". The cost difference in the energy supply costs is " \
+                                     + str(
+            round(total_energy_cost - total_energy_cost_grid, 2)) + " " + env.currency + ".\n\n"
         self.create_txt(file_name='6_1_table_description', text=economic_table_description)
         self.pdf_file.ln(h=10)
         self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt', size=10)
@@ -450,6 +455,7 @@ class Report:
         self.pdf_file.image(name=self.report_path + 'pictures/co2-emissions.png', w=150)
 
     '''Functions to create chapter data'''
+
     def create_input_parameter(self):
         """
         Create DataFrame with input Parameters
@@ -486,13 +492,15 @@ class Report:
             if env.grid_connection or env.feed_in is False:
                 df.loc[pv.name, 'Feed in [' + env.currency + ']'] = None
             else:
-                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = op.df[pv.name + ' Feed in [' + env.currency + ']'].sum()
+                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = op.df[
+                    pv.name + ' Feed in [' + env.currency + ']'].sum()
         for wt in self.env.wind_turbine:
             df.loc[wt.name, 'Investment Cost [' + env.currency + ']'] = int(wt.c_invest_n * wt.p_n / 1000)
             if env.grid_connection or env.feed_in is False:
                 df.loc[wt.name, 'Feed in [' + env.currency + ']'] = None
             else:
-                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[wt.name + ' Feed in [' + env.currency + ']'].sum()
+                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[
+                    wt.name + ' Feed in [' + env.currency + ']'].sum()
         for dg in self.env.diesel_generator:
             df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = int(dg.c_invest_n * dg.p_n / 1000)
             df.loc[dg.name, 'Feed in [' + env.currency + ']'] = None
@@ -572,7 +580,7 @@ class Report:
         :return: None
         """
         fig, ax = plt.subplots()
-        ax.bar(df.index, df[columns[1]]*self.env.lifetime, 0.5, label='Operational CO2-emissions [t]')
+        ax.bar(df.index, df[columns[1]] * self.env.lifetime, 0.5, label='Operational CO2-emissions [t]')
         ax.bar(df.index, df[columns[0]], 0.5, label='Initial CO2-emissions [t]')
         ax.set_ylabel(y_label)
         ax.set_ylabel(y_label)
@@ -628,7 +636,7 @@ class Report:
                  dg_production,
                  pv_production, pv_sc, pv_charge, pv_charge * 0.9, pv_charge * 0.1, pv_feed_in,
                  wt_production, wt_sc, wt_charge, wt_charge * 0.9, wt_charge * 0.1, wt_feed_in,
-                 (pv_charge + wt_charge) * 0.9, (pv_charge + wt_charge) * 0.9**2, (pv_charge + wt_charge) * 0.1]
+                 (pv_charge + wt_charge) * 0.9, (pv_charge + wt_charge) * 0.9 ** 2, (pv_charge + wt_charge) * 0.1]
         link = dict(source=source, target=target, value=value)
         fig = go.Figure(data=[go.Sankey(node=node, link=link)])
         fig.update_layout(font_size=24)

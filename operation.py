@@ -37,6 +37,7 @@ class Operator:
         self.df = self.build_df()
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
+        print(self.energy_supply_parameters)
         self.evaluation_df = self.evaluate_system()
         self.export_data()
 
@@ -370,7 +371,7 @@ class Operator:
         # Calculate System LCOE and CO2-Emissions
         system_co2 = self.total_co2_emissions(df=df)
         system_lcoe = self.total_lcoe(df=df)
-        system_parameters = ['System', self.energy_consumption, system_lcoe, system_co2[0], system_co2[1], system_co2[2]]
+        system_parameters = ['System', self.energy_consumption*self.env.lifetime, system_lcoe, system_co2[0], system_co2[1], system_co2[2]]
         df.loc[len(df)] = system_parameters
 
         return df
@@ -499,7 +500,7 @@ class Operator:
         for i in range(len(df)):
             if df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] is not None:
                 system_lcoe += df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] \
-                               * df.loc[i, 'Energy production [kWh]'] / self.energy_consumption
+                               * df.loc[i, 'Energy production [kWh]'] / (self.energy_consumption*self.env.lifetime)
         system_lcoe = system_lcoe
 
         return system_lcoe
