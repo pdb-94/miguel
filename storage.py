@@ -7,8 +7,6 @@ class Storage:
     """
     Class to represent Energy Storages with a simplified Storage model
     """
-    c_invest_n = 1000.0
-    c_op_main = 20.0
 
     def __init__(self,
                  env,
@@ -29,9 +27,9 @@ class Storage:
         self.soc_min = soc_min
         self.n_charge = n_charge
         self.n_discharge = n_discharge
-        self.c_invest_n = 300
-        self.c_op_main_n = 0
-        self.co2_init = 35  # kg/kWh
+        self.c_invest_n = 1200  # US$/kWh
+        self.c_op_main_n = 30  # US$/kWh
+        self.co2_init = 103  # kg/kWh
 
         self.cycles = 0
         self.cycle_max = 4000

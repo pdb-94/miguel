@@ -75,7 +75,7 @@ env = Environment(name='Test',
                         'timezone': 'GMT'},
                   economy={'d_rate': 0.03,
                            'lifetime': 20,
-                           'electricity_price': 0.06,
+                           'electricity_price': 0.14,
                            'diesel_price': 1.385,
                            'pv_feed_in_tariff': 0,
                            'wt_feed_in_tariff': 0,
@@ -105,7 +105,7 @@ print('Added PV system to environment.')
 env.add_storage(p_n=10000, c=30000, soc=0.5)
 print('Added battery storage to environment.')
 # Diesel generator
-env.add_diesel_generator(p_n=30000, fuel_consumption=10, fuel_price=1.385)
+env.add_diesel_generator(p_n=30000, fuel_consumption=11.98, fuel_price=1.385)
 print('Added diesel generator to environment.')
 # Create Operator - Run dispatch
 print('Creating operator and run dispatch.')

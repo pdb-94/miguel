@@ -109,10 +109,10 @@ class PV:
             self.df['P [W]'] = np.where(self.pv_yield < 0, 0, self.pv_yield)
 
         # Economic parameters
-        self.c_invest_n = 875  # USD/kW IRENA - Renewable Power Generation Costs in 2021, page 79
-        self.c_op_main_n = self.c_invest_n * 0.02  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
+        self.c_invest_n = 496
+        self.c_op_main_n = 7.55
         self.c_var = 0.0
-        self.co2_init = 17.5  # kg/kW
+        self.co2_init = 460  # kg/kW
         # Dict with technical data
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,

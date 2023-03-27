@@ -542,14 +542,18 @@ if __name__ == '__main__':
                                         'altitude': 50,
                                         'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
                               grid_connection=True, blackout=True, blackout_data=blackout_data, feed_in=False)
-    load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
-    environment.add_load(load_profile=load_profile)
-    environment.add_grid()
-    environment.add_pv(p_n=50000,
-                       pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                                'max_module_power': 350, 'inverter_power_range': 25000})
-    environment.add_diesel_generator(p_n=35000, fuel_consumption=9.7, fuel_price=1.20)
+    environment.add_wind_turbine(p_n=20, turbine_data={
+    "turbine_type": "E-126/4200",  # turbine type as in register
+    "hub_height": 135})
+    # load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
+    # environment.add_load(load_profile=load_profile)
+    # environment.add_grid()
+    # environment.add_pv(p_n=50000,
+    #                    pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+    #                             'max_module_power': 350, 'inverter_power_range': 25000})
+    # environment.add_diesel_generator(p_n=35000, fuel_consumption=9.7, fuel_price=1.20)
     environment.add_storage(p_n=10000, c=50000, soc=0.5)
-    operator = Operator(env=environment)
-    report = Report(env=environment, operator=operator)
-    print('Runtime: %s seconds' % (time.time() - start_time))
+    # operator = Operator(env=environment)
+    # report = Report(env=environment, operator=operator)
+    # print('Runtime: %s seconds' % (time.time() - start_time))
+#

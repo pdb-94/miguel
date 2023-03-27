@@ -30,12 +30,12 @@ class DieselGenerator:
         self.env = env
         self.name = name
         self.p_n = p_n
-        self.c_invest_n = 1150.0  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
-        self.c_op_main_n = self.c_invest_n * 0.03  # USD/kW Sustainable Energy Handbook Module 6.1 Simplified Financial Models
-        self.c_var = 0.021  # USD/kWh Sustainable Energy Handbook Moduele 6.1 Simplified Financial Models
+        self.c_invest_n = 468  # USD/kW
+        self.c_op_main_n = self.c_invest_n * 0.03  # USD/kW
+        self.c_var = 0.021  # USD/kWh
         self.fuel_consumption = fuel_consumption  # [l/p_n]
         self.fuel_price = fuel_price  # [US$/l]
-        self.co2_init = 125  # kg/kW
+        self.co2_init = 265  # kg/kW
         self.df = pd.DataFrame(columns=['P [W]',
                                         'P [%]',
                                         'Fuel Consumption [l/h]',
@@ -43,7 +43,7 @@ class DieselGenerator:
                                index=self.env.time)
 
         if fuel_ticks is None:
-            self.fuel_ticks = {0: 0, 0.25: 0.286, 0.5: 0.524, 0.75: 0.762, 1: 1.0}
+            self.fuel_ticks = {0: 0, 0.25: 0.33, 0.5: 0.542, 0.75: 0.771, 1: 1.0}
             self.fuel_tick_percentage = list(self.fuel_ticks.keys())
             self.fuel_consumption_percentage = list(self.fuel_ticks.values())
         self.fuel_df = self.calc_fuel_ticks()
