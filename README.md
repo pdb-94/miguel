@@ -197,7 +197,7 @@ The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy 
 
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
 |-|-|-|-|-|
-|PV|||US$/kW|[6]|
+|PV|496.13|7.55|US$/kW|[6] [7]|
 |Wind turbine|||US$/kW|
 |Diesel generator|||US$/kW|
 |Energy storage|||US$/kWh|
@@ -282,3 +282,5 @@ The report focuses not only on the energetic results of the system evaluation bu
 [5] Michael Papapetrou, George Kosmadakis, Chapter 9 - Resource, environmental, and economic aspects of SGHE, Editor(s): Alessandro Tamburini, Andrea Cipollina, Giorgio Micale, In Woodhead Publishing Series in Energy, Salinity Gradient Heat Engines, Woodhead Publishing, 2022, Pages 319-353, ISBN 9780081028476, [https://doi.org/10.1016/B978-0-08-102847-6.00006-1](https://doi.org/10.1016/B978-0-08-102847-6.00006-1)
 
 [6] Vartiainen, E, Masson, G, Breyer, C, Moser, D, Román Medina, E. Impact of weighted average cost of capital, capital expenditure, and other parameters on future utility-scale PV levelised cost of electricity. Prog Photovolt Res Appl. 2020; 28: 439– 453. [https://doi.org/10.1002/pip.3189](https://doi.org/10.1002/pip.3189)
+
+[7] Bjarne Steffen, Martin Beuse, Paul Tautorat, Tobias S. Schmidt, Experience Curves for Operations and Maintenance Costs of Renewable Energy Technologies, Joule, Volume 4, Issue 2, 2020, Pages 359-375, ISSN 2542-4351, [https://doi.org/10.1016/j.joule.2019.11.012.](https://www.sciencedirect.com/science/article/pii/S2542435119305793)
