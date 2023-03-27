@@ -199,17 +199,17 @@ The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy 
 |-|-|-|-|-|
 |PV|496.13|7.55|US$/kW|[6] [7]|
 |Wind turbine|1160|43|US$/kW|[8] [9]|
-|Diesel generator|468||US$/kW|[10] [11]|
+|Diesel generator|468|Investment cost *0.03; 0.021 US$/kWh|US$/kW|[10] [11]|
 |Energy storage|1200|30|US$/kWh|[12]|
 
 ##### CO2-emissions
 The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
 | System component | Specific CO2 emissions production/installation | Unit | Source |
 |-|-|-|-|
-|PV||t/kW||
-|Wind turbine||t/kW|
-|Diesel generator||t/kW|
-|Energy storage||t/kWh|
+|PV|460|kg/kW|[13]|
+|Wind turbine|200|kg/kW|[14]|
+|Diesel generator|265|kg/kW|[15]|
+|Energy storage|103|kg/kWh|[16]|
 
 ### Output
 MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
@@ -291,6 +291,15 @@ The report focuses not only on the energetic results of the system evaluation bu
 
 [10] James Hamilton, Michael Negnevitsky, Xiaolin Wang, The potential of variable speed diesel application in increasing renewable energy source penetration, Energy Procedia, Volume 160, 2019, Pages 558-565, ISSN 1876-6102, [https://doi.org/10.1016/j.egypro.2019.02.206](https://doi.org/10.1016/j.egypro.2019.02.206)
 
-[11]
+[11] The EU Global Technical Assistance Facility for Sustainable Energy (EU GTAF), Sustainable Energy Handbook Module 6.1 Simplified Financial Models
 
 [12] National Renewable Energy Laboratory, Utility-Scale Battery Storage, 2023, [https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage](https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage)
+
+[13] Fraunhofer ISE, Photovoltaics and Climate Change, 2020, [https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf(https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf)
+
+
+[14] Ozoemena, M., Cheung, W.M. & Hasan, R. Comparative LCA of technology improvement opportunities for a 1.5-MW wind turbine in the context of an onshore wind farm. Clean Techn Environ Policy 20, 173–190 (2018). [https://doi.org/10.1007/s10098-017-1466-2](https://doi.org/10.1007/s10098-017-1466-2)
+
+[15] Friso Klemann, University Utrecht, The environmental impact of cycling 1,600 MWh electricity - A Life Cycle Assessment of a lithium-ion battery from Greener Power Solutions (P. 35)
+
+[16] Hao, H.; Mu, Z.; Jiang, S.; Liu, Z.; Zhao, F. GHG Emissions from the Production of Lithium-Ion Batteries for Electric Vehicles in China. Sustainability 2017, 9, 504. [https://doi.org/10.3390/su9040504](https://doi.org/10.3390/su9040504)
