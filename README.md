@@ -21,7 +21,7 @@ The results are provided in the form of csv files for each simulation step and i
 - [References](#references)
 
 ## Authors and contributors
-The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny (TH Köln) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -112,7 +112,7 @@ The class grid represents the power grid. The power grid provides electricity to
 ##### Diesel Generator
 The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. 
 
-The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. 
+The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. The fuel consumption dynamics are represented
 
 ##### Energy storage
 
