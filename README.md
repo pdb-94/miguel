@@ -87,6 +87,11 @@ The system component load represents theload profile of the subject under review
 1) Standard load profile for african hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile the annual electricity consumption needs to be returned to the function (annuala_consumption). The standard load profile has a 15min-time resolution.
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
 
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-----------|-------------|-------|---------|-|-|
+|annual_consumption|Annual electricity consumption|float|-|kWh|Only for method 1|
+|load_profile|File path to load profile data|str|-|-|csv-file with load profile, Only for method 2|
+
 The accuracy of the simulation resuls inceases with the quality of the input data. Using the adjusted standard load profile will provided less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on theelectric inventory of the subject.
 
 If the resolution of the load profile does not match the environment time resolution the resolution of the load profile will be adjusted by summarizing or filling in the values. If no annual load profile is provided the load profile will be repeated to create an annual load profile.
@@ -105,8 +110,8 @@ The class Photovoltaic is based on the library [pvlib](https://pvlib-python.read
 |**pv_data**|**PV system parameters**|**dict**|-|-||
 |pv_module|PV module|str|-|-|PV module from pvlib database, Only for method 2|
 |inverter|Inverter|str|-|-|Inverter from pvlib database, Only for method 2|
-|modules_per_string|Modules per string|int|-|-|, Only for method 2|
-|strings_per_inverter|Strings per inverster|int|-|-|, Only for method 2|
+|modules_per_string|Modules per string|int|-|-|Only for method 2|
+|strings_per_inverter|Strings per inverster|int|-|-|Only for method 2|
 |surface_tilt|PV system tilt angle|float|-|-||
 |surface_azimuth|PV system orientation|float|-|-|North=0°, East=90°, South=180°, West=270°|
 |min_module_power|Minimum module power|float|-|W|Only for method 1|
@@ -190,8 +195,21 @@ The two key parameters for the system evaluation are the Levelized Cost of Energ
 ##### Levelized Cost of Energy
 The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance cost. Cost for recycling are neglected in this evaluation. The investment adn operation and maintenance cost are based on specific cost from literature values. The specfic cost are scaled by the power (energy supply components) or capacity (energy storage).
 
+| System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
+|-|-|-|-|-|
+|PV|||US$/kW|[6]|
+|Wind turbine|||US$/kW|
+|Diesel generator|||US$/kW|
+|Energy storage|||US$/kWh|
+
 ##### CO2-emissions
 The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
+| System component | Specific CO2 emissions production/installation | Unit | Source |
+|-|-|-|-|
+|PV||t/kW||
+|Wind turbine||t/kW|
+|Diesel generator||t/kW|
+|Energy storage||t/kWh|
 
 ### Output
 MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
@@ -262,3 +280,5 @@ The report focuses not only on the energetic results of the system evaluation bu
 [4] Generator Source, LLC 1999-2023; Approximate Diesel Fuel Consumption Chart; online available: [https://www.generatorsource.com/Diesel_Fuel_Consumption.aspx](https://www.generatorsource.com/Diesel_Fuel_Consumption.aspx)
 
 [5] Michael Papapetrou, George Kosmadakis, Chapter 9 - Resource, environmental, and economic aspects of SGHE, Editor(s): Alessandro Tamburini, Andrea Cipollina, Giorgio Micale, In Woodhead Publishing Series in Energy, Salinity Gradient Heat Engines, Woodhead Publishing, 2022, Pages 319-353, ISBN 9780081028476, [https://doi.org/10.1016/B978-0-08-102847-6.00006-1](https://doi.org/10.1016/B978-0-08-102847-6.00006-1)
+
+[6] Vartiainen, E, Masson, G, Breyer, C, Moser, D, Román Medina, E. Impact of weighted average cost of capital, capital expenditure, and other parameters on future utility-scale PV levelised cost of electricity. Prog Photovolt Res Appl. 2020; 28: 439– 453. [https://doi.org/10.1002/pip.3189](https://doi.org/10.1002/pip.3189)
