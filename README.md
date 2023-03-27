@@ -112,7 +112,14 @@ The class grid represents the power grid. The power grid provides electricity to
 ##### Diesel Generator
 The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. 
 
-The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. The fuel consumption dynamics are represented
+The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. The fuel consumption for the generator is calculated every time step using the following equation. The equation was derived using characteristic values of a 150 kW diesel generator at loads of 0%, 25%, 50%, 75% and 100% [4]. 
+
+*fc(l) = - 1.66360855 x l<sup> 4</sup> +3.96330272 x l<sup> 3</sup> -3.19877674 x l<sup> 2</sup>+1.8990825 x l +0*
+
+*fc = relative fuel consumption*
+*l = relative load*
+
+
 
 ##### Energy storage
 
@@ -140,7 +147,7 @@ The figure displays the dispatch strategies for all system components. If a syst
 The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
 
 ##### Levelized Cost of Energy
-The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy supply component [4]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance cost. Cost for recycling are neglected in this evaluation. The investment adn operation and maintenance cost are based on specific cost from literature values. The specfic cost are scaled by the power (energy supply components) or capacity (energy storage).
+The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance cost. Cost for recycling are neglected in this evaluation. The investment adn operation and maintenance cost are based on specific cost from literature values. The specfic cost are scaled by the power (energy supply components) or capacity (energy storage).
 
 ##### CO2-emissions
 The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
@@ -211,4 +218,6 @@ The report focuses not only on the energetic results of the system evaluation bu
 [3] PV Magazine; "Low-load generators make photovoltaic diesel applications cleaner and more efficient"; 06. October 2015; online available:
 [Niedrig-Last-Generatoren machen Photovoltaik-Diesel-Anwendungen sauberer und effizienter](https://www.pv-magazine.de/2015/10/06/niedrig-last-generatoren-machen-photovoltaik-diesel-anwendungen-sauberer-und-effizienter/)
 
-[4] Michael Papapetrou, George Kosmadakis, Chapter 9 - Resource, environmental, and economic aspects of SGHE, Editor(s): Alessandro Tamburini, Andrea Cipollina, Giorgio Micale, In Woodhead Publishing Series in Energy, Salinity Gradient Heat Engines, Woodhead Publishing, 2022, Pages 319-353, ISBN 9780081028476, [https://doi.org/10.1016/B978-0-08-102847-6.00006-1](https://doi.org/10.1016/B978-0-08-102847-6.00006-1)
+[4] Generator Source, LLC 1999-2023; Approximate Diesel Fuel Consumption Chart; online available: [https://www.generatorsource.com/Diesel_Fuel_Consumption.aspx](https://www.generatorsource.com/Diesel_Fuel_Consumption.aspx)
+
+[5] Michael Papapetrou, George Kosmadakis, Chapter 9 - Resource, environmental, and economic aspects of SGHE, Editor(s): Alessandro Tamburini, Andrea Cipollina, Giorgio Micale, In Woodhead Publishing Series in Energy, Salinity Gradient Heat Engines, Woodhead Publishing, 2022, Pages 319-353, ISBN 9780081028476, [https://doi.org/10.1016/B978-0-08-102847-6.00006-1](https://doi.org/10.1016/B978-0-08-102847-6.00006-1)
