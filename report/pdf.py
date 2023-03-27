@@ -20,14 +20,14 @@ class PDF(FPDF):
         """
         dir_path = sys.path[1] + '/report/'
         self.add_page()
-        self.image(name=dir_path + 'pictures/MiGUEL_logo.png', y=85, x=0, w=150)
+        self.image(name=sys.path[1] + '/documentation/MiGUEL_logo.png', y=85, x=0, w=150)
         self.set_font('Arial', 'B', 16)
         self.multi_cell(w=0, h=128, txt='', align='L')
         self.multi_cell(w=0, h=10, txt='Report: ' + self.title, align='LB')
         self.set_font('Arial', 'B', 10)
         self.multi_cell(w=0, h=5, txt='Author: Paul Bohn (Technische Hochschule Köln) \nContributors: Silvan Rummeny', align='LB')
-        self.image(name=dir_path + 'pictures/th-koeln.png', y=160, x=11, h=15)
-        self.image(name=dir_path + 'pictures/EnerSHelF_logo.png', y=158, x=60, h=18)
+        self.image(name=sys.path[1] + '/documentation/th-koeln.png', y=160, x=11, h=15)
+        self.image(name=sys.path[1] + '/documentation/EnerSHelF_logo.png', y=158, x=60, h=18)
 
     def chapter_title(self, label: str, size: int = 12):
         """
