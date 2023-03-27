@@ -42,33 +42,33 @@ To create an instance of the class the following parameters have to provided. Th
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-----------|-------------|-------|---------|-|-|
-| **name** | **Project name** | **str** |**MiGUEL Project**|
-| **time** | **Project time data** | **dict** ||
-| start | Start time | datetime.datetime ||
-| end | End time | datetime.datetime ||
+| **name** | **Project name** | **str** |**MiGUEL Project**|-||
+| **time** | **Project time data** | **dict** |-|-||
+| start | Start time | datetime.datetime |-|-||
+| end | End time | datetime.datetime |-|-||
 | step | Time resolution | datetime.timedelta |15|min|Possible resolutions: 1min, 15min, 60min|
-| timezone | Time zone | str ||
-| **location** | **Project location** | **dict** ||
-| longitude | Longitude | float ||°||
-| latitude | Latitude | float || °||
-| altitude | Altitude | float || m||
-| terrain | Terrain type | str ||| Terrain types mentioned in main.py description|
-| **economy** | **Economical parameters** | **dict** ||
-| d_rate | Discount rate | float ||
+| timezone | Time zone | str |-|-||
+| **location** | **Project location** | **dict** |-|-||
+| longitude | Longitude | float |-|°||
+| latitude | Latitude | float |-| °||
+| altitude | Altitude | float |-|m||
+| terrain | Terrain type | str |-|-| Terrain types mentioned in main.py description|
+| **economy** | **Economical parameters** | **dict** |-|-||
+| d_rate | Discount rate | float |-|-||
 |lifetime | Project lifetime | int |20| a|
-|currency| Currency| str| US$||If other currencies are used conversion rate needs to be applied|
-|electricity_price |Electricity price|float||US$/kWh||
-|diesel_price| Diesel price|float||US$/l|
-|co2_price| Average CO2-price over system lifetime|float||US$/t||
-|pv_feed_in_tariff| PV feed-in traiff | float ||US$/kWh||
-|wt_feed_in_tariff| Wind turbine feed-in traiff | float ||US$/kWh||
-|**ecology**| **Ecological parameters** | **dict** |||
-|co2_grid| Specific CO2-emissions power grid |float||kg/kWh||
+|currency| Currency| str| US$|-|If other currencies are used conversion rate needs to be applied|
+|electricity_price |Electricity price|float|-|US$/kWh||
+|diesel_price| Diesel price|float|-|US$/l|
+|co2_price| Average CO2-price over system lifetime|float|-|US$/t||
+|pv_feed_in_tariff| PV feed-in traiff | float |-|US$/kWh||
+|wt_feed_in_tariff| Wind turbine feed-in traiff | float |-|US$/kWh||
+|**ecology**| **Ecological parameters** | **dict** |-|-|
+|co2_grid| Specific CO2-emissions power grid |float|-|kg/kWh||
 |co2_diesel| Specific CO2-emissions diesel |float |0.2665|kg/kWh||
-| **blackout** | **Stable or unstable power grid** | **bool** | **False** ||**True: Unstable power grid; False: Stable power grid**|
-|**blackout_data**|**csv-file path with blackout data**|**str**|||**csv-file with bool-values for every timestep**|
-|**feed_in**| **Feed-in possible** |**bool**|**False**||**True: Feed-in possible, False: Feed-in not possible**|
-|**weather_data**|**csv-file path with weather data set**|**str**|||**Enables off-line usage**|
+| **blackout** | **Stable or unstable power grid** | **bool** | **False** |-|**True: Unstable power grid; False: Stable power grid**|
+|**blackout_data**|**csv-file path with blackout data**|**str**|-|-|**csv-file with bool-values for every timestep**|
+|**feed_in**| **Feed-in possible** |**bool**|**False**|-|**True: Feed-in possible, False: Feed-in not possible**|
+|**weather_data**|**csv-file path with weather data set**|**str**|-|-|**Enables off-line usage**|
 
 
 #### System components
@@ -93,10 +93,26 @@ If the resolution of the load profile does not match the environment time resolu
 
 
 ##### Photovoltaic
-The class Photovoltaic is based on the library [pvlib](https://pvlib-python.readthedocs.io/en/stable/#) [1]. PV systems can be added in three different ways:
+The class Photovoltaic is based on the library [pvlib](https://pvlib-python.readthedocs.io/en/stable/#) [1]. There are three methods implemented to create PV systems:
 1) Adding basic system parameters: Simplest way to create PV system with on ly basic parameters such as nominal power, surface tilt and azimuth, module and inverter power range. The class Photovoltaic will randomly choose a PV module, number if modules and an inverter that match the parameters
 2) Selecting your modules and inverter: All sytem parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function.
 3) Provide measured PV data: Input of measured PV as a csv-file
+
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-----------|-------------|-------|---------|-|-|
+|p_n|Nominal power|float|-|W||
+|pv_profile|File path to pv porduction data|str|-|-|Measured pv data in csv file, Only for method 3|
+|**pv_data**|**PV system parameters**|**dict**|-|-||
+|pv_module|PV module|str|-|-|PV module from pvlib database, Only for method 2|
+|inverter|Inverter|str|-|-|Inverter from pvlib database, Only for method 2|
+|modules_per_string|Modules per string|int|-|-|, Only for method 2|
+|strings_per_inverter|Strings per inverster|int|-|-|, Only for method 2|
+|surface_tilt|PV system tilt angle|float|-|-||
+|surface_azimuth|PV system orientation|float|-|-|North=0°, East=90°, South=180°, West=270°|
+|min_module_power|Minimum module power|float|-|W|Only for method 1|
+|max_module_power|Maximum module power|float|-|W|Only for method 1|
+|inverter_power_range|Inverter power range|float|-|W|Only for method 1|
+
 
 pvlib will run the PV simulation based on the selected system parameters. The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission.
 
@@ -104,24 +120,49 @@ pvlib will run the PV simulation based on the selected system parameters. The we
 ##### Wind turbine
 The class WindTurbine is based on the library [windpowerlib](https://windpowerlib.readthedocs.io/en/stable/index.html) [2]. To add wind turbines to the Environment the [turbine type](https://github.com/wind-python/windpowerlib/blob/master/windpowerlib/oedb/turbine_data.csv) and the turbine height [m] need to be returned.
 
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-|-|-|-|-|-|
+|**turbine_data**|**Turbine data**|**dict**|-|-||
+|turbin_type|Turbine type|str|-|-|Turbine name and manufacturer from windpowerlib register|
+|tubine_height|Hub height|float|-|m||
+
 The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
 ##### Grid
 The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment no specific parameters are needed.
 
 ##### Diesel Generator
-The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. 
+The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. The input parameters for diesel generators are displayed in the table below.
 
-The input parameters for diesel generators are the nominal power [W], the fuel consumption at nominal power [l] and the diesel price [currency/l]. The fuel consumption for the generator is calculated every time step using the following equation. The equation was derived using characteristic values of a 150 kW diesel generator at loads of 0%, 25%, 50%, 75% and 100% [4]. 
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-|-|-|-|-|-|
+|p_n| Nominal power|float|-|W||
+|fuel_consumption|Fuel consumption at nominal power|float|-|l||
+|fuel_price|Fuel price|float|-|US$/l||
+
+
+The fuel consumption for the generator is calculated every time step using the following equation. The equation was derived using characteristic values of a 150 kW diesel generator at loads of 0%, 25%, 50%, 75% and 100% [4]. 
 
 *fc(l) = - 1.66360855 x l<sup> 4</sup> +3.96330272 x l<sup> 3</sup> -3.19877674 x l<sup> 2</sup>+1.8990825 x l +0*
 
-*fc = relative fuel consumption*
-*l = relative load*
+*fc = relative fuel consumption [%]* &emsp; *l = relative load [%]*
 
 
 
 ##### Energy storage
+The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are dsiplay in the table below:
+| Parameter | Description | dtype | Default | Unit| Comment |
+|-|-|-|-|-|-|
+|p_n|Nominal power|float|-|W||
+|c|capacity|float|-|Wh||
+|soc|Initial state of charge|float|0.5|-||
+|soc_max| Maximum state of charge|float|0.95|-||
+|soc_min|Minimum state of charge|float|0.05|-||
+|n_discharge|Discharge efficiency|float|0.8|-||
+|n_charge|Charge efficiency|float|0.8|-||
+
+
+The energy storage can be either charged or discharged at any time step. 
 
 ### Operator
 The simulation process is divided in three steps. 
