@@ -198,9 +198,9 @@ The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy 
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
 |-|-|-|-|-|
 |PV|496.13|7.55|US$/kW|[6] [7]|
-|Wind turbine|||US$/kW|
-|Diesel generator|||US$/kW|
-|Energy storage|||US$/kWh|
+|Wind turbine|1160|43|US$/kW|[8] [9]|
+|Diesel generator|468||US$/kW|[10] [11]|
+|Energy storage|1200|30|US$/kWh|[12]|
 
 ##### CO2-emissions
 The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
@@ -283,4 +283,14 @@ The report focuses not only on the energetic results of the system evaluation bu
 
 [6] Vartiainen, E, Masson, G, Breyer, C, Moser, D, Román Medina, E. Impact of weighted average cost of capital, capital expenditure, and other parameters on future utility-scale PV levelised cost of electricity. Prog Photovolt Res Appl. 2020; 28: 439– 453. [https://doi.org/10.1002/pip.3189](https://doi.org/10.1002/pip.3189)
 
-[7] Bjarne Steffen, Martin Beuse, Paul Tautorat, Tobias S. Schmidt, Experience Curves for Operations and Maintenance Costs of Renewable Energy Technologies, Joule, Volume 4, Issue 2, 2020, Pages 359-375, ISSN 2542-4351, [https://doi.org/10.1016/j.joule.2019.11.012.](https://www.sciencedirect.com/science/article/pii/S2542435119305793)
+[7] Bjarne Steffen, Martin Beuse, Paul Tautorat, Tobias S. Schmidt, Experience Curves for Operations and Maintenance Costs of Renewable Energy Technologies, Joule, Volume 4, Issue 2, 2020, Pages 359-375, ISSN 2542-4351, [https://doi.org/10.1016/j.joule.2019.11.012]([https://www.sciencedirect.com/science/article/pii/S2542435119305793](https://doi.org/10.1016/j.joule.2019.11.012))
+
+[8] Lucas Sens, Ulf Neuling, Martin Kaltschmitt, Capital expenditure and levelized cost of electricity of photovoltaic plants and wind turbines – Development by 2050, Renewable Energy, Volume 185, 2022, Pages 525-537, ISSN 0960-1481, [https://doi.org/10.1016/j.renene.2021.12.042]([https://www.sciencedirect.com/science/article/pii/S0960148121017626](https://doi.org/10.1016/j.renene.2021.12.042)
+
+[9] Tyler Stehly, Philipp Beiter, and Patrick Duffy, National Renewable Energy Laboratory, 2019 Cost of Wind Energy Review, 2019, [https://www.nrel.gov/docs/fy21osti/78471.pdf9](https://www.nrel.gov/docs/fy21osti/78471.pdf)
+
+[10] James Hamilton, Michael Negnevitsky, Xiaolin Wang, The potential of variable speed diesel application in increasing renewable energy source penetration, Energy Procedia, Volume 160, 2019, Pages 558-565, ISSN 1876-6102, [https://doi.org/10.1016/j.egypro.2019.02.206](https://doi.org/10.1016/j.egypro.2019.02.206)
+
+[11]
+
+[12] National Renewable Energy Laboratory, Utility-Scale Battery Storage, 2023, [https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage](https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage)
