@@ -6,7 +6,7 @@
 
 ## Introduction
 MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
-MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation adn evaluation only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
+MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation and evaluation, only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
 The results are provided in the form of csv files for each simulation step and in the form of an automatically generated pdf report. The csv files are understood as raw data for further processing. The pdf report serves as a project brochure. Here, the results are presented clearly and graphically, and an economic and ecological evaluation of the system is carried out.
 
 ## Table of contents
@@ -21,7 +21,7 @@ The results are provided in the form of csv files for each simulation step and i
 - [References](#references)
 
 ## Authors and contributors
-The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistence was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistance was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -38,7 +38,7 @@ The main file is used to run the program. The main file is the only time the use
 ### Environment
 The class Environment represents the energy system. 
 #### Input parameters
-To create an instance of the class the following parameters have to provided. The list displays all input parameters, a brief description and the data type.
+To create an instance of the class, the following parameters have to be provided. The list displays all input parameters, a brief description and the data type.
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-----------|-------------|-------|---------|-|-|
@@ -72,7 +72,7 @@ To create an instance of the class the following parameters have to provided. Th
 
 
 #### System components
-MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the function to add the component to the Environment.
+MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the functions to add the components to the Environment.
 |System component|Function|
 |-|-|
 |Load|.add_load|
@@ -83,8 +83,8 @@ MiGUEL features the following system components. Each component can be added to 
 |Energy storage|.add_storage|
 
 ##### Load
-The system component load represents theload profile of the subject under review. The load profile can be generated in two different ways. 
-1) Standard load profile for african hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile the annual electricity consumption needs to be returned to the function (annuala_consumption). The standard load profile has a 15min-time resolution.
+The system component load represents the load profile of the subject under review. The load profile can be generated in two different ways. 
+1) Standard load profile for African hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile, the annual electricity consumption needs to be returned to the function (annual_consumption). The standard load profile has a 15min-time resolution.
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
 
 | Parameter | Description | dtype | Default | Unit| Comment |
@@ -92,15 +92,15 @@ The system component load represents theload profile of the subject under review
 |annual_consumption|Annual electricity consumption|float|-|kWh|Only for method 1|
 |load_profile|File path to load profile data|str|-|-|csv-file with load profile, Only for method 2|
 
-The accuracy of the simulation resuls inceases with the quality of the input data. Using the adjusted standard load profile will provided less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on theelectric inventory of the subject.
+The accuracy of the simulation results increases with the quality of the input data. Using the adjusted standard load profile will provide less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on the electric inventory of the subject.
 
-If the resolution of the load profile does not match the environment time resolution the resolution of the load profile will be adjusted by summarizing or filling in the values. If no annual load profile is provided the load profile will be repeated to create an annual load profile.
+If the resolution of the load profile does not match the environment time resolution, the resolution of the load profile will be adjusted by summarizing or filling in the values. If no annual load profile is provided, the load profile will be repeated to create an annual load profile.
 
 
 ##### Photovoltaic
 The class Photovoltaic is based on the library [pvlib](https://pvlib-python.readthedocs.io/en/stable/#) [1]. There are three methods implemented to create PV systems:
-1) Adding basic system parameters: Simplest way to create PV system with on ly basic parameters such as nominal power, surface tilt and azimuth, module and inverter power range. The class Photovoltaic will randomly choose a PV module, number if modules and an inverter that match the parameters
-2) Selecting your modules and inverter: All sytem parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function.
+1) Adding basic system parameters: Simplest way to create PV system with only basic parameters such as nominal power, surface tilt and azimuth, module and inverter power range. The class Photovoltaic will randomly choose a PV module, number of modules and an inverter that matches the parameters
+2) Selecting your modules and inverter: All system parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function.
 3) Provide measured PV data: Input of measured PV as a csv-file
 
 | Parameter | Description | dtype | Default | Unit| Comment |
@@ -119,7 +119,7 @@ The class Photovoltaic is based on the library [pvlib](https://pvlib-python.read
 |inverter_power_range|Inverter power range|float|-|W|Only for method 1|
 
 
-pvlib will run the PV simulation based on the selected system parameters. The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission.
+pvlib will run the PV simulation based on the selected system parameters. The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission.
 
 
 ##### Wind turbine
@@ -131,13 +131,13 @@ The class WindTurbine is based on the library [windpowerlib](https://windpowerli
 |turbin_type|Turbine type|str|-|-|Turbine name and manufacturer from windpowerlib register|
 |tubine_height|Hub height|float|-|m||
 
-The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Comission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
+The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
 ##### Grid
-The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment no specific parameters are needed.
+The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data, a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment, no specific parameters are needed.
 
 ##### Diesel Generator
-The class DieselGenerator is based on a simplfied, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therfore reduce CO2-emissions [3]. The input parameters for diesel generators are displayed in the table below.
+The class DieselGenerator is based on a simplified, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therefore reduce CO2-emissions [3]. The input parameters for diesel generators are displayed in the table below.
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-|-|-|-|-|-|
@@ -155,7 +155,7 @@ The fuel consumption for the generator is calculated every time step using the f
 
 
 ##### Energy storage
-The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are dsiplay in the table below:
+The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are dsiplayed in the table below:
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-|-|-|-|-|-|
 |p_n|Nominal power|float|-|W||
@@ -176,10 +176,10 @@ The simulation process is divided in three steps.
   <img src="/documentation/simulation_process.png" alt="drawing" height="100"/>
 </p>
 
-The system design is the only time the user needs to interact with the program code. Here the Environment ([create Environment](#environment)) and the system components are created ([system components](#system-components)). The annual simulaton and the system evaluation are carried out by the [Operator](#operator).
+The system design is the only time the user needs to interact with the program code. Here the Environment ([create Environment](#environment)) and the system components are created ([system components](#system-components)). The annual simulation and the system evaluation are carried out by the [Operator](#operator).
 
 #### Annual simulation
-The energy system type depends on the input parameters and the system components in the energy system. A distinction is made between off-grid systems and on-grid systems. On-grid systems are further divided into stable systems (without blackouts) and unstable systems (with blackouts). Depending on the type of energy system different dispatch strategies are applied for the annual simulation.
+The energy system type depends on the input parameters and the system components in the energy system. A distinction is made between off-grid systems and on-grid systems. On-grid systems are further divided into stable systems (without blackouts) and unstable systems (with blackouts). Depending on the type of energy system, different dispatch strategies are applied for the annual simulation.
 
 <p align="center">
   <img src="/documentation/dispatch_priorities.svg" alt="drawing" height="400"/>
@@ -187,7 +187,7 @@ The energy system type depends on the input parameters and the system components
 
 RE = Renewable energies &emsp; ES = Energy storage &emsp; DG = Diesel generator
 
-The figure displays the dispatch strategies for all system components. If a system component is noot added to the system this component will be skipped in the dispatch.
+The figure displays the dispatch strategies for all system components. If a system component is not added to the system, this component will be skipped in the dispatch.
 
 #### System evaluation
 The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
@@ -195,7 +195,7 @@ The two key parameters for the system evaluation are the Levelized Cost of Energ
 Note: The specific values for investment, operating and maintenance costs have been partially converted from euros to US$ (27.03.2023). The costs may differ depending on the exchange rate.
 
 ##### Levelized Cost of Energy
-The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance cost. Cost for recycling are neglected in this evaluation. The investment adn operation and maintenance cost are based on specific cost from literature values. The specfic cost are scaled by the power (energy supply components) or capacity (energy storage).
+The LCOE are calculated according to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole systems lifetime. The LCOE includes the initial investment costs and the operation and maintenance costs. Costs for recycling are neglected in this evaluation. The investment and operation and maintenance cost are based on specific costs from literature values. The specific costs are scaled by the power (energy supply components) or capacity (energy storage).
 
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
 |-|-|-|-|-|
@@ -205,7 +205,7 @@ The LCOE are calculated accoring to Michael Papapetrou et. al. for every energy 
 |Energy storage|1200|30|US$/kWh|[12]|
 
 ##### CO2-emissions
-The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
+The CO2-emissions are evaluated over the systems lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
 | System component | Specific CO2 emissions production/installation | Unit | Source |
 |-|-|-|-|
 |PV|460|kg/kW|[13]|
@@ -214,7 +214,7 @@ The CO2-emissions are evaluated over the system lifetime. Included are the CO2-e
 |Energy storage|103|kg/kWh|[16]|
 
 ### Output
-MiGUEL provides two types of outputs. The first begin a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displyed graphical and will be explined briefly. 
+MiGUEL provides two types of outputs. The first output is a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displayed graphically and will be explained briefly. 
 
 #### csv-files
 The csv-files display the raw data of the annual simulation. The file lists every time step of the simulation, the load and all system components, as well as their generation power.
@@ -235,7 +235,7 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 7) Dispatch: Annual simulation results
 8) Evaluation: System evaluation based on LCOE and CO2-emissions over system lifetime
 
-The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can used as a projekt brochure. 
+The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
 
 ## Project partners
