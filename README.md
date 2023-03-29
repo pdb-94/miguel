@@ -155,7 +155,7 @@ The fuel consumption for the generator is calculated every time step using the f
 
 
 ##### Energy storage
-The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are dsiplayed in the table below:
+The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are displayed in the table below:
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-|-|-|-|-|-|
 |p_n|Nominal power|float|-|W||
@@ -167,7 +167,7 @@ The class Storage represents energy storage systems. The energy storage is repre
 |n_charge|Charge efficiency|float|0.8|-||
 
 
-The energy storage can be either charged or discharged at any time step. 
+The energy storage can be either charged or discharged at any time step. The following boundary conditions apply to loading and unloading. The memory can only be discharged to the minimum state of charge and charged to the maximum state of charge. The maximum charging or discharging power corresponds to the nominal power multiplied by the respective efficiency.
 
 ### Operator
 The simulation process is divided in three steps. 
