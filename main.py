@@ -61,9 +61,10 @@ In this code example an off-grid system is simulated. The following system compo
 - Battery storage 10 kW/30kWh
 - Diesel Generator: 30 kW
 """
-
+start_time = dt.datetime.today()
+print('Create components: ' + str(start_time))
 # Create environment
-env = Environment(name='OFF_PV60_DG30',
+env = Environment(name='MiGUEL Test_1',
                   location={'longitude': -0.7983,
                             'latitude': 6.0442,
                             'altitude': 20,
@@ -90,17 +91,24 @@ env = Environment(name='OFF_PV60_DG30',
 # Add system components
 # Load
 env.add_load(load_profile='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv')
+# env.add_load(annual_consumption=5000000)
 # Grid
 # env.add_grid()
 # PV System
-env.add_pv(p_n=60000,
+env.add_wind_turbine(p_n=5000000, turbine_data={'turbine_type': 'AD116/5000', 'hub_height': 102}, )
+env.add_pv(p_n=80000,
            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                     'max_module_power': 350, 'inverter_power_range': 25000})
+
 # Battery storage
-# env.add_storage(p_n=10000, c=30000, soc=0.5)
+env.add_storage(p_n=10000, c=10000, soc=0.5)
 # Diesel generator
 env.add_diesel_generator(p_n=30000, fuel_consumption=11.98, fuel_price=1.385)
 # Create Operator - Run dispatch
+print('Run Dispatch', 'Time: ' + str(dt.datetime.today()-start_time))
 operator = Operator(env=env)
+print('Dispatch finished', 'Time: ' + str(dt.datetime.today()-start_time))
 # Create report
+print('Create Report', 'Time: ' + str(dt.datetime.today()-start_time))
 report = Report(env=env, operator=operator)
+print('Report Finished', 'Time: ' + str(dt.datetime.today()-start_time))

@@ -315,7 +315,6 @@ class Environment:
                                              name=name,
                                              p_n=p_n,
                                              turbine_data=turbine_data,
-                                             location=self.location,
                                              wt_profile=wt_profile))
         self.re_supply.append(self.wind_turbine[-1])
         self.df[name + ': P [W]'] = self.wind_turbine[-1].df['P [W]']

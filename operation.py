@@ -37,7 +37,6 @@ class Operator:
         self.df = self.build_df()
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
-        print(self.energy_supply_parameters)
         self.evaluation_df = self.evaluate_system()
         self.export_data()
 

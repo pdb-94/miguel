@@ -66,7 +66,8 @@ class Report:
         self.base_data()
         self.climate_data()
         self.energy_consumption()
-        self.energy_supply()
+        if len(self.env.pv) or len(self.env.wind_turbine) > 0:
+            self.energy_supply()
         self.dispatch()
         self.evaluation()
         # Create report
@@ -138,7 +139,6 @@ class Report:
                 data.append(round(self.evaluation_df.loc[row, 'Feed in [' + self.env.currency + ']'], 2))
             data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
             evaluation_values.append(data)
-            print(evaluation_values)
         evaluation_data = [[''], evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=evaluation_data,
@@ -501,13 +501,19 @@ class Report:
             else:
                 df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[
                     wt.name + ' Feed in [' + env.currency + ']'].sum()
+        for grid in self.env.grid:
+            df.loc[grid.name, 'Investment Cost [' + env.currency + ']'] = 0
+            df.loc[grid.name, 'Feed in [' + env.currency + ']'] = None
         for dg in self.env.diesel_generator:
             df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = int(dg.c_invest_n * dg.p_n / 1000)
             df.loc[dg.name, 'Feed in [' + env.currency + ']'] = None
         for es in self.env.storage:
             df.loc[es.name, 'Investment Cost [' + env.currency + ']'] = int(es.c_invest_n * es.c / 1000)
             df.loc[es.name, 'Feed in [' + env.currency + ']'] = None
-        df.loc['System', 'Investment Cost [' + env.currency + ']'] = df['Investment Cost [' + env.currency + ']'].sum()
+        if len(df) == 0:
+            df.loc['System', 'Investment Cost [' + env.currency + ']'] = 0
+        else:
+            df.loc['System', 'Investment Cost [' + env.currency + ']'] = df['Investment Cost [' + env.currency + ']'].sum()
 
         return df
 

@@ -14,7 +14,6 @@ class WindTurbine:
                  env,
                  name: str = None,
                  p_n: float = None,
-                 location: dict = None,
                  wt_profile: pd.DataFrame = None,
                  turbine_data: dict = None,
                  wind_speed: pd.Series = None):
@@ -38,15 +37,15 @@ class WindTurbine:
         self.env = env
         self.p_n = p_n
         self.name = name
-        self.c_invest_n = 11160  # USD/kW
+        self.c_invest_n = 1160  # USD/kW
         self.c_op_main_n = 43  # USD/kW
         self.c_var = 0.0035  # USD/kWh
         self.co2_init = 200  # kg/kW
         # Location
-        self.longitude = location.get('longitude')
-        self.latitude = location.get('latitude')
-        self.altitude = location.get('altitude')
-        self.roughness_length = location.get('roughness_length')
+        self.longitude = self.env.location.get('longitude')
+        self.latitude = self.env.location.get('latitude')
+        self.altitude = self.env.location.get('altitude')
+        self.roughness_length = self.env.location.get('terrain')
         # DataFrame
         self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         if wind_speed is not None:
