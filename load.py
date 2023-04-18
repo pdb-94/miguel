@@ -27,7 +27,6 @@ class Load:
         self.load_profile.index = pd.to_datetime(self.load_profile.index)
         # Check load profile resolution
         resolution = self.check_resolution()
-        print(resolution)
         if resolution is True:
             self.adjust_length(profile=self.load_profile)
         else:
@@ -62,7 +61,6 @@ class Load:
         """
         values = []
         i_step = int(self.env.t_step / dt.timedelta(minutes=1))
-        print(i_step)
         for i in range(0, len(self.load_profile), i_step):
             lp_index = self.load_profile.index
             values.append(self.load_profile.loc[lp_index[i]:lp_index[i + i_step - 1], 'P [W]'].mean())

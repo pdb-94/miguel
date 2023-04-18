@@ -71,7 +71,7 @@ env = Environment(name='MiGUEL Test_1',
                             'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
                                        'at a distance of approx. 250 meters'},
                   time={'start': dt.datetime(year=2022, month=1, day=1, hour=0, minute=0),
-                        'end': dt.datetime(year=2022, month=12, day=31, hour=23, minute=59),
+                        'end': dt.datetime(year=2022, month=1, day=1, hour=23, minute=59),
                         'step': dt.timedelta(minutes=15),
                         'timezone': 'GMT'},
                   economy={'d_rate': 0.03,
