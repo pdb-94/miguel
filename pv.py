@@ -16,17 +16,17 @@ class PV:
                  name: str = None,
                  p_n: float = None,
                  pv_profile: pd.Series = None,
-                 pv_data: dict = None):
+                 pv_data: dict = None,
+                 c_invest_n: float = 496,
+                 c_op_main_n: float = 7.55,
+                 c_var: float = 0,
+                 co2_init: float = 460):
         """
         :param env: env.Environment
         :param name: str
             name of PV system
         :param p_n: float
             nominal power
-        :param location: dict
-            longitude: float
-            latitude: float
-            altitude: float
         :param pv_profile: pd.Series
             PV production profile
         :param pv_data: pd.dict
@@ -109,10 +109,10 @@ class PV:
             self.df['P [W]'] = np.where(self.pv_yield < 0, 0, self.pv_yield)
 
         # Economic parameters
-        self.c_invest_n = 496
-        self.c_op_main_n = 7.55
-        self.c_var = 0.0
-        self.co2_init = 460  # kg/kW
+        self.c_invest_n = c_invest_n
+        self.c_op_main_n = c_op_main_n
+        self.c_var = c_var
+        self.co2_init = co2_init  # kg/kW
         # Dict with technical data
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,
@@ -132,8 +132,6 @@ class PV:
         """
         location = self.create_location()
         pv_system = self.create_pv(temperature_model='open_rack_glass_glass',
-                                   surface_tilt=self.surface_tilt,
-                                   surface_azimuth=self.surface_azimuth,
                                    strings_per_inverter=self.strings_per_inverter,
                                    modules_per_string=self.modules_per_string)
         modelchain = self.create_modelchain(pv_system=pv_system, location=location)
@@ -142,8 +140,6 @@ class PV:
 
     def create_pv(self,
                   temperature_model: str = 'open_rack_glass_glass',
-                  surface_tilt=20,
-                  surface_azimuth=180,
                   modules_per_string=1,
                   strings_per_inverter=1):
         """
@@ -162,8 +158,8 @@ class PV:
         # Get temperature_model
         temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS['sapm'][temperature_model]
         # Create PV system
-        pv_system = pvlib.pvsystem.PVSystem(surface_tilt=surface_tilt,
-                                            surface_azimuth=surface_azimuth,
+        pv_system = pvlib.pvsystem.PVSystem(surface_tilt=self.surface_tilt,
+                                            surface_azimuth=self.surface_azimuth,
                                             modules_per_string=modules_per_string,
                                             strings_per_inverter=strings_per_inverter,
                                             module_parameters=self.pv_module_parameters,

@@ -9,6 +9,7 @@ class TXTFile:
             file name
         :param txt: str
             file text
+        :return: None
         """
         self.file_name = file_name
         self.text = txt
@@ -18,7 +19,7 @@ class TXTFile:
     def open(self):
         """
         Create new file
-        :return:
+        :return: None
         """
         file = open(self.file_name + '.txt', 'w')
         file.write(self.text)

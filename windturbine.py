@@ -17,7 +17,11 @@ class WindTurbine:
                  location: dict = None,
                  wt_profile: pd.DataFrame = None,
                  turbine_data: dict = None,
-                 wind_speed: pd.Series = None):
+                 wind_speed: pd.Series = None,
+                 c_invest_n: float = 1160,
+                 c_op_main_n: float = 43,
+                 c_var: float = 0.0035,
+                 co2_init: float = 200):
         """
         :param env: environment
         :param name: str
@@ -38,10 +42,10 @@ class WindTurbine:
         self.env = env
         self.p_n = p_n
         self.name = name
-        self.c_invest_n = 11160  # USD/kW
-        self.c_op_main_n = 43  # USD/kW
-        self.c_var = 0.0035  # USD/kWh
-        self.co2_init = 200  # kg/kW
+        self.c_invest_n = c_invest_n  # USD/kW
+        self.c_op_main_n = c_op_main_n  # USD/kW
+        self.c_var = c_var  # USD/kWh
+        self.co2_init = co2_init  # kg/kW
         # Location
         self.longitude = location.get('longitude')
         self.latitude = location.get('latitude')

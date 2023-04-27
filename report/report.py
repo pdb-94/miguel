@@ -138,7 +138,6 @@ class Report:
                 data.append(round(self.evaluation_df.loc[row, 'Feed in [' + self.env.currency + ']'], 2))
             data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
             evaluation_values.append(data)
-            print(evaluation_values)
         evaluation_data = [[''], evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=evaluation_data,

@@ -372,9 +372,9 @@ class Environment:
         :return: None
         """
         if supply is True:
-            self.supply_data = self.supply_data.append(component.technical_data, ignore_index=True)
+            self.supply_data = self.supply_data._append(component.technical_data, ignore_index=True)
         else:
-            self.storage_data = self.storage_data.append(component.technical_data, ignore_index=True)
+            self.storage_data = self.storage_data._append(component.technical_data, ignore_index=True)
 
     def calc_energy_consumption_parameters(self):
         """

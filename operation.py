@@ -15,6 +15,8 @@ from grid import Grid
 from lcoe.lcoe import lcoe as py_lcoe
 
 
+# TODO: Add Storage lifetime to evaluation (LCOE)
+
 class Operator:
     """
     Class to control environment, dispatch dispatch and parameter optimization
@@ -37,7 +39,6 @@ class Operator:
         self.df = self.build_df()
         self.dispatch()
         self.energy_supply_parameters = self.calc_energy_parameters()
-        print(self.energy_supply_parameters)
         self.evaluation_df = self.evaluate_system()
         self.export_data()
 
@@ -77,7 +78,7 @@ class Operator:
 
     def dispatch(self):
         """
-        dispatch dispatch:
+        dispatch:
         Basic priorities
             1) RE self-consumption
             2) Charge storage from RE
@@ -529,32 +530,3 @@ class Operator:
         self.env.weather_data[0].to_csv(root + '/export/weather_data.csv', sep=',', decimal='.')
         self.env.wt_weather_data.to_csv(root + '/export/wt_weather_data.csv', sep=',', decimal='.')
         self.env.monthly_weather_data.to_csv(root + '/export/monthly_weather_data.csv', sep=',', decimal='.')
-
-
-if __name__ == '__main__':
-    start_time = time.time()
-    start = dt.datetime(year=2021, month=1, day=1, hour=0, minute=0)
-    end = dt.datetime(year=2021, month=1, day=1, hour=23, minute=59)
-    blackout_data = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv'
-    environment = Environment(name='St. Dominics Hospital Akwatia',
-                              time={'start': start, 'end': end, 'step': dt.timedelta(minutes=15), 'timezone': 'CET'},
-                              location={'longitude': -0.7983,
-                                        'latitude': 6.0442,
-                                        'altitude': 50,
-                                        'roughness_length': 'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass'},
-                              grid_connection=True, blackout=True, blackout_data=blackout_data, feed_in=False)
-    environment.add_wind_turbine(p_n=20, turbine_data={
-    "turbine_type": "E-126/4200",  # turbine type as in register
-    "hub_height": 135})
-    # load_profile = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/test/St. Dominics Hospital.csv'
-    # environment.add_load(load_profile=load_profile)
-    # environment.add_grid()
-    # environment.add_pv(p_n=50000,
-    #                    pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-    #                             'max_module_power': 350, 'inverter_power_range': 25000})
-    # environment.add_diesel_generator(p_n=35000, fuel_consumption=9.7, fuel_price=1.20)
-    environment.add_storage(p_n=10000, c=50000, soc=0.5)
-    # operator = Operator(env=environment)
-    # report = Report(env=environment, operator=operator)
-    # print('Runtime: %s seconds' % (time.time() - start_time))
-#

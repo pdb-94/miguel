@@ -14,10 +14,15 @@ class Storage:
                  p_n: float = None,
                  c: float = None,
                  soc: float = 0.5,
+                 lifetime: int = 10,
                  soc_max: float = 0.95,
                  soc_min: float = 0.05,
                  n_charge: float = 0.8,
-                 n_discharge: float = 0.8):
+                 n_discharge: float = 0.8,
+                 c_invest_n: float = 1200,
+                 c_op_main_n: float = 30,
+                 c_var: float = 0,
+                 co2_init: float = 103):
         self.env = env
         self.name = name
         self.p_n = p_n
@@ -27,12 +32,14 @@ class Storage:
         self.soc_min = soc_min
         self.n_charge = n_charge
         self.n_discharge = n_discharge
-        self.c_invest_n = 1200  # US$/kWh
-        self.c_op_main_n = 30  # US$/kWh
-        self.co2_init = 103  # kg/kWh
+        self.c_invest_n = c_invest_n  # US$/kWh
+        self.c_op_main_n = c_op_main_n  # US$/kWh
+        self.c_var = c_var
+        self.co2_init = co2_init  # kg/kWh
 
         self.cycles = 0
         self.cycle_max = 4000
+        self.lifetime = lifetime
 
         self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC', ], index=self.env.time)
         self.set_initial_values()
