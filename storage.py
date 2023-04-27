@@ -40,6 +40,9 @@ class Storage:
         self.cycles = 0
         self.cycle_max = 4000
         self.lifetime = lifetime
+        self.replacements = self.env.lifetime / self.lifetime - 1
+        self.replacement_cost = self.calc_replacements()
+        self.total_replacement_cost = sum(self.replacement_cost.values())
 
         self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC', ], index=self.env.time)
         self.set_initial_values()
@@ -143,8 +146,16 @@ class Storage:
                 self.df.loc[clock, 'SOC'] = self.df.loc[clock, 'Q [Wh]'] / self.c
                 return power
 
-    def calculate_cycle(self):
+    def calc_replacements(self):
         """
-        Calculate number of cycles
-        :return: None
+        Calculate energy storage replacement cost
+        :return: dict
+            replacement years + cost in US$
         """
+        c_invest_replacement = {}
+        replacements = self.env.lifetime / self.lifetime
+        interval = self.env.lifetime / replacements
+        for year in range(int(interval), int(replacements*interval)-1, int(interval)):
+            c_invest_replacement[year] = (self.c_invest_n * self.c/1000) / ((1 + self.env.d_rate) ** year)
+
+        return c_invest_replacement

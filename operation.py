@@ -423,7 +423,7 @@ class Operator:
             fuel_cost = component.df['Fuel cost [' + env.currency + ']'].sum()
             annual_operating_cost = component.c_op_main_n * component.p_n / 1000 + annual_output * component.c_var + fuel_cost + co2_cost
         elif isinstance(component, Storage):
-            capital_cost = component.c_invest_n * component.c / 1000
+            capital_cost = component.c_invest_n * component.c / 1000 + component.total_replacement_cost
             co2_cost = co2 * env.avg_co2_price
             annual_output = abs(self.energy_supply_parameters[5][name])
             annual_operating_cost = component.c_op_main_n * component.c / 1000 + co2_cost
@@ -481,7 +481,7 @@ class Operator:
         elif isinstance(component, Storage):
             annual_output = self.energy_supply_parameters[5][name]
             co2_o = 0
-            co2_init = component.co2_init * component.c / 1e6
+            co2_init = component.co2_init * component.c / 1e6 * component.replacements
         else:
             return None
         # Calculate annual and total CO2-emissions
