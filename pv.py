@@ -23,6 +23,7 @@ class PV:
                  co2_init: float = 460):
         """
         :param env: env.Environment
+            System Environment
         :param name: str
             name of PV system
         :param p_n: float
@@ -36,6 +37,14 @@ class PV:
             strings_per_inverter: int
             surface_tilt: int
             surface_azimuth: int
+        :param c_invest_n: float
+            specific investment cost [US$/kW]
+        :param c_op_main_n: float
+            operation and maintenance cost [US$/kW/a]
+        :param c_var: float
+            variable cost [US$/kWh]
+        :param co2_init: float
+            initial CO2-emissions during production [US$/kW]
         """
         self.env = env
         self.name = name

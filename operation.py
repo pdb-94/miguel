@@ -23,7 +23,8 @@ class Operator:
     def __init__(self,
                  env: Environment):
         """
-        :param env: Environment
+        :param env: env.Environment
+            system environment
         """
         self.env = env
         self.energy_data = self.env.calc_energy_consumption_parameters()

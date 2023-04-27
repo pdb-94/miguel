@@ -21,10 +21,15 @@ class Report:
     """
     Class to create results and report
     """
-
     def __init__(self,
                  env=None,
                  operator=None):
+        """
+        :param env: env.Environment
+            MiGUEL Environment
+        :param operator:
+            MiGUEL Operator
+        """
         self.env = env
         self.operator = operator
         # Name

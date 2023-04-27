@@ -30,6 +30,14 @@ class DieselGenerator:
             fuel price per liter
         :param fuel_ticks: dict
             fuel consumption depending on load in percentage
+        :param c_invest_n: float
+            specific investment cost [US$/kW]
+        :param c_op_main_n: float
+            operation and maintenance cost [US$/kW/a]
+        :param c_var: float
+            variable cost [US$/kWh]
+        :param co2_init: float
+            initial CO2-emissions during production [US$/kW]
         """
         self.env = env
         self.name = name

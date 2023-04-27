@@ -14,15 +14,45 @@ class Storage:
                  p_n: float = None,
                  c: float = None,
                  soc: float = 0.5,
-                 lifetime: int = 10,
                  soc_max: float = 0.95,
                  soc_min: float = 0.05,
                  n_charge: float = 0.8,
                  n_discharge: float = 0.8,
+                 lifetime: int = 10,
                  c_invest_n: float = 1200,
                  c_op_main_n: float = 30,
                  c_var: float = 0,
                  co2_init: float = 103):
+        """
+        :param env: environment.Environment
+            storage Environment
+        :param name: str
+            storage name
+        :param p_n: float
+            nominal power [W]
+        :param c: float
+            nominal capacity [W]
+        :param soc: float
+            initial state of charge (between 0-1)
+        :param soc_max: float
+            maximum state of charge
+        :param soc_min: float
+            minimum state of charge
+        :param n_charge: float
+            charging efficiency
+        :param n_discharge: float
+            discharging efficiency
+        :param lifetime: int
+            calendrical lifetime [a]
+        :param c_invest_n: float
+            specific investment cost [US$/kWh]
+        :param c_op_main_n: float
+            operation and maintenance cost [US$/kWh/a]
+        :param c_var: float
+            variable cost [US$/kWh]
+        :param co2_init: float
+            initial CO2-emissions during production [US$/kW]
+        """
         self.env = env
         self.name = name
         self.p_n = p_n
@@ -32,14 +62,12 @@ class Storage:
         self.soc_min = soc_min
         self.n_charge = n_charge
         self.n_discharge = n_discharge
+        # Economical and ecological parameters
         self.c_invest_n = c_invest_n  # US$/kWh
         self.c_op_main_n = c_op_main_n  # US$/kWh
-        self.c_var = c_var
+        self.c_var = c_var  # US$/kWh
         self.co2_init = co2_init  # kg/kWh
-
-        self.cycles = 0
-        self.cycle_max = 4000
-        self.lifetime = lifetime
+        self.lifetime = lifetime  # a
         self.replacements = self.env.lifetime / self.lifetime - 1
         self.replacement_cost = self.calc_replacements()
         self.total_replacement_cost = sum(self.replacement_cost.values())
