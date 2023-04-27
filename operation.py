@@ -112,10 +112,11 @@ class Operator:
                 self.feed_in(component=component)
         power_sink = self.check_dispatch()
         self.power_sink = pd.concat([self.power_sink, power_sink])
-        self.power_sink_max = float(self.power_sink.max())
-        if len(self.power_sink) > 0:
+        if len(self.power_sink) == 0:
+            self.power_sink_max = 0
             self.system_covered = False
         else:
+            self.power_sink_max = float(self.power_sink.max().iloc[0])
             self.system_covered = True
 
     def check_dispatch(self):
