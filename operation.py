@@ -15,8 +15,6 @@ from grid import Grid
 from lcoe.lcoe import lcoe as py_lcoe
 
 
-# TODO: Add Storage lifetime to evaluation (LCOE)
-
 class Operator:
     """
     Class to control environment, dispatch dispatch and parameter optimization

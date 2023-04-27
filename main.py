@@ -70,7 +70,7 @@ env = Environment(name='OFF_PV60_DG30',
                             'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
                                        'at a distance of approx. 250 meters'},
                   time={'start': dt.datetime(year=2022, month=1, day=1, hour=0, minute=0),
-                        'end': dt.datetime(year=2022, month=1, day=7, hour=23, minute=59),
+                        'end': dt.datetime(year=2022, month=1, day=1, hour=23, minute=59),
                         'step': dt.timedelta(minutes=15),
                         'timezone': 'GMT'},
                   economy={'d_rate': 0.03,
@@ -103,4 +103,4 @@ env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
 # Create Operator - Run dispatch
 operator = Operator(env=env)
 # Create report
-# report = Report(env=env, operator=operator)
+report = Report(env=env, operator=operator)

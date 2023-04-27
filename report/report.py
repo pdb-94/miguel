@@ -418,9 +418,9 @@ class Report:
         economic_table_description = "The overall systems LCOE is " + str(system_LCOE) + " " + env.currency + \
                                      "/kWh. The energy costs incurred in the period under consideration amount to " + \
                                      str(total_energy_cost) + " " + env.currency + \
-                                     ". In comparison, the energy costs from a complete supply from the power grid amount to " + \
-                                     str(total_energy_cost_grid) + " " + env.currency + ". The cost difference in the energy supply costs is " \
-                                     + str(
+                                     ". In comparison, the energy costs from a complete supply from the power grid " \
+                                     "amount to " + str(total_energy_cost_grid) + " " + env.currency \
+                                     + ". The cost difference in the energy supply costs is " + str(
             round(total_energy_cost - total_energy_cost_grid, 2)) + " " + env.currency + ".\n\n"
         self.create_txt(file_name='6_1_table_description', text=economic_table_description)
         self.pdf_file.ln(h=10)
@@ -510,7 +510,8 @@ class Report:
             df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = int(dg.c_invest_n * dg.p_n / 1000)
             df.loc[dg.name, 'Feed in [' + env.currency + ']'] = None
         for es in self.env.storage:
-            df.loc[es.name, 'Investment Cost [' + env.currency + ']'] = int(es.c_invest_n * es.c / 1000)
+            df.loc[es.name, 'Investment Cost [' + env.currency + ']'] \
+                = int(es.c_invest_n * es.c / 1000 + es.total_replacement_cost)
             df.loc[es.name, 'Feed in [' + env.currency + ']'] = None
         if len(df) == 0:
             df.loc['System', 'Investment Cost [' + env.currency + ']'] = 0
