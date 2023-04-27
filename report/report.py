@@ -110,7 +110,9 @@ class Report:
                   " kWh); The diesel generator(s) account for " + str(dg_percentage) + "% (" + \
                   str(dg_energy) + " kWh) of the total energy consumption. The energy storage(s) provide " + \
                   str(abs(es_discharge)) + " kWh and are charged with " + str(abs(es_charge)) + " kWh. " + \
-                  "The table below shows the energy systems key parameters. The parameters will be described in detail in the upcoming report. \n\n"
+                  "The table below shows the energy systems key parameters. The parameters will be described in detail " \
+                  "in the upcoming report. \nThe investment cost and CO2-emissions for energy storages include " \
+                  "investment costs and CO2-emissions caused by replacements over the project lifetime. \n\n"
         self.create_txt(file_name='summary',
                         text=summary)
         self.pdf_file.print_chapter(chapter_type=[False, False],
