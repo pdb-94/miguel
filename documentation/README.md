@@ -19,6 +19,7 @@ The results are provided in the form of csv files for each simulation step and i
 - [Project partners](#project-partners)
 - [Dependencies](#dependencies)
 - [References](#references)
+- [Appendix](#appendix)
 
 ## Authors and contributors
 The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistance was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
@@ -52,7 +53,7 @@ To create an instance of the class, the following parameters have to be provided
 | longitude | Longitude | float |-|°||
 | latitude | Latitude | float |-| °||
 | altitude | Altitude | float |-|m||
-| terrain | Terrain type | str |-|-| Terrain types mentioned in main.py description|
+| terrain | Terrain type | str |-|-| see [Appendix](#appendix)|
 | **economy** | **Economical parameters** | **dict** |-|-||
 | d_rate | Discount rate | float |-|-||
 |lifetime | Project lifetime | int |20| a|
@@ -305,3 +306,19 @@ The report focuses not only on the energetic results of the system evaluation bu
 [15] Friso Klemann, University Utrecht, The environmental impact of cycling 1,600 MWh electricity - A Life Cycle Assessment of a lithium-ion battery from Greener Power Solutions (P. 35)
 
 [16] Hao, H.; Mu, Z.; Jiang, S.; Liu, Z.; Zhao, F. GHG Emissions from the Production of Lithium-Ion Batteries for Electric Vehicles in China. Sustainability 2017, 9, 504. [https://doi.org/10.3390/su9040504](https://doi.org/10.3390/su9040504)
+
+## Appendix
+
+### Environment - terrain types
+
+| terrain type | Roughness length [m] |
+|-|-|
+|Water surfaces|0.0002|
+|Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass| 0.0024|
+|Open agricultural terrain without fences or hedges, possibly with widely scattered houses, very rolling hills|0.03|
+|Agricultural terrain with some houses and 8 meter high hedges at a distance of approx. 1250 meters|0.055|
+|Agricultural terrain with many houses, bushes, plants or 8 meter high hedges at a distance of approx. 250 meters|0.2|
+|Villages, small towns, agricultural buildings with many or high hedges, woods and very rough and uneven terrain|0.4|
+|Larger cities with tall buildings|0.8|
+|Large cities, tall buildings, skyscrapers|1.6|
+
