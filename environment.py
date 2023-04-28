@@ -178,7 +178,7 @@ class Environment:
         """
         Create
         :return: list
-            time_series
+            time_series,
             df
         """
         time_series = pd.date_range(start=self.t_start, end=self.t_end, freq=self.t_step)

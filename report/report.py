@@ -17,6 +17,7 @@ class Report:
     """
     Class to create results and report
     """
+
     def __init__(self,
                  env=None,
                  operator=None):
@@ -517,7 +518,8 @@ class Report:
         if len(df) == 0:
             df.loc['System', 'Investment Cost [' + env.currency + ']'] = 0
         else:
-            df.loc['System', 'Investment Cost [' + env.currency + ']'] = df['Investment Cost [' + env.currency + ']'].sum()
+            df.loc['System', 'Investment Cost [' + env.currency + ']'] = df[
+                'Investment Cost [' + env.currency + ']'].sum()
 
         return df
 

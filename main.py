@@ -1,5 +1,7 @@
 import datetime as dt
-import matplotlib.pyplot as plt
+
+import pandas as pd
+
 from environment import Environment
 from operation import Operator
 from report.report import Report
@@ -64,8 +66,9 @@ In this code example an off-grid system is simulated. The following system compo
 
 # Create environment
 start = dt.datetime.today()
+
 print('Create environment', dt.datetime.today() - start)
-env = Environment(name='MiGUEL_example_report',
+env = Environment(name='MiGUEL_example_report_1',
                   location={'longitude': -0.7983,
                             'latitude': 6.0442,
                             'altitude': 20,
@@ -91,26 +94,29 @@ env = Environment(name='MiGUEL_example_report',
                   blackout_data='C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/data/grid/blackout_data.csv',
                   csv_decimal=',',
                   csv_sep=';')
+
+
+
 # Add system components
 # Load
 # env.add_load(annual_consumption=1000000)
 print('Add components', dt.datetime.today() - start)
 env.add_load(load_profile='C:/Users/paulb/PycharmProjects/miguel/test/St. Dominics Hospital.csv')
-# Grid
-# env.add_grid()
-# PV System
-env.add_pv(p_n=60000,
-           pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                    'max_module_power': 350, 'inverter_power_range': 25000})
-# Battery storage
-env.add_storage(p_n=10000, c=30000, soc=0.5)
-# Diesel generator
-env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
-# Create Operator - Run dispatch
+env.add_wind_turbine(p_n=4200000, turbine_data={'turbine_type': 'E-126/4200', 'hub_height': 135})
+# # Grid
+env.add_grid()
+# # PV System
+# env.add_pv(p_n=60000,
+#            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+#                     'max_module_power': 350, 'inverter_power_range': 25000})
+# # Battery storage
+# env.add_storage(p_n=10000, c=30000, soc=0.5)
+# # Diesel generator
+# env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
+# # Create Operator - Run dispatch
 print('Run dispatch', dt.datetime.today() - start)
 operator = Operator(env=env)
-# Create report
+# # Create report
 print('Create report', dt.datetime.today() - start)
 report = Report(env=env, operator=operator)
-
 print('Finished', dt.datetime.today() - start)

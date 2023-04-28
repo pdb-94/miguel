@@ -10,6 +10,7 @@ class WindTurbine:
     """
     Class to represent Wind Turbines
     """
+
     def __init__(self,
                  env,
                  name: str = None,
@@ -27,11 +28,6 @@ class WindTurbine:
             name
         :param p_n: float
             nominal power
-        :param location: dict
-            latitude: float
-            longitude: float
-            altitude: float
-            roughness_length: str
         :param wt_profile: pd.DataFrame
             Wind energy production profile
         :param turbine_data: dict
@@ -82,22 +78,21 @@ class WindTurbine:
         # Dict with technical data
         self.technical_data = {'Component': 'Wind Turbine',
                                'Name': self.name,
-                               'Nominal Power [kW]': round(self.p_n/1000, 3),
+                               'Nominal Power [kW]': round(self.p_n / 1000, 3),
                                'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
-                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n*self.p_n/1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(self.c_op_main_n),
-                               'Operation maintenance cost [' + self.env.currency + '/a]': int(self.c_op_main_n * self.p_n/1000)}
+                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n * self.p_n / 1000),
+                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(
+                                   self.c_op_main_n),
+                               'Operation maintenance cost [' + self.env.currency + '/a]': int(
+                                   self.c_op_main_n * self.p_n / 1000)}
 
-    @staticmethod
-    def get_turbine_data():
+    def get_turbine_data(self):
         """
-        Get windturbine data from windpowerlib
-        :return:
+        Get turbine data from windpowerlib
+        :return: data
         """
-        root = sys.path[1]
-        # root = 'C:/Users/Rummeny/PycharmProjects/MiGUEL_Fulltime/'
-        path = '/data/windturbine/turbine_data.csv'
-        data = pd.read_csv(root + path, sep=',', decimal='.')
+        connect = self.env.database.connect
+        data = pd.read_sql_query("SELECT * FROM windpowerlib_turbine", connect)
 
         return data
 
@@ -120,8 +115,9 @@ class WindTurbine:
         # Calculate wind speed and temperature at hub height
         weather_data['wind_speed', self.hub_height] = self.calc_wind_speed(wind_df=weather_data['wind_speed', 10],
                                                                            hub_height=self.hub_height)
-        weather_data['temperature', self.hub_height] = self.calc_temperature(temperature_df=weather_data['temperature', 2],
-                                                                             hub_height=self.hub_height)
+        weather_data['temperature', self.hub_height] = self.calc_temperature(
+            temperature_df=weather_data['temperature', 2],
+            hub_height=self.hub_height)
         return weather_data
 
     def create_wind_turbine(self):
@@ -220,7 +216,7 @@ class WindTurbine:
                             'Larger cities with tall buildings': 0.8,
                             'Large cities, tall buildings, skyscrapers': 1.6}
         z0 = roughness_length.get(self.roughness_length)
-        a = 1/np.log(self.hub_height/z0)
+        a = 1 / np.log(self.hub_height / z0)
         # Calculate hub height
         wind_speed_hub_height = wind_df * (hub_height / 10) ** a
 

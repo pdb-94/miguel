@@ -8,10 +8,6 @@ class DB:
     def __init__(self):
         self.connect = self.create_db()
         self.cursor = self.create_cursor()
-        # self.create_load_table()
-        # self.create_windpowerlib_table()
-        # self.create_pvlib_cec_inverter_table()
-        # self.create_pvlib_cec_module_table()
 
     @staticmethod
     def create_db():
