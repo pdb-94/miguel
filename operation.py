@@ -1,17 +1,14 @@
 import sys
-import time
 import numpy as np
 import datetime as dt
-import matplotlib.pyplot as plt
 import pandas as pd
 # MiGUEL modules
-from report.report import Report
 from environment import Environment
-from pv import PV
-from dieselgenerator import DieselGenerator
-from windturbine import WindTurbine
-from storage import Storage
-from grid import Grid
+from components.pv import PV
+from components.dieselgenerator import DieselGenerator
+from components.windturbine import WindTurbine
+from components.storage import Storage
+from components.grid import Grid
 from lcoe.lcoe import lcoe as py_lcoe
 
 

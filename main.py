@@ -63,7 +63,7 @@ In this code example an off-grid system is simulated. The following system compo
 """
 
 # Create environment
-env = Environment(name='OFF_PV60_DG30',
+env = Environment(name='MiGUEL_example_report',
                   location={'longitude': -0.7983,
                             'latitude': 6.0442,
                             'altitude': 20,
@@ -92,7 +92,7 @@ env = Environment(name='OFF_PV60_DG30',
 env.add_load(annual_consumption=1000000)
 # env.add_load(load_profile='C:/Users/paulb/PycharmProjects/miguel/test/St. Dominics Hospital.csv')
 # Grid
-env.add_grid()
+# env.add_grid()
 # PV System
 env.add_pv(p_n=60000,
            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
@@ -100,7 +100,7 @@ env.add_pv(p_n=60000,
 # Battery storage
 env.add_storage(p_n=10000, c=30000, soc=0.5)
 # Diesel generator
-# env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
+env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
 # Create Operator - Run dispatch
 operator = Operator(env=env)
 # Create report

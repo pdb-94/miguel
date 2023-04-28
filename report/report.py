@@ -1,6 +1,5 @@
 import sys
 import os
-import time
 import calendar
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -9,10 +8,7 @@ import folium
 import numpy as np
 import pandas as pd
 from PIL import Image
-from lcoe.lcoe import lcoe as py_lcoe
-import selenium
 from report.pdf import PDF
-from dieselgenerator import DieselGenerator
 
 
 # TODO: Check economic evaluation --> Cost difference between grid and system cost

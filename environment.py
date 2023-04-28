@@ -1,16 +1,15 @@
 import datetime as dt
 import pandas as pd
-import numpy as np
 import pvlib
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
 from data.data import DB
-from pv import PV
-from windturbine import WindTurbine
-from dieselgenerator import DieselGenerator
-from grid import Grid
-from storage import Storage
-from load import Load
+from components.pv import PV
+from components.windturbine import WindTurbine
+from components.dieselgenerator import DieselGenerator
+from components.grid import Grid
+from components.storage import Storage
+from components.load import Load
 
 
 class Environment:
