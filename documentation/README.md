@@ -244,10 +244,10 @@ The report focuses not only on the energetic results of the system evaluation bu
 MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
 | Name | Data sets |
 |-|-|
-|pv_lib_cec_module|pvlib cec module parameters|
+|pvlib_cec_module|pvlib cec module parameters|
 |pvlib_cec_inverter|pvlib cec inverter parameters|
 |windpowerlib_turbine|windpowerlib wind turbine parameters|
-|standard_load_profile|standarrd load profile for Ghanaian hospitals|
+|standard_load_profile|standard load profile for Ghanaian hospitals|
 
 ## Project partners
 <p align="center">
