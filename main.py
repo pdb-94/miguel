@@ -98,7 +98,7 @@ env.add_pv(p_n=60000,
            pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                     'max_module_power': 350, 'inverter_power_range': 25000})
 # Battery storage
-# env.add_storage(p_n=10000, c=30000, soc=0.5)
+env.add_storage(p_n=10000, c=30000, soc=0.5)
 # Diesel generator
 # env.add_diesel_generator(p_n=10000, fuel_consumption=11.98, fuel_price=1.385)
 # Create Operator - Run dispatch
