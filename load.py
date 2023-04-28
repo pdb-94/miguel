@@ -3,6 +3,7 @@ import pandas as pd
 import datetime as dt
 
 
+
 class Load:
     """
     Class to represent loads
@@ -11,7 +12,7 @@ class Load:
                  env,
                  name: str = None,
                  annual_consumption: float = None,
-                 load_profile: pd.DataFrame = None):
+                 load_profile: str = None):
 
         self.env = env
         self.name = name
@@ -21,7 +22,7 @@ class Load:
 
         if load_profile is not None:
             # Read load_profile
-            self.load_profile = pd.read_csv(load_profile, sep=';', decimal=',', index_col=0)
+            self.load_profile = pd.read_csv(load_profile, index_col=0)
         else:
             self.load_profile = self.standard_load_profile()
         self.load_profile.index = pd.to_datetime(self.load_profile.index)
@@ -41,6 +42,7 @@ class Load:
             self.fill_values(values=values)
             # Adjust scaled profile length to env.time_series
             self.adjust_length(profile=self.scaled_load_profile)
+        print(self.df)
 
     def check_resolution(self):
         """
@@ -96,8 +98,11 @@ class Load:
         :return: pd.DataFrame
             standard_load_profile
         """
-        root = sys.path[1]
-        s_lp = pd.read_csv(root + '/data/load/standard_load_profile.csv', sep=';', decimal=',', index_col=0)
+        s_lp = pd.read_sql_query("""SELECT * from standard_load_profile""", con=self.env.database.connect)
+        s_lp['time'] = pd.to_datetime(s_lp['time'], format='%H:%M')
+        s_lp = s_lp.set_index('time')
+        # s_lp.index = pd.to_datetime(s_lp.index)
+        # s_lp = pd.read_csv(root + '/data/load/standard_load_profile.csv', sep=';', decimal=',', index_col=0)
         daily_consumption = self.annual_consumption / 365  # Wh/d
         daily_sum = s_lp['Percentage [P/P_max]'].sum()
         scale = daily_consumption / daily_sum

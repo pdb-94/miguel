@@ -4,6 +4,7 @@ import numpy as np
 import pvlib
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
+from data.data import DB
 from pv import PV
 from windturbine import WindTurbine
 from dieselgenerator import DieselGenerator
@@ -124,6 +125,9 @@ class Environment:
             self.feed_in = True
         else:
             self.feed_in = False
+
+        # DataBase
+        self.database = DB()
 
         # Container
         self.grid = []
