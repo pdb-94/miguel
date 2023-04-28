@@ -16,6 +16,7 @@ The results are provided in the form of csv files for each simulation step and i
   - [Environment](#environment)
   - [Operator](#operator)
   - [Output](#output)
+- [Database](#database)
 - [Project partners](#project-partners)
 - [Dependencies](#dependencies)
 - [References](#references)
@@ -100,8 +101,8 @@ If the resolution of the load profile does not match the environment time resolu
 
 ##### Photovoltaic
 The class Photovoltaic is based on the library [pvlib](https://pvlib-python.readthedocs.io/en/stable/#) [1]. There are three methods implemented to create PV systems:
-1) Adding basic system parameters: Simplest way to create PV system with only basic parameters such as nominal power, surface tilt and azimuth, module and inverter power range. The class Photovoltaic will randomly choose a PV module, number of modules and an inverter that matches the parameters
-2) Selecting your modules and inverter: All system parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function.
+1) Adding basic system parameters: Simplest way to create PV system with only basic parameters such as nominal power, surface tilt and azimuth, module and inverter power range. The class Photovoltaic will randomly choose a PV module, number of modules and an inverter that matches the parameters.
+2) Selecting your modules and inverter: All system parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function. The modules and inverters featured in pvlib are stored in the [MiGUEL database](#database). 
 3) Provide measured PV data: Input of measured PV as a csv-file
 
 | Parameter | Description | dtype | Default | Unit| Comment |
@@ -124,7 +125,7 @@ pvlib will run the PV simulation based on the selected system parameters. The we
 
 
 ##### Wind turbine
-The class WindTurbine is based on the library [windpowerlib](https://windpowerlib.readthedocs.io/en/stable/index.html) [2]. To add wind turbines to the Environment the [turbine type](https://github.com/wind-python/windpowerlib/blob/master/windpowerlib/oedb/turbine_data.csv) and the turbine height [m] need to be returned.
+The class WindTurbine is based on the library [windpowerlib](https://windpowerlib.readthedocs.io/en/stable/index.html) [2]. To add wind turbines to the Environment the [turbine type](https://github.com/wind-python/windpowerlib/blob/master/windpowerlib/oedb/turbine_data.csv) and the turbine height [m] need to be returned. The wind turbines featured in windpowerlib are stored in the [MiGUELdatabase](#database).
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-|-|-|-|-|-|
@@ -239,6 +240,15 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
 
+## Database
+MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
+| Name | Data sets |
+|-|-|
+|pv_lib_cec_module|pvlib cec module parameters|
+|pvlib_cec_inverter|pvlib cec inverter parameters|
+|windpowerlib_turbine|windpowerlib wind turbine parameters|
+|standard_load_profile|standarrd load profile for Ghanaian hospitals|
+
 ## Project partners
 <p align="center">
   <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
@@ -311,7 +321,7 @@ The report focuses not only on the energetic results of the system evaluation bu
 
 ### Environment - terrain types
 
-| terrain type | Roughness length [m] |
+| Terrain type | Roughness length [m] |
 |-|-|
 |Water surfaces|0.0002|
 |Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass| 0.0024|
