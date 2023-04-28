@@ -28,7 +28,9 @@ class Environment:
                  blackout: bool = False,
                  blackout_data: str = None,
                  feed_in: bool = None,
-                 weather_data: str = None):
+                 weather_data: str = None,
+                 csv_sep: str = ',',
+                 csv_decimal: str = '.'):
         """
         :type location: dict
             Parameter to create location
@@ -53,6 +55,8 @@ class Environment:
              co2_grid: float}
         """
         self.name = name
+        self.csv_sep = csv_sep
+        self.csv_decimal = csv_decimal
         # Time values
         self.t_start = time.get('start')
         self.t_end = time.get('end')
@@ -173,7 +177,9 @@ class Environment:
     def create_df(self):
         """
         Create
-        :return:
+        :return: list
+            time_series
+            df
         """
         time_series = pd.date_range(start=self.t_start, end=self.t_end, freq=self.t_step)
         df = pd.Series(time_series)

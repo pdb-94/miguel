@@ -3,11 +3,11 @@ import pandas as pd
 import datetime as dt
 
 
-
 class Load:
     """
     Class to represent loads
     """
+
     def __init__(self,
                  env,
                  name: str = None,
@@ -22,7 +22,12 @@ class Load:
 
         if load_profile is not None:
             # Read load_profile
-            self.load_profile = pd.read_csv(load_profile, index_col=0)
+            self.load_profile = pd.read_csv(load_profile,
+                                            index_col=0,
+                                            header=0,
+                                            sep=self.env.csv_sep,
+                                            decimal=self.env.csv_decimal)
+
         else:
             self.load_profile = self.standard_load_profile()
         self.load_profile.index = pd.to_datetime(self.load_profile.index)
@@ -48,7 +53,7 @@ class Load:
         Check if self.load_profile and self.env.t_step are the same time resolution
         :return: bool
         """
-        lp_time_step = self.load_profile.index[1]-self.load_profile.index[0]
+        lp_time_step = self.load_profile.index[1] - self.load_profile.index[0]
         if lp_time_step == self.env.t_step:
             return True
         else:
@@ -78,7 +83,7 @@ class Load:
         for k in range(len(values)):
             self.scaled_load_profile.loc[self.scaled_load_profile.index[k], 'P [W]'] = values[k]
 
-    def adjust_length(self, profile: pd. DataFrame):
+    def adjust_length(self, profile: pd.DataFrame):
         """
         Adjust load profile length to env.time_series
         :param profile: pd.DataFrame
@@ -89,7 +94,8 @@ class Load:
         p_index = profile.index
         factor = int(len(df_index) / len(p_index))
         for i in range(factor):
-            self.df.loc[df_index[len(p_index)*i]:df_index[len(p_index)*(i+1)-1], 'P [W]'] = profile['P [W]'].values
+            self.df.loc[df_index[len(p_index) * i]:df_index[len(p_index) * (i + 1) - 1], 'P [W]'] = profile[
+                'P [W]'].values
 
     def standard_load_profile(self):
         """
@@ -108,4 +114,3 @@ class Load:
         s_lp['P [W]'] = s_lp['Percentage [P/P_max]'] * scale
 
         return s_lp
-

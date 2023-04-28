@@ -94,7 +94,7 @@ class Report:
         dg_percentage = round(dg_energy / total_energy * 100, 2)
         es_charge = energy_parameters[4]
         es_discharge = energy_parameters[5]
-        # Write chapter depending if energy consumption is met
+        # Write chapter depending on if energy consumption is met
         if self.operator.system_covered is True:
             system_status = "The selected system is considered an '" + self.env.system + \
                             "'. With the selected system configuration, the energy demand of " + str(total_energy) + \

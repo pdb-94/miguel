@@ -522,8 +522,10 @@ class Operator:
         Export data after simulation
         :return: None
         """
+        sep = self.env.csv_sep
+        decimal = self.env.csv_decimal
         root = sys.path[1]
-        self.df.to_csv(root + '/export/operator.csv', sep=',', decimal='.')
-        self.env.weather_data[0].to_csv(root + '/export/weather_data.csv', sep=',', decimal='.')
-        self.env.wt_weather_data.to_csv(root + '/export/wt_weather_data.csv', sep=',', decimal='.')
-        self.env.monthly_weather_data.to_csv(root + '/export/monthly_weather_data.csv', sep=',', decimal='.')
+        self.df.to_csv(root + '/export/operator.csv', sep=sep, decimal=decimal)
+        self.env.weather_data[0].to_csv(root + '/export/weather_data.csv', sep=sep, decimal=decimal)
+        self.env.wt_weather_data.to_csv(root + '/export/wt_weather_data.csv', sep=sep, decimal=decimal)
+        self.env.monthly_weather_data.to_csv(root + '/export/monthly_weather_data.csv', sep=sep, decimal=decimal)
