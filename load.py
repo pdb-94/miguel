@@ -42,7 +42,6 @@ class Load:
             self.fill_values(values=values)
             # Adjust scaled profile length to env.time_series
             self.adjust_length(profile=self.scaled_load_profile)
-        print(self.df)
 
     def check_resolution(self):
         """

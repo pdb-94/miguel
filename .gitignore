@@ -1,5 +1,3 @@
-test/
-data/load/St. Dominics Hospital.csv
 report/pictures/dispatch.png
 report/pictures/load_profile.png
 report/pictures/solar_data.png
@@ -13,3 +11,4 @@ report/txt_files/default/6_1_economic_evaluation.txt
 report/txt_files/summary.txt
 report/St. Dominics Hospital.pdf
 report/MiGUEL Project.pdf
+/test/
