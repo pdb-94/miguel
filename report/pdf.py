@@ -18,7 +18,6 @@ class PDF(FPDF):
         Create title page
         :return: None
         """
-        dir_path = sys.path[1] + '/report/'
         self.add_page()
         self.image(name=sys.path[1] + '/documentation/MiGUEL_logo.png', y=85, x=0, w=150)
         self.set_font('Arial', 'B', 16)

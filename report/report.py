@@ -97,24 +97,21 @@ class Report:
         es_discharge = energy_parameters[5]
         # Write chapter depending on if energy consumption is met
         if self.operator.system_covered is True:
-            system_status = "The selected system is considered an '" + self.env.system + \
-                            "'. With the selected system configuration, the energy demand of " + str(total_energy) + \
-                            " kWh is covered."
+            system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
+                            f"configuration, the energy demand of {total_energy} kWh is covered."
         else:
-            system_status = "The selected system is considered an '" + self.env.system + \
-                            "'. With the selected system configuration, the energy demand of " + str(total_energy) + \
-                            " kWh is not covered. The maximum remaining power to be covered equals " + \
-                            str(self.operator.power_sink_max) + \
-                            "W. The table shows the time stamps and the power to be covered. "
-        summary = system_status + "The PV system(s) account for " + str(pv_percentage) + "% (" + str(pv_energy) + \
-                  " kWh); The wind turbine(s) account for " + str(wt_percentage) + "% (" + str(wt_energy) + \
-                  " kWh); The grid accounts  " + str(grid_percentage) + "% (" + str(grid_energy) + \
-                  " kWh); The diesel generator(s) account for " + str(dg_percentage) + "% (" + \
-                  str(dg_energy) + " kWh) of the total energy consumption. The energy storage(s) provide " + \
-                  str(abs(es_discharge)) + " kWh and are charged with " + str(abs(es_charge)) + " kWh. " + \
-                  "The table below shows the energy systems key parameters. The parameters will be described in detail " \
-                  "in the upcoming report. \nThe investment cost and CO2-emissions for energy storages include " \
-                  "investment costs and CO2-emissions caused by replacements over the project lifetime. \n\n"
+            system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
+                            f"configuration, the energy demand of {total_energy} kWh is not covered. The maximum " \
+                            f"remaining power to be covered equals {self.operator.power_sink_max} W. The table shows " \
+                            f"the time stamps and the power to be covered."
+        summary = system_status + \
+                  f"The PV system(s) account for {pv_percentage}% ({pv_energy} kWh); The wind turbine(s) account for " \
+                  f"{wt_percentage}% ({wt_energy} kWh); The grid accounts {grid_percentage}% ({grid_energy} kWh); " \
+                  f"The diesel generator(s) account for {dg_percentage}% ({dg_energy} kWh) of the total energy " \
+                  f"consumption. The energy storage(s) provide {abs(es_discharge)} kWh and are charged with " \
+                  f"{abs(es_charge)} kWh. The table below shows the energy systems key parameters. The parameters will " \
+                  f"be described in detail in the upcoming report. \nThe investment cost and CO2-emissions for energy " \
+                  f"storages include investment costs and CO2-emissions caused by replacements over the project lifetime. \n\n"
         self.create_txt(file_name='summary',
                         text=summary)
         self.pdf_file.print_chapter(chapter_type=[False, False],
@@ -124,23 +121,23 @@ class Report:
         # Create evaluation table
         evaluation_header = ['Component',
                              'Energy [kWh]',
-                             'Investment Cost [' + self.env.currency + ']',
-                             'LCOE [' + self.env.currency + '/kWh]',
-                             'Feed in [' + self.env.currency + ']',
+                             f'Investment Cost [{self.env.currency}]',
+                             f'LCOE [{self.env.currency}/kWh]',
+                             f'Feed in [{self.env.currency}]',
                              'CO2-emissions [t]']
         evaluation_values = [evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
             data.append(round(self.evaluation_df.loc[row, 'Energy production [kWh]'], 0))
-            data.append(round(self.evaluation_df.loc[row, 'Investment Cost [' + self.env.currency + ']'], 0))
-            if self.evaluation_df.loc[row, 'LCOE [' + self.env.currency + '/kWh]'] is None:
+            data.append(round(self.evaluation_df.loc[row, f'Investment Cost [{self.env.currency}]'], 0))
+            if self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'] is None:
                 data.append(None)
             else:
-                data.append(round(self.evaluation_df.loc[row, 'LCOE [' + self.env.currency + '/kWh]'], 2))
-            if self.evaluation_df.loc[row, 'Feed in [' + self.env.currency + ']'] is None:
+                data.append(round(self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'], 2))
+            if self.evaluation_df.loc[row, f'Feed in [{self.env.currency}]'] is None:
                 data.append(None)
             else:
-                data.append(round(self.evaluation_df.loc[row, 'Feed in [' + self.env.currency + ']'], 2))
+                data.append(round(self.evaluation_df.loc[row, f'Feed in [{self.env.currency}]'], 2))
             data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
             evaluation_values.append(data)
         evaluation_data = [[''], evaluation_values]
@@ -240,10 +237,9 @@ class Report:
         month_max = calendar.month_name[month_max]
         wind_speed_average = round(self.env.monthly_weather_data['wind_speed'].mean(), 3)
         wind_direction_average = round(self.env.monthly_weather_data['wind_direction'].mean(), 3)
-        wind_table_text = 'The main wind direction is ' + str(
-            wind_direction_average) + '°. The annual average wind speed is ' \
-                          + str(wind_speed_average) + ' m/s. The highest monthly wind speed occurs in ' \
-                          + month_max + ' and is ' + str(wind_speed_max) + ' m/s.'
+        wind_table_text = f'The main wind direction is {wind_direction_average}°. The annual average wind speed is ' \
+                          f'{wind_speed_average} m/s. The highest monthly wind speed occurs in {month_max} and is ' \
+                          f'{wind_speed_max} m/s.'
         self.create_txt(file_name='2_2_table_description',
                         text=wind_table_text)
         self.pdf_file.chapter_body(name=self.txt_file_path + '2_2_table_description.txt', size=10)
@@ -302,11 +298,9 @@ class Report:
         df = np.where(self.env.df[columns] < 0, 0, self.env.df[columns])
         self.create_plot(df=self.env.df, columns=columns, file_name='re_supply', x_label='Time', y_label='P [kW]',
                          factor=1000)
-        re_production = 'The plot shows the total wind power and PV output during the period from ' \
-                        + str(self.env.t_start) + ' to ' + str(self.env.t_end) + ' in a ' \
-                        + str(self.env.t_step) + ' resolution: ' \
-                        + 'Photovoltaic total: ' + str(int(pv_energy / 1000)) + ' kWh \n' \
-                        + 'Wind turbine total: ' + str(int(wt_energy / 1000)) + ' kWh'
+        re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start} to ' \
+                        f'{self.env.t_end} in a {self.env.t_step} resolution: Photovoltaic total: ' \
+                        f'{int(pv_energy / 1000)} kWh \n Wind turbine total: {int(wt_energy / 1000)} kWh.'
         self.create_txt(file_name='4_2_re_energy_supply',
                         text=re_production)
         self.pdf_file.print_chapter(chapter_type=[True],
@@ -317,9 +311,8 @@ class Report:
                                     file=[self.txt_file_path + 'default/4_1_system_components.txt'],
                                     size=10)
         # Create Supply table
-        supply_header = ['Component', 'Name', 'P [kW]', 'i_c ' + '[' + self.env.currency + '/kW]',
-                         'I_c ' + '[' + self.env.currency + ']', 'om_c ' + '[' + self.env.currency + '/kW]',
-                         'OM_c ' + '[' + self.env.currency + '/a]']
+        supply_header = ['Component', 'Name', 'P [kW]', f'i_c [{self.env.currency}/kW]', f'I_c [{self.env.currency}]',
+                         f'om_c [{self.env.currency}/kW]', f'OM_c [{self.env.currency}/a]']
         # Define table values
         supply_values = [supply_header]
         # Get technical data from env.supply_data
@@ -330,9 +323,9 @@ class Report:
         self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_energy_storage.txt',
                                    size=10)
         # Get technical data from env.storage_data
-        storage_header = ['Component', 'Name', 'P [kW]', 'W [kWh]', 'i_c ' + '[' + self.env.currency + '/kWh]',
-                          'I_c ' + '[' + self.env.currency + ']', 'om_c ' + '[' + self.env.currency + '/kWh]',
-                          'OM_c ' + '[' + self.env.currency + '/a]']
+        storage_header = ['Component', 'Name', 'P [kW]', 'W [kWh]', f'i_c [{self.env.currency}/kWh]',
+                          f'I_c [{self.env.currency}]', f'om_c [{self.env.currency}/kWh]',
+                          f'OM_c [{self.env.currency}/a]']
         storage_values = [storage_header]
         for row in self.env.storage_data.index:
             storage_values.append(self.env.storage_data.loc[row, :].values.tolist())
@@ -352,10 +345,10 @@ class Report:
         :return: None
         """
         env = self.env
-        dispatch_5 = "This chapter presents the dispatch of the power system. The system is considered a '" \
-                     + self.env.system + "'. The plot below shows the load profile and the power the system components supply in kW. " \
-                     + "Energy storage systems can both consume and supply power. Negative values correspond to " \
-                     + "power output (power source), positive loads to power input (power sink).\n "
+        dispatch_5 = f"This chapter presents the dispatch of the power system. The system is considered a " \
+                     f"'{self.env.system}'. The plot below shows the load profile and the power the system " \
+                     f"components supply in kW. Energy storage systems can both consume and supply power. Negative " \
+                     f"values correspond to power output (power source), positive loads to power input (power sink).\n "
         self.create_txt(file_name='5_dispatch', text=dispatch_5)
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['5 Dispatch'],
@@ -392,9 +385,9 @@ class Report:
         # Create economic evaluation table
         economic_evaluation_header = ['Component',
                                       'Energy [kWh]',
-                                      'Investment Cost [' + env.currency + ']',
-                                      'LCOE [' + env.currency + '/kWh]',
-                                      'Feed in [' + env.currency + ']']
+                                      f'Investment Cost [{env.currency}]',
+                                      f'LCOE [{env.currency}/kWh]',
+                                      f'Feed in [{env.currency}]']
         economic_evaluation_values = [economic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
@@ -413,17 +406,16 @@ class Report:
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=economic_evaluation_data,
                                    padding=2)
-        system_LCOE = round(self.evaluation_df.loc['System', 'LCOE [' + env.currency + '/kWh]'], 2)
+        system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{env.currency}/kWh]'], 2)
         total_energy = round(self.evaluation_df.loc['System', 'Energy production [kWh]'], 2)
         total_energy_cost = round(system_LCOE * total_energy, 2)
         total_energy_cost_grid = round(env.electricity_price * total_energy, 2)
-        economic_table_description = "The overall systems LCOE is " + str(system_LCOE) + " " + env.currency + \
-                                     "/kWh. The energy costs incurred in the period under consideration amount to " + \
-                                     str(total_energy_cost) + " " + env.currency + \
-                                     ". In comparison, the energy costs from a complete supply from the power grid " \
-                                     "amount to " + str(total_energy_cost_grid) + " " + env.currency \
-                                     + ". The cost difference in the energy supply costs is " + str(
-            round(total_energy_cost - total_energy_cost_grid, 2)) + " " + env.currency + ".\n\n"
+        economic_table_description = f'The overall system LCOE is {system_LCOE} {env.currency}/kWh. The energy costs ' \
+                                     f'incurred in the period under consideration amount to {total_energy_cost} ' \
+                                     f'{env.currency}. In comparison, the energy costs from a complete supply from the ' \
+                                     f'power grid amount to + {total_energy_cost_grid}  {env.currency}. The cost ' \
+                                     f'difference in the energy supply costs is ' \
+                                     f'{round(total_energy_cost - total_energy_cost_grid, 2)} {env.currency}.\n\n'
         self.create_txt(file_name='6_1_table_description', text=economic_table_description)
         self.pdf_file.ln(h=10)
         self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt', size=10)
@@ -448,15 +440,12 @@ class Report:
                                    table=ecologic_evaluation_data,
                                    padding=2)
         self.pdf_file.ln(h=10)
-        ecologic_table_description = "The bar chart displays the total CO2-emissions over the system lifetime for every component. " \
-                                     "The orange part shows the CO2-emissions during production and installation. " \
-                                     "The blue part balances the CO2-emissions during use."
-        self.create_txt(file_name="6_2_table_description", text=ecologic_table_description)
         self.create_bar_plot(df=self.evaluation_df,
                              columns=['Initial CO2-emissions [t]', 'Annual CO2-emissions [t/a]'],
                              file_name='co2-emissions',
                              y_label='CO2-emissions [t]')
         self.pdf_file.image(name=self.report_path + 'pictures/co2-emissions.png', w=150)
+        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/6_2_table_description.txt', size=10)
 
     '''Functions to create chapter data'''
 
@@ -469,9 +458,9 @@ class Report:
         env = self.env
         data = {'Parameter': ['Project name', 'City', 'ZIP Code', 'State', 'Country', 'Country Code', 'Latitude [°]',
                               'Longitude [°]', 'Start time', 'End time', 'Time resolution', 'Currency',
-                              'Electricity price [' + env.currency + '/kWh]', 'CO2 price [' + env.currency + '/t]',
-                              'Feed in possible', 'PV Feed-in tariff [' + env.currency + '/kWh]',
-                              'Wind turbine Feed-in tariff [' + env.currency + '/kWh]', 'System lifetime [a]',
+                              f'Electricity price [{env.currency}/kWh]', f'CO2 price [{env.currency}/t]',
+                              'Feed in possible', f'PV Feed-in tariff [{env.currency}/kWh]',
+                              f'Wind turbine Feed-in tariff [{env.currency}/kWh]', 'System lifetime [a]',
                               'Discount rate', 'CO2 equivalent Diesel [kg/kWh]', 'CO2 equivalent Grid [kg/kWh]'],
                 'Value': [env.name, env.address[0], env.address[1], env.address[2], env.address[3], env.address[4],
                           env.latitude, env.longitude, env.t_start, env.t_end, env.t_step, env.currency,
@@ -492,35 +481,33 @@ class Report:
         df = self.operator.evaluation_df
         df = df.set_index('Component')
         for pv in self.env.pv:
-            df.loc[pv.name, 'Investment Cost [' + env.currency + ']'] = int(pv.c_invest_n * pv.p_n / 1000)
+            df.loc[pv.name, f'Investment Cost [' + env.currency + ']'] = int(pv.c_invest_n * pv.p_n / 1000)
             if env.grid_connection or env.feed_in is False:
-                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = None
+                df.loc[pv.name, f'Feed in [{env.currency}]'] = None
             else:
-                df.loc[pv.name, 'Feed in [' + env.currency + ']'] = op.df[
-                    pv.name + ' Feed in [' + env.currency + ']'].sum()
+                df.loc[pv.name, f'Feed in [{env.currency}]'] = op.df[
+                    pv.name + f' Feed in [{env.currency}]'].sum()
         for wt in self.env.wind_turbine:
-            df.loc[wt.name, 'Investment Cost [' + env.currency + ']'] = int(wt.c_invest_n * wt.p_n / 1000)
+            df.loc[wt.name, f'Investment Cost [{env.currency}]'] = int(wt.c_invest_n * wt.p_n / 1000)
             if env.grid_connection or env.feed_in is False:
-                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = None
+                df.loc[wt.name, f'Feed in [{env.currency}]]'] = None
             else:
-                df.loc[wt.name, 'Feed in [' + env.currency + ']'] = op.df[
-                    wt.name + ' Feed in [' + env.currency + ']'].sum()
+                df.loc[wt.name, f'Feed in [{env.currency}]'] = op.df[
+                    wt.name + f' Feed in [{env.currency}]]'].sum()
         for grid in self.env.grid:
-            df.loc[grid.name, 'Investment Cost [' + env.currency + ']'] = 0
-            df.loc[grid.name, 'Feed in [' + env.currency + ']'] = None
+            df.loc[grid.name, f'Investment Cost [{env.currency}]'] = 0
+            df.loc[grid.name, f'Feed in [{env.currency}]'] = None
         for dg in self.env.diesel_generator:
-            df.loc[dg.name, 'Investment Cost [' + env.currency + ']'] = int(dg.c_invest_n * dg.p_n / 1000)
-            df.loc[dg.name, 'Feed in [' + env.currency + ']'] = None
+            df.loc[dg.name, f'Investment Cost [{env.currency}]'] = int(dg.c_invest_n * dg.p_n / 1000)
+            df.loc[dg.name, f'Feed in [{env.currency}]'] = None
         for es in self.env.storage:
-            df.loc[es.name, 'Investment Cost [' + env.currency + ']'] \
+            df.loc[es.name, f'Investment Cost [{env.currency}]'] \
                 = int(es.c_invest_n * es.c / 1000 + es.total_replacement_cost)
-            df.loc[es.name, 'Feed in [' + env.currency + ']'] = None
+            df.loc[es.name, f'Feed in [{env.currency}]'] = None
         if len(df) == 0:
-            df.loc['System', 'Investment Cost [' + env.currency + ']'] = 0
+            df.loc['System', f'Investment Cost [{env.currency}]'] = 0
         else:
-            df.loc['System', 'Investment Cost [' + env.currency + ']'] = df[
-                'Investment Cost [' + env.currency + ']'].sum()
-
+            df.loc['System', f'Investment Cost [{env.currency}]'] = df[f'Investment Cost [{env.currency}]'].sum()
         return df
 
     def retrieve_energy_parameters(self):
@@ -665,7 +652,6 @@ class Report:
         img_data = m._to_png(5)
         img = Image.open(io.BytesIO(img_data))
         img.save(self.report_path + 'pictures/' + 'location.png')
-
         # Delete file
         if os.path.exists('geckodriver.log'):
             os.remove('geckodriver.log')

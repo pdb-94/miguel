@@ -30,7 +30,7 @@ class PV:
             nominal power
         :param pv_profile: pd.Series
             PV production profile
-        :param pv_data: pd.dict
+        :param pv_data: dict
             pv_module: str
             inverter: str
             modules_per_string: int

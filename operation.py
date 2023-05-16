@@ -184,7 +184,6 @@ class Operator:
                 3) Cover load from Storage
                 4) Cover load from Diesel Generator
             Diesel Generator with no low load behavior:
-
         :param clock: dt.datetime
             time stamp
         :return: None
@@ -334,7 +333,7 @@ class Operator:
         """
         df = pd.DataFrame(columns=['Component',
                                    'Energy production [kWh]',
-                                   'LCOE [' + self.env.currency + '/kWh]',
+                                   f'LCOE [{self.env.currency}/kWh]',
                                    'Total CO2-emissions [t]',
                                    'Initial CO2-emissions [t]',
                                    'Annual CO2-emissions [t/a]'])
@@ -496,8 +495,8 @@ class Operator:
         """
         system_lcoe = 0
         for i in range(len(df)):
-            if df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] is not None:
-                system_lcoe += df.loc[i, 'LCOE [' + self.env.currency + '/kWh]'] \
+            if df.loc[i, f'LCOE [{self.env.currency}/kWh]'] is not None:
+                system_lcoe += df.loc[i, f'LCOE [{self.env.currency}/kWh]'] \
                                * df.loc[i, 'Energy production [kWh]'] / (self.energy_consumption*self.env.lifetime)
         system_lcoe = system_lcoe
 
