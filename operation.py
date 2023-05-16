@@ -45,7 +45,8 @@ class Operator:
         :return: pd.DataFrame
             DataFrame with component columns
         """
-        df = pd.DataFrame(columns=['Load [W]', 'P_Res [W]'], index=self.env.time)
+        df = pd.DataFrame(columns=['Load [W]', 'P_Res [W]'],
+                          index=self.env.time)
         df['Load [W]'] = self.env.df['P_Res [W]']
         df['P_Res [W]'] = self.env.df['P_Res [W]']
         if self.env.grid_connection:
@@ -85,10 +86,13 @@ class Operator:
         for clock in self.df.index:
             for component in env.re_supply:
                 # Priority 1: RE self supply
-                self.re_self_supply(clock=clock, component=component)
+                self.re_self_supply(clock=clock,
+                                    component=component)
                 # Priority 2: Charge Storage from RE
                 for es in env.storage:
-                    self.re_charge(clock=clock, es=es, component=component)
+                    self.re_charge(clock=clock,
+                                   es=es,
+                                   component=component)
             if env.grid_connection is True:
                 # system with grid connection
                 if env.blackout is False:
@@ -124,7 +128,8 @@ class Operator:
         for clock in self.df.index:
             if self.df.loc[clock, 'P_Res [W]'] > 0:
                 power_sink[clock] = self.df.loc[clock, 'P_Res [W]']
-        power_sink_df = pd.DataFrame(power_sink.items(), columns=['Time', 'P [W]'])
+        power_sink_df = pd.DataFrame(power_sink.items(),
+                                     columns=['Time', 'P [W]'])
         power_sink_df = power_sink_df.set_index('Time')
         power_sink_df = power_sink_df.round(2)
 
@@ -144,7 +149,8 @@ class Operator:
         for es in env.storage:
             if self.df.loc[clock, 'P_Res [W]'] > 0:
                 power = self.df.loc[clock, 'P_Res [W]']
-                discharge_power = es.discharge(clock=clock, power=power)
+                discharge_power = es.discharge(clock=clock,
+                                               power=power)
                 self.df.loc[clock, es.name + ' [W]'] += discharge_power
                 self.df.loc[clock, 'P_Res [W]'] += discharge_power
         # Priority 4: Cover load from grid
@@ -169,11 +175,13 @@ class Operator:
             for es in env.storage:
                 if self.df.loc[clock, 'P_Res [W]'] > 0:
                     power = self.df.loc[clock, 'P_Res [W]']
-                    discharge_power = es.discharge(clock=clock, power=power)
+                    discharge_power = es.discharge(clock=clock,
+                                                   power=power)
                     self.df.loc[clock, es.name + ' [W]'] += discharge_power
                     self.df.loc[clock, 'P_Res [W]'] += discharge_power
             for dg in env.diesel_generator:
-                self.dg_profile(clock=clock, dg=dg)
+                self.dg_profile(clock=clock,
+                                dg=dg)
 
     def off_grid(self, clock: dt.datetime):
         """
@@ -192,11 +200,13 @@ class Operator:
         for es in env.storage:
             if self.df.loc[clock, 'P_Res [W]'] > 0:
                 power = self.df.loc[clock, 'P_Res [W]']
-                discharge_power = es.discharge(clock=clock, power=power)
+                discharge_power = es.discharge(clock=clock,
+                                               power=power)
                 self.df.loc[clock, es.name + ' [W]'] += discharge_power
                 self.df.loc[clock, 'P_Res [W]'] += discharge_power
         for dg in env.diesel_generator:
-            self.dg_profile(clock=clock, dg=dg)
+            self.dg_profile(clock=clock,
+                            dg=dg)
 
     def feed_in(self, component: PV or WindTurbine):
         """
@@ -286,7 +296,8 @@ class Operator:
         :return: None
         """
         power = self.df.loc[clock, 'P_Res [W]']
-        self.df.loc[clock, dg.name + ' [W]'] = dg.run(clock=clock, power=power)
+        self.df.loc[clock, dg.name + ' [W]'] = dg.run(clock=clock,
+                                                      power=power)
         self.df.loc[clock, 'P_Res [W]'] -= self.df.loc[clock, dg.name + ' [W]']
 
     def calc_energy_parameters(self):
@@ -341,27 +352,32 @@ class Operator:
         lifetime = self.env.lifetime
         for pv in env.pv:
             co2 = self.ecological_evaluation(pv)
-            lcoe = self.economic_evaluation(component=pv, co2=co2[0]/lifetime)
+            lcoe = self.economic_evaluation(component=pv,
+                                            co2=co2[0]/lifetime)
             parameters = [pv.name, self.energy_supply_parameters[0][pv.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for wt in env.wind_turbine:
             co2 = self.ecological_evaluation(wt)
-            lcoe = self.economic_evaluation(component=wt, co2=co2[0]/lifetime)
+            lcoe = self.economic_evaluation(component=wt,
+                                            co2=co2[0]/lifetime)
             parameters = [wt.name, self.energy_supply_parameters[1][wt.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for grid in env.grid:
             co2 = self.ecological_evaluation(grid)
-            lcoe = self.economic_evaluation(component=grid, co2=co2[0]/lifetime)
+            lcoe = self.economic_evaluation(component=grid,
+                                            co2=co2[0]/lifetime)
             parameters = [grid.name, self.energy_supply_parameters[2][grid.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for dg in env.diesel_generator:
             co2 = self.ecological_evaluation(dg)
-            lcoe = self.economic_evaluation(component=dg, co2=co2[0]/lifetime)
+            lcoe = self.economic_evaluation(component=dg,
+                                            co2=co2[0]/lifetime)
             parameters = [dg.name, self.energy_supply_parameters[3][dg.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
         for es in env.storage:
             co2 = self.ecological_evaluation(es)
-            lcoe = self.economic_evaluation(component=es, co2=co2[0]/lifetime)
+            lcoe = self.economic_evaluation(component=es,
+                                            co2=co2[0]/lifetime)
             parameters = [es.name, abs(self.energy_supply_parameters[5][es.name + '_discharge']*lifetime), lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
 

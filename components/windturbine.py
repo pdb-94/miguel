@@ -1,5 +1,4 @@
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
 import datetime as dt
 import pandas as pd
@@ -55,7 +54,8 @@ class WindTurbine:
         self.altitude = self.env.location.get('altitude')
         self.roughness_length = self.env.location.get('terrain')
         # DataFrame
-        self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
+        self.df = pd.DataFrame(columns=['P [W]'],
+                               index=self.env.time)
         if wind_speed is not None:
             self.df['Wind speed [km/h]'] = wind_speed
         if wt_profile is not None:
@@ -105,8 +105,11 @@ class WindTurbine:
         arrays = [['wind_speed', 'wind_speed', 'temperature', 'temperature', 'pressure'],
                   [10, self.hub_height, 2, self.hub_height, 0]]
         tuples = list(zip(*arrays))
-        index = pd.MultiIndex.from_tuples(tuples, names=['variable_name', 'height'])
-        weather_data = pd.DataFrame(np.nan, index=self.env.time_series, columns=index)
+        index = pd.MultiIndex.from_tuples(tuples,
+                                          names=['variable_name', 'height'])
+        weather_data = pd.DataFrame(np.nan,
+                                    index=self.env.time_series,
+                                    columns=index)
         # Assign values to columns
         weather_data['wind_speed', 10] = self.annual_weather_data['wind_speed']
         weather_data['temperature', 2] = self.annual_weather_data['temp_air'] + 273.15
@@ -115,8 +118,8 @@ class WindTurbine:
         weather_data['wind_speed', self.hub_height] = self.calc_wind_speed(wind_df=weather_data['wind_speed', 10],
                                                                            hub_height=self.hub_height)
         weather_data['temperature', self.hub_height] = self.calc_temperature(
-            temperature_df=weather_data['temperature', 2],
-            hub_height=self.hub_height)
+                                                                        temperature_df=weather_data['temperature', 2],
+                                                                        hub_height=self.hub_height)
         return weather_data
 
     def create_wind_turbine(self):
@@ -161,9 +164,19 @@ class WindTurbine:
         end_date = self.env.time_series[-1]
         end_y = end_date.year
         # Create time series for simulated year in environment
-        start = dt.datetime(year=start_y, month=1, day=1, hour=0, minute=0)
-        end = dt.datetime(year=end_y, month=12, day=31, hour=23, minute=0)
-        wt_yield_time_series = pd.date_range(start=start, end=end, freq='1h')
+        start = dt.datetime(year=start_y,
+                            month=1,
+                            day=1,
+                            hour=0,
+                            minute=0)
+        end = dt.datetime(year=end_y,
+                          month=12,
+                          day=31,
+                          hour=23,
+                          minute=0)
+        wt_yield_time_series = pd.date_range(start=start,
+                                             end=end,
+                                             freq='1h')
 
         return wt_yield_time_series
 
@@ -177,7 +190,8 @@ class WindTurbine:
             pass
         else:
             # Create index with environment time resolution
-            wt_yield = pd.DataFrame(index=self.env.time_series, columns=df.columns)
+            wt_yield = pd.DataFrame(index=self.env.time_series,
+                                    columns=df.columns)
             # Fill simulated values
             for index in df.index:
                 wt_yield.loc[index, 'temp_air'] = df.loc[index, 'temp_air']

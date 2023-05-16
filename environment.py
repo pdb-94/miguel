@@ -180,7 +180,9 @@ class Environment:
             time_series,
             df
         """
-        time_series = pd.date_range(start=self.t_start, end=self.t_end, freq=self.t_step)
+        time_series = pd.date_range(start=self.t_start,
+                                    end=self.t_end,
+                                    freq=self.t_step)
         df = pd.Series(time_series)
 
         return time_series, df
@@ -203,8 +205,19 @@ class Environment:
                                                                               url='https://re.jrc.ec.europa.eu/api/')
         # Set data.index to current year
         current_year = dt.datetime.today().year
-        data.index = pd.date_range(start=dt.datetime(year=current_year, month=1, day=1, hour=0, minute=0),
-                                   end=dt.datetime(year=current_year, month=12, day=31, hour=23, minute=0), freq='1h')
+        data.index = pd.date_range(start=dt.datetime(
+                                        year=current_year,
+                                        month=1,
+                                        day=1,
+                                        hour=0,
+                                        minute=0),
+                                   end=dt.datetime(
+                                       year=current_year,
+                                       month=12,
+                                       day=31,
+                                       hour=23,
+                                       minute=0),
+                                   freq='1h')
 
         return data, months_selected, inputs, metadata
 
@@ -217,9 +230,19 @@ class Environment:
         # Drop unnecessary columns
         wt_hourly_data = self.weather_data[0].drop(['ghi', 'dni', 'dhi', 'IR(h)'], axis=1)
         # Convert Index
-        start_time = dt.datetime(year=self.time_series[0].year, month=1, day=1, hour=0, minute=0)
-        end_time = dt.datetime(year=self.time_series[-1].year, month=12, day=31, hour=23, minute=59)
-        wt_hourly_data.index = pd.date_range(start=start_time, end=end_time, freq='1h')
+        start_time = dt.datetime(year=self.time_series[0].year,
+                                 month=1,
+                                 day=1,
+                                 hour=0,
+                                 minute=0)
+        end_time = dt.datetime(year=self.time_series[-1].year,
+                               month=12,
+                               day=31,
+                               hour=23,
+                               minute=59)
+        wt_hourly_data.index = pd.date_range(start=start_time,
+                                             end=end_time,
+                                             freq='1h')
         wt_data = wt_hourly_data
         # Interpolate values
         if self.t_step == dt.timedelta(minutes=60):
@@ -231,7 +254,8 @@ class Environment:
             dates = []
             for i in range(1, int(dt.timedelta(minutes=60)/self.t_step)):
                 dates.append(wt_data.index[-1]+pd.Timedelta(i*int(self.t_step/dt.timedelta(minutes=1)), 'min'))
-            dates_df = pd.DataFrame(columns=wt_data.columns, index=dates)
+            dates_df = pd.DataFrame(columns=wt_data.columns,
+                                    index=dates)
             wt_data = pd.concat([wt_data, dates_df])
             # Interpolate values
             for col in wt_data.columns:
@@ -308,7 +332,8 @@ class Environment:
         self.re_supply.append(self.pv[-1])
         self.df[name + ': P [W]'] = self.pv[-1].df['P [W]']
         self.df['PV total power [W]'] += self.df[name + ': P [W]']
-        self.add_component_data(component=self.pv[-1], supply=True)
+        self.add_component_data(component=self.pv[-1],
+                                supply=True)
 
     def add_wind_turbine(self,
                          p_n: float = None,
@@ -345,7 +370,8 @@ class Environment:
                                                      fuel_consumption=fuel_consumption,
                                                      fuel_ticks=fuel_ticks,
                                                      fuel_price=fuel_price))
-        self.add_component_data(component=self.diesel_generator[-1], supply=True)
+        self.add_component_data(component=self.diesel_generator[-1],
+                                supply=True)
 
     def add_storage(self,
                     p_n: float = None,
@@ -366,7 +392,8 @@ class Environment:
                                     soc_min=soc_min,
                                     soc_max=soc_max))
         self.df[name + ': P [W]'] = self.storage[-1].df['P [W]']
-        self.add_component_data(component=self.storage[-1], supply=False)
+        self.add_component_data(component=self.storage[-1],
+                                supply=False)
 
     def add_test_storage(self):
         name = 'BS_' + str(len(self.storage) + 1)
@@ -384,9 +411,11 @@ class Environment:
         :return: None
         """
         if supply is True:
-            self.supply_data = self.supply_data._append(component.technical_data, ignore_index=True)
+            self.supply_data = self.supply_data._append(component.technical_data,
+                                                        ignore_index=True)
         else:
-            self.storage_data = self.storage_data._append(component.technical_data, ignore_index=True)
+            self.storage_data = self.storage_data._append(component.technical_data,
+                                                          ignore_index=True)
 
     def calc_energy_consumption_parameters(self):
         """

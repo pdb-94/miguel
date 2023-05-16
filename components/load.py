@@ -16,7 +16,7 @@ class Load:
 
         self.env = env
         self.name = name
-        self.annual_consumption = annual_consumption  # Wh
+        self.annual_consumption = annual_consumption * 1000  # Wh
         self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         self.sum = self.df['P [W]'].sum()
 

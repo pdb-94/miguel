@@ -48,7 +48,8 @@ class PV:
         """
         self.env = env
         self.name = name
-        self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
+        self.df = pd.DataFrame(columns=['P [W]'],
+                               index=self.env.time)
         # Location
         self.longitude = self.env.location.get('longitude')
         self.latitude = self.env.location.get('latitude')
@@ -241,9 +242,19 @@ class PV:
         end_date = self.env.time_series[-1]
         end_y = end_date.year
         # Create time series for simulated year in environment
-        start = dt.datetime(year=start_y, month=1, day=1, hour=0, minute=0)
-        end = dt.datetime(year=end_y, month=12, day=31, hour=23, minute=0)
-        pv_yield_time_series = pd.date_range(start=start, end=end, freq='1h')
+        start = dt.datetime(year=start_y,
+                            month=1,
+                            day=1,
+                            hour=0,
+                            minute=0)
+        end = dt.datetime(year=end_y,
+                          month=12,
+                          day=31,
+                          hour=23,
+                          minute=0)
+        pv_yield_time_series = pd.date_range(start=start,
+                                             end=end,
+                                             freq='1h')
 
         return pv_yield_time_series
 

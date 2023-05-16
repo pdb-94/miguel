@@ -10,4 +10,5 @@ class Grid:
                  name: str = None):
         self.env = env
         self.name = name
-        self.df = pd.DataFrame(columns=['P [W]', 'Blackout'], index=self.env.time)
+        self.df = pd.DataFrame(columns=['P [W]', 'Blackout'],
+                               index=self.env.time)

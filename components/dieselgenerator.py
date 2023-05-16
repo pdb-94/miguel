@@ -55,7 +55,7 @@ class DieselGenerator:
         self.df = pd.DataFrame(columns=['P [W]',
                                         'P [%]',
                                         'Fuel Consumption [l/h]',
-                                        'Fuel cost [' + self.env.currency + ']'],
+                                        f'Fuel cost [{self.env.currency}]'],
                                index=self.env.time)
 
         if fuel_ticks is None:
@@ -71,8 +71,8 @@ class DieselGenerator:
                                f'Specific investment cost [{self.env.currency}/kW]': int(self.c_invest_n),
                                f'Investment cost [{self.env.currency}]': int(self.c_invest_n * self.p_n / 1000),
                                f'Specific operation maintenance cost [{self.env.currency}/kW]': int(self.c_op_main_n),
-                               f'Operation maintenance cost [{self.env.currency}/a]': int(
-                                   self.c_op_main_n * self.p_n / 1000)}
+                               f'Operation maintenance cost [{self.env.currency}/a]':
+                                   int(self.c_op_main_n * self.p_n / 1000)}
 
     def run(self, clock: dt.datetime, power: float):
         """
@@ -102,9 +102,11 @@ class DieselGenerator:
         :return: pd.DataFrame
             df
         """
-        func = np.polyfit(x=list(self.fuel_ticks.keys()), y=list(self.fuel_ticks.values()),
+        func = np.polyfit(x=list(self.fuel_ticks.keys()),
+                          y=list(self.fuel_ticks.values()),
                           deg=len(list(self.fuel_ticks.keys())) - 1)
-        df = pd.DataFrame(index=range(0, 101), columns=['P [%]', 'Fuel Ticks [%]'])
+        df = pd.DataFrame(index=range(0, 101),
+                          columns=['P [%]', 'Fuel Ticks [%]'])
         df['P [%]'] = np.arange(len(df)) / 100
         df['Fuel Ticks [%]'] = round(func[0] * df['P [%]'] ** 4 + func[1] * df['P [%]'] ** 3 + func[2] * df['P [%]'] ** 2 + func[3] * df['P [%]'] ** 1 + func[4] * df['P [%]'] ** 0,
                                      3)

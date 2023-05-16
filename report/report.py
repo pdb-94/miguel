@@ -59,7 +59,8 @@ class Report:
         self.pdf_file.set_creator('Micro Grid User Energy Planning Tool Library')
         self.pdf_file.set_keywords('EnerSHelF, Renewable Energy, Energy systems, MiGUEL, PV-Diesel-Hybrid systems')
         self.pdf_file.add_page()
-        self.pdf_file.chapter_title(label='Energy system: ' + self.name + '\n\n', size=14)
+        self.pdf_file.chapter_title(label='Energy system: ' + self.name + '\n\n',
+                                    size=14)
         # Create Chapters
         self.create_sankey()
         self.introduction_summary()
@@ -172,10 +173,14 @@ class Report:
         :return: None
         """
         # Create plots
-        self.create_plot(df=self.weather_data[0], columns=['ghi', 'dni', 'dhi'], file_name='solar_data',
+        self.create_plot(df=self.weather_data[0],
+                         columns=['ghi', 'dni', 'dhi'],
+                         file_name='solar_data',
                          y_label='P [W/m²]')
         # Wind speed
-        self.create_plot(df=self.weather_data[0], columns=['wind_speed'], file_name='wind_data',
+        self.create_plot(df=self.weather_data[0],
+                         columns=['wind_speed'],
+                         file_name='wind_data',
                          y_label='v [m/s]')
         # Print chapter 2
         self.pdf_file.print_chapter(chapter_type=[True],
@@ -248,13 +253,19 @@ class Report:
         :return: None
         """
         # Create plot
-        self.create_plot(df=self.operator.df, columns=['Load [W]'], file_name='load_profile',
-                         x_label='Time', y_label='P [kW]', factor=1000)
+        self.create_plot(df=self.operator.df,
+                         columns=['Load [W]'],
+                         file_name='load_profile',
+                         x_label='Time',
+                         y_label='P [kW]',
+                         factor=1000)
         # Print Chapters
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['3 Energy consumption'],
                                     file=[self.txt_file_path + 'default/3_energy_consumption.txt'])
-        self.pdf_file.image(name=self.report_path + 'pictures/' + 'load_profile.png', w=150, x=30)
+        self.pdf_file.image(name=self.report_path + 'pictures/' + 'load_profile.png',
+                            w=150,
+                            x=30)
         # Create table with reference parameters
         energy_con_header = ['', 'Power Grid', 'Diesel Generator']
 
@@ -293,7 +304,11 @@ class Report:
         for i in range(len(self.env.pv)):
             columns.append(self.env.pv[i].name + ': P [W]')
             pv_energy += self.env.df['PV_' + str(i + 1) + ': P [W]'].sum()
-        self.create_plot(df=self.env.df, columns=columns, file_name='re_supply', x_label='Time', y_label='P [kW]',
+        self.create_plot(df=self.env.df,
+                         columns=columns,
+                         file_name='re_supply',
+                         x_label='Time',
+                         y_label='P [kW]',
                          factor=1000)
         re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start} to ' \
                         f'{self.env.t_end} in a {self.env.t_step} resolution: Photovoltaic total: ' \
@@ -316,7 +331,9 @@ class Report:
         for row in self.env.supply_data.index:
             supply_values.append(self.env.supply_data.loc[row, :].values.tolist())
         supply_components = [[''], supply_values]
-        self.pdf_file.create_table(file=self.pdf_file, table=supply_components, padding=2)
+        self.pdf_file.create_table(file=self.pdf_file,
+                                   table=supply_components,
+                                   padding=2)
         self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_energy_storage.txt',
                                    size=10)
         # Get technical data from env.storage_data
@@ -327,8 +344,11 @@ class Report:
         for row in self.env.storage_data.index:
             storage_values.append(self.env.storage_data.loc[row, :].values.tolist())
         storage_components = [[''], storage_values]
-        self.pdf_file.create_table(file=self.pdf_file, table=storage_components, padding=2)
-        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_system_configuration_description.txt', size=8)
+        self.pdf_file.create_table(file=self.pdf_file,
+                                   table=storage_components,
+                                   padding=2)
+        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_system_configuration_description.txt',
+                                   size=8)
         # Chapter 4 - Monthly data
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['4.2 Renewable energy supply'],
@@ -346,7 +366,8 @@ class Report:
                      f"'{self.env.system}'. The plot below shows the load profile and the power the system " \
                      f"components supply in kW. Energy storage systems can both consume and supply power. Negative " \
                      f"values correspond to power output (power source), positive loads to power input (power sink).\n "
-        self.create_txt(file_name='5_dispatch', text=dispatch_5)
+        self.create_txt(file_name='5_dispatch',
+                        text=dispatch_5)
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['5 Dispatch'],
                                     file=[self.txt_file_path + '5_dispatch.txt'],
@@ -363,10 +384,19 @@ class Report:
             columns.append(grid.name + ' [W]')
         for dg in env.diesel_generator:
             columns.append(dg.name + ' [W]')
-        self.create_plot(df=self.operator.df, columns=columns, file_name='dispatch', y_label='P [W]')
-        self.pdf_file.image(name=self.report_path + 'pictures/dispatch.png', w=150, x=30, h=120)
-        self.pdf_file.chapter_body(name=self.txt_file_path + '/default/5_sankey.txt', size=10)
-        self.pdf_file.image(name=self.report_path + 'pictures/sankey.png', w=150, x=30)
+        self.create_plot(df=self.operator.df,
+                         columns=columns,
+                         file_name='dispatch',
+                         y_label='P [W]')
+        self.pdf_file.image(name=self.report_path + 'pictures/dispatch.png',
+                            w=150,
+                            x=30,
+                            h=120)
+        self.pdf_file.chapter_body(name=self.txt_file_path + '/default/5_sankey.txt',
+                                   size=10)
+        self.pdf_file.image(name=self.report_path + 'pictures/sankey.png',
+                            w=150,
+                            x=30)
 
     def evaluation(self):
         """
@@ -413,9 +443,11 @@ class Report:
                                      f'power grid amount to + {total_energy_cost_grid}  {env.currency}. The cost ' \
                                      f'difference in the energy supply costs is ' \
                                      f'{round(total_energy_cost - total_energy_cost_grid, 2)} {env.currency}.\n\n'
-        self.create_txt(file_name='6_1_table_description', text=economic_table_description)
+        self.create_txt(file_name='6_1_table_description',
+                        text=economic_table_description)
         self.pdf_file.ln(h=10)
-        self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt', size=10)
+        self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt',
+                                   size=10)
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['6.2 Ecologic evaluation'],
                                     file=[self.txt_file_path + 'default/6_2_ecologic_evaluation.txt'],
@@ -560,7 +592,8 @@ class Report:
         plt.ylabel(y_label)
         plt.xlabel(x_label)
         plt.tight_layout()
-        plt.savefig(self.report_path + 'pictures/' + file_name + '.png', dpi=300)
+        plt.savefig(self.report_path + 'pictures/' + file_name + '.png',
+                    dpi=300)
 
     def create_bar_plot(self, df: pd.DataFrame, columns: list, file_name: str, y_label: str = None):
         """
@@ -576,13 +609,20 @@ class Report:
         :return: None
         """
         fig, ax = plt.subplots()
-        ax.bar(df.index, df[columns[1]] * self.env.lifetime, 0.5, label='Operational CO2-emissions [t]')
-        ax.bar(df.index, df[columns[0]], 0.5, label='Initial CO2-emissions [t]')
+        ax.bar(df.index,
+               df[columns[1]] * self.env.lifetime,
+               0.5,
+               label='Operational CO2-emissions [t]')
+        ax.bar(df.index,
+               df[columns[0]],
+               0.5,
+               label='Initial CO2-emissions [t]')
         ax.set_ylabel(y_label)
         ax.set_ylabel(y_label)
         ax.legend()
         plt.tight_layout()
-        plt.savefig(self.report_path + 'pictures/' + file_name + '.png', dpi=300)
+        plt.savefig(self.report_path + 'pictures/' + file_name + '.png',
+                    dpi=300)
 
     def create_sankey(self):
         """
@@ -596,7 +636,11 @@ class Report:
                  'Wind turbine', 'Wind turbine self consumption', 'Wind turbine charge',
                  'Grid', 'Diesel generator', 'Battery storage',
                  'Battery storage discharge', 'Load', 'Feed-in', 'Losses']
-        node = dict(pad=15, thickness=20, line=dict(color='black', width=0.5), label=label)
+        node = dict(pad=15,
+                    thickness=20,
+                    line=dict(color='black',
+                              width=0.5),
+                    label=label)
         pv_sc = 0
         pv_charge = 0
         pv_feed_in = 0
@@ -633,10 +677,15 @@ class Report:
                  pv_production, pv_sc, pv_charge, pv_charge * 0.9, pv_charge * 0.1, pv_feed_in,
                  wt_production, wt_sc, wt_charge, wt_charge * 0.9, wt_charge * 0.1, wt_feed_in,
                  (pv_charge + wt_charge) * 0.9, (pv_charge + wt_charge) * 0.9 ** 2, (pv_charge + wt_charge) * 0.1]
-        link = dict(source=source, target=target, value=value)
-        fig = go.Figure(data=[go.Sankey(node=node, link=link)])
+        link = dict(source=source,
+                    target=target,
+                    value=value)
+        fig = go.Figure(data=[go.Sankey(node=node,
+                                        link=link)])
         fig.update_layout(font_size=24)
-        fig.write_image(file=self.report_path + '/pictures/sankey.png', width=1500, height=1500 / 1.618)
+        fig.write_image(file=self.report_path + '/pictures/sankey.png',
+                        width=1500,
+                        height=1500 / 1.618)
 
     def create_map(self):
         """
@@ -644,8 +693,10 @@ class Report:
         :return: folium Map object
             m
         """
-        m = folium.Map(location=[self.latitude, self.longitude], zoom_start=10)
-        folium.Marker(location=[self.latitude, self.longitude], tooltip='MiGUEL Project').add_to(m)
+        m = folium.Map(location=[self.latitude, self.longitude],
+                       zoom_start=10)
+        folium.Marker(location=[self.latitude, self.longitude],
+                      tooltip='MiGUEL Project').add_to(m)
         img_data = m._to_png(5)
         img = Image.open(io.BytesIO(img_data))
         img.save(self.report_path + 'pictures/' + 'location.png')

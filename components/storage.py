@@ -72,7 +72,8 @@ class Storage:
         self.replacement_cost = self.calc_replacements()
         self.total_replacement_cost = sum(self.replacement_cost.values())
 
-        self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC', ], index=self.env.time)
+        self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC', ],
+                               index=self.env.time)
         self.set_initial_values()
 
         # Dict with technical data
