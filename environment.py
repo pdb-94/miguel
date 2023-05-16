@@ -4,6 +4,7 @@ import pvlib
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
 from data.data import DB
+from components.batterystorage import BatteryStorage
 from components.pv import PV
 from components.windturbine import WindTurbine
 from components.dieselgenerator import DieselGenerator
@@ -27,7 +28,7 @@ class Environment:
                  grid_connection: bool = None,
                  blackout: bool = False,
                  blackout_data: str = None,
-                 feed_in: bool = None,
+                 feed_in: bool = False,
                  weather_data: str = None,
                  csv_sep: str = ',',
                  csv_decimal: str = '.'):
@@ -54,6 +55,15 @@ class Environment:
             {co2_diesel: float,
              co2_grid: float}
         """
+        # Container
+        self.grid = []
+        self.load = []
+        self.pv = []
+        self.diesel_generator = []
+        self.wind_turbine = []
+        self.re_supply = []
+        self.storage = []
+        # Parameters
         self.name = name
         self.csv_sep = csv_sep
         self.csv_decimal = csv_decimal
@@ -81,7 +91,7 @@ class Environment:
             self.wt_feed_in_tariff = 0.05  # US$/kWh
             self.electricity_price = 0.40  # US$/kWh
             self.diesel_price = 1.20  # US$/l
-            self.avg_co2_price = 50  # currency/t
+            self.avg_co2_price = 0  # currency/t
         else:
             self.currency = economy.get('currency')
             self.d_rate = economy.get('d_rate')
@@ -93,7 +103,7 @@ class Environment:
             self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # currency/kWh
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
-            self.co2_grid = 0.420  # kg CO2/kWh (Germany)
+            self.co2_grid = 0
         else:
             self.co2_diesel = ecology.get('co2_diesel')
             self.co2_grid = ecology.get('co2_grid')
@@ -112,49 +122,39 @@ class Environment:
 
         # Grid connection
         self.grid_connection = grid_connection
+        if grid_connection:
+            self.add_grid()
         self.blackout = blackout
         system = {0: 'Off Grid System', 1: 'On Grid System (stable)', 2: 'On Grid System (unstable)'}
         if self.grid_connection is True:
             if self.blackout is True:
-                blackout_df = pd.read_csv(blackout_data, sep=';')
+                blackout_df = pd.read_csv(blackout_data, sep=self.csv_sep)
                 self.df['Blackout'] = blackout_df['Blackout'].values
                 self.system = system[2]
-
             else:
                 self.system = system[1]
         else:
             self.system = system[0]
-        if feed_in is True:
-            self.feed_in = True
-        else:
-            self.feed_in = False
+        self.feed_in = feed_in
 
         # DataBase
         self.database = DB()
 
-        # Container
-        self.grid = []
-        self.load = []
-        self.pv = []
-        self.diesel_generator = []
-        self.wind_turbine = []
-        self.re_supply = []
-        self.storage = []
         self.supply_data = pd.DataFrame(columns=['Component',
                                                  'Name',
                                                  'Nominal Power [kW]',
-                                                 'Specific investment cost [' + self.currency + '/kW]',
-                                                 'Investment cost [' + self.currency + ']',
-                                                 'Specific operation maintenance cost [' + self.currency + '/kW]',
-                                                 'Operation maintenance cost [' + self.currency + '/a]'])
+                                                 f'Specific investment cost [{self.currency}/kW]',
+                                                 f'Investment cost [{self.currency}]',
+                                                 f'Specific operation maintenance cost [{self.currency}/kW]',
+                                                 f'Operation maintenance cost [{self.currency}/a]'])
         self.storage_data = pd.DataFrame(columns=['Component',
                                                   'Name',
                                                   'Nominal Power [kW]',
                                                   'Capacity [kWh]',
-                                                  'Specific investment cost [' + self.currency + '/kWh]',
-                                                  'Investment cost [' + self.currency + ']',
-                                                  'Specific operation maintenance cost [' + self.currency + '/kWh]',
-                                                  'Operation maintenance cost [' + self.currency + '/a]'])
+                                                  f'Specific investment cost [{self.currency}/kWh]',
+                                                  f'Investment cost [{self.currency}]',
+                                                  f'Specific operation maintenance cost [{self.currency}/kWh]',
+                                                  f'Operation maintenance cost [{self.currency}/a]'])
 
     def find_location(self):
         """
@@ -368,6 +368,11 @@ class Environment:
                                     soc_max=soc_max))
         self.df[name + ': P [W]'] = self.storage[-1].df['P [W]']
         self.add_component_data(component=self.storage[-1], supply=False)
+
+    def add_test_storage(self):
+        name = 'BS_' + str(len(self.storage) + 1)
+        self.storage.append(BatteryStorage(env=self,
+                                           name=name))
 
     def add_component_data(self,
                            component,

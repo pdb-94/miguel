@@ -1,10 +1,12 @@
 import sqlite3 as sql
+import sys
 
 
 class DB:
     """
     MiGUEL Database
     """
+
     def __init__(self):
         self.connect = self.create_db()
         self.cursor = self.create_cursor()
@@ -16,7 +18,8 @@ class DB:
         :return: sqlite3.Connect
             connect
         """
-        connect = sql.connect('data/miguel.db')
+        path = sys.path[1] + '/data/miguel.db'
+        connect = sql.connect(path)
 
         return connect
 
@@ -29,7 +32,3 @@ class DB:
         cursor = self.connect.cursor()
 
         return cursor
-
-
-
-
