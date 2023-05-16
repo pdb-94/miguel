@@ -58,9 +58,7 @@ class PV:
         self.weather_data['precipitable_water'] = 0.1
         # Libraries
         self.module_lib = self.retrieve_pvlib_library(component='module')
-        print(self.module_lib)
         self.inverter_lib = self.retrieve_pvlib_library(component='inverter')
-        print(self.inverter_lib)
 
         if pv_profile is not None:
             # Create DataFrame from existing pv profile

@@ -7,6 +7,7 @@ class DieselGenerator:
     """
     Class to represent Diesel Generators
     """
+
     def __init__(self,
                  env,
                  name: str = None,
@@ -67,11 +68,10 @@ class DieselGenerator:
         self.technical_data = {'Component': 'Diesel Generator',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n / 1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
-                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n * self.p_n / 1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(
-                                   self.c_op_main_n),
-                               'Operation maintenance cost [' + self.env.currency + '/a]': int(
+                               f'Specific investment cost [{self.env.currency}/kW]': int(self.c_invest_n),
+                               f'Investment cost [{self.env.currency}]': int(self.c_invest_n * self.p_n / 1000),
+                               f'Specific operation maintenance cost [{self.env.currency}/kW]': int(self.c_op_main_n),
+                               f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
 
     def run(self, clock: dt.datetime, power: float):
@@ -106,11 +106,7 @@ class DieselGenerator:
                           deg=len(list(self.fuel_ticks.keys())) - 1)
         df = pd.DataFrame(index=range(0, 101), columns=['P [%]', 'Fuel Ticks [%]'])
         df['P [%]'] = np.arange(len(df)) / 100
-        df['Fuel Ticks [%]'] = round(func[0] * df['P [%]'] ** 4 \
-                                     + func[1] * df['P [%]'] ** 3 \
-                                     + func[2] * df['P [%]'] ** 2 \
-                                     + func[3] * df['P [%]'] ** 1 \
-                                     + func[4] * df['P [%]'] ** 0,
+        df['Fuel Ticks [%]'] = round(func[0] * df['P [%]'] ** 4 + func[1] * df['P [%]'] ** 3 + func[2] * df['P [%]'] ** 2 + func[3] * df['P [%]'] ** 1 + func[4] * df['P [%]'] ** 0,
                                      3)
         df = df.set_index('P [%]')
 

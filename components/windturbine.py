@@ -79,11 +79,10 @@ class WindTurbine:
         self.technical_data = {'Component': 'Wind Turbine',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n / 1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
-                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n * self.p_n / 1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(
-                                   self.c_op_main_n),
-                               'Operation maintenance cost [' + self.env.currency + '/a]': int(
+                               f'Specific investment cost [{self.env.currency}/kW]': int(self.c_invest_n),
+                               f'Investment cost [{self.env.currency}]': int(self.c_invest_n * self.p_n / 1000),
+                               f'Specific operation maintenance cost [{self.env.currency}/kW]': int(self.c_op_main_n),
+                               f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
 
     def get_turbine_data(self):

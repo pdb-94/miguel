@@ -106,8 +106,6 @@ class Load:
         s_lp = pd.read_sql_query("""SELECT * from standard_load_profile""", con=self.env.database.connect)
         s_lp['time'] = pd.to_datetime(s_lp['time'], format='%H:%M')
         s_lp = s_lp.set_index('time')
-        # s_lp.index = pd.to_datetime(s_lp.index)
-        # s_lp = pd.read_csv(root + '/data/load/standard_load_profile.csv', sep=';', decimal=',', index_col=0)
         daily_consumption = self.annual_consumption / 365  # Wh/d
         daily_sum = s_lp['Percentage [P/P_max]'].sum()
         scale = daily_consumption / daily_sum
