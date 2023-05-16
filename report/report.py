@@ -11,8 +11,6 @@ from PIL import Image
 from report.pdf import PDF
 
 
-# TODO: Check economic evaluation --> Cost difference between grid and system cost
-
 class Report:
     """
     Class to create results and report
@@ -98,18 +96,18 @@ class Report:
         # Write chapter depending on if energy consumption is met
         if self.operator.system_covered is True:
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
-                            f"configuration, the energy demand of {total_energy} kWh is covered."
+                            f"configuration, the energy demand of {total_energy:,} kWh is covered."
         else:
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
-                            f"configuration, the energy demand of {total_energy} kWh is not covered. The maximum " \
+                            f"configuration, the energy demand of {total_energy:,} kWh is not covered. The maximum " \
                             f"remaining power to be covered equals {self.operator.power_sink_max} W. The table shows " \
                             f"the time stamps and the power to be covered."
         summary = system_status + \
-                  f"The PV system(s) account for {pv_percentage}% ({pv_energy} kWh); The wind turbine(s) account for " \
-                  f"{wt_percentage}% ({wt_energy} kWh); The grid accounts {grid_percentage}% ({grid_energy} kWh); " \
-                  f"The diesel generator(s) account for {dg_percentage}% ({dg_energy} kWh) of the total energy " \
-                  f"consumption. The energy storage(s) provide {abs(es_discharge)} kWh and are charged with " \
-                  f"{abs(es_charge)} kWh. The table below shows the energy systems key parameters. The parameters will " \
+                  f"The PV system(s) account for {pv_percentage}% ({pv_energy:,} kWh); The wind turbine(s) account for " \
+                  f"{wt_percentage}% ({wt_energy:,} kWh); The grid accounts {grid_percentage}% ({grid_energy: ,} kWh); " \
+                  f"The diesel generator(s) account for {dg_percentage}% ({dg_energy:,} kWh) of the total energy " \
+                  f"consumption. The energy storage(s) provide {abs(es_discharge):,} kWh and are charged with " \
+                  f"{abs(es_charge):,} kWh. The table below shows the energy systems key parameters. The parameters will " \
                   f"be described in detail in the upcoming report. \nThe investment cost and CO2-emissions for energy " \
                   f"storages include investment costs and CO2-emissions caused by replacements over the project lifetime. \n\n"
         self.create_txt(file_name='summary',
@@ -121,7 +119,7 @@ class Report:
         # Create evaluation table
         evaluation_header = ['Component',
                              'Energy [kWh]',
-                             f'Investment Cost [{self.env.currency}]',
+                             f'Invest. Cost [{self.env.currency}]',
                              f'LCOE [{self.env.currency}/kWh]',
                              f'Feed in [{self.env.currency}]',
                              'CO2-emissions [t]']
@@ -295,7 +293,6 @@ class Report:
         for i in range(len(self.env.pv)):
             columns.append(self.env.pv[i].name + ': P [W]')
             pv_energy += self.env.df['PV_' + str(i + 1) + ': P [W]'].sum()
-        df = np.where(self.env.df[columns] < 0, 0, self.env.df[columns])
         self.create_plot(df=self.env.df, columns=columns, file_name='re_supply', x_label='Time', y_label='P [kW]',
                          factor=1000)
         re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start} to ' \
@@ -337,7 +334,7 @@ class Report:
                                     title=['4.2 Renewable energy supply'],
                                     file=[self.txt_file_path + '4_2_re_energy_supply.txt'],
                                     size=10)
-        self.pdf_file.image(name=self.report_path + 'pictures/' + '/re_supply.png', w=150, x=30, h=90)
+        self.pdf_file.image(name=self.report_path + 'pictures/' + '/re_supply.png', w=150, x=30)
 
     def dispatch(self):
         """
@@ -426,7 +423,7 @@ class Report:
         # Ecologic evaluation
         ecologic_evaluation_header = ['Component',
                                       'Total CO2-emissions [t]',
-                                      'Inital CO2-emissions [t]',
+                                      'Initial CO2-emissions [t]',
                                       'Operational CO2-emissions [t]']
         ecologic_evaluation_values = [ecologic_evaluation_header]
         for row in self.evaluation_df.index:
@@ -533,8 +530,8 @@ class Report:
         for dg in env.diesel_generator:
             dg_energy += int(data[3][dg.name])
         for es in env.storage:
-            es_charge += int(data[4][es.name])
-            es_discharge += int(data[5][es.name])
+            es_charge += int(data[4][es.name + '_charge'])
+            es_discharge += int(data[5][es.name + '_discharge'])
 
         return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 

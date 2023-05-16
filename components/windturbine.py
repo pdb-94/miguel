@@ -179,8 +179,7 @@ class WindTurbine:
             # Create index with environment time resolution
             wt_yield = pd.DataFrame(index=self.env.time_series, columns=df.columns)
             # Fill simulated values
-            for i in range(len(df.index)):
-                index = df.index[i]
+            for index in df.index:
                 wt_yield.loc[index, 'temp_air'] = df.loc[index, 'temp_air']
                 wt_yield.loc[index, 'relative_humidity'] = df.loc[index, 'relative_humidity']
                 wt_yield.loc[index, 'wind_speed'] = df.loc[index, 'wind_speed']

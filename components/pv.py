@@ -259,8 +259,7 @@ class PV:
             # Create index with environment time resolution
             pv_yield = pd.Series(index=self.env.time_series)
             # Fill simulated values
-            for i in range(len(self.pv_yield.index)):
-                index = self.pv_yield.index[i]
+            for index in self.pv_yield.index:
                 pv_yield[index] = self.pv_yield[index]
             # Interpolate values
             pv_yield = pv_yield.interpolate(method='time')

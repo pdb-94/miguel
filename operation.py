@@ -48,8 +48,9 @@ class Operator:
         df = pd.DataFrame(columns=['Load [W]', 'P_Res [W]'], index=self.env.time)
         df['Load [W]'] = self.env.df['P_Res [W]']
         df['P_Res [W]'] = self.env.df['P_Res [W]']
-        if self.env.blackout is True:
-            df['Blackout'] = self.env.df['Blackout']
+        if self.env.grid_connection:
+            if self.env.blackout:
+                df['Blackout'] = self.env.df['Blackout']
         for pv in self.env.pv:
             pv_col = pv.name + ' [W]'
             df[pv_col] = 0
@@ -71,7 +72,6 @@ class Operator:
         return df
 
     ''' Simulation '''
-
     def dispatch(self):
         """
         dispatch:
@@ -110,10 +110,10 @@ class Operator:
         self.power_sink = pd.concat([self.power_sink, power_sink])
         if len(self.power_sink) == 0:
             self.power_sink_max = 0
-            self.system_covered = False
+            self.system_covered = True
         else:
             self.power_sink_max = float(self.power_sink.max().iloc[0])
-            self.system_covered = True
+            self.system_covered = False
 
     def check_dispatch(self):
         """
@@ -319,8 +319,8 @@ class Operator:
             discharge_values = []
             charge_values.extend(np.where(self.df[col] > 0, self.df[col], 0).tolist())
             discharge_values.extend(np.where(self.df[col] < 0, self.df[col], 0).tolist())
-            es_charge[es.name] = sum(charge_values) * self.env.i_step / 60 / 1000
-            es_discharge[es.name] = sum(discharge_values) * self.env.i_step / 60 / 1000
+            es_charge[es.name + '_charge'] = sum(charge_values) * self.env.i_step / 60 / 1000
+            es_discharge[es.name + '_discharge'] = sum(discharge_values) * self.env.i_step / 60 / 1000
 
         return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
@@ -362,7 +362,7 @@ class Operator:
         for es in env.storage:
             co2 = self.ecological_evaluation(es)
             lcoe = self.economic_evaluation(component=es, co2=co2[0]/lifetime)
-            parameters = [es.name, self.energy_supply_parameters[4][es.name]*lifetime, lcoe, co2[0], co2[1], co2[2]]
+            parameters = [es.name, abs(self.energy_supply_parameters[5][es.name + '_discharge']*lifetime), lcoe, co2[0], co2[1], co2[2]]
             df.loc[len(df)] = parameters
 
         # Calculate System LCOE and CO2-Emissions
@@ -420,7 +420,7 @@ class Operator:
         elif isinstance(component, Storage):
             capital_cost = component.c_invest_n * component.c / 1000 + component.total_replacement_cost
             co2_cost = co2 * env.avg_co2_price
-            annual_output = abs(self.energy_supply_parameters[5][name])
+            annual_output = abs(self.energy_supply_parameters[5][name + '_discharge'])
             annual_operating_cost = component.c_op_main_n * component.c / 1000 + co2_cost
         else:
             return None
@@ -474,7 +474,7 @@ class Operator:
             co2_o = self.env.co2_diesel
             co2_init = component.co2_init * component.p_n / 1e6
         elif isinstance(component, Storage):
-            annual_output = self.energy_supply_parameters[5][name]
+            annual_output = self.energy_supply_parameters[5][name + '_discharge']
             co2_o = 0
             co2_init = component.co2_init * component.c / 1e6 * component.replacements
         else:
@@ -494,10 +494,10 @@ class Operator:
             system lcoe
         """
         system_lcoe = 0
-        for i in range(len(df)):
-            if df.loc[i, f'LCOE [{self.env.currency}/kWh]'] is not None:
-                system_lcoe += df.loc[i, f'LCOE [{self.env.currency}/kWh]'] \
-                               * df.loc[i, 'Energy production [kWh]'] / (self.energy_consumption*self.env.lifetime)
+        for component in df.index:
+            if df.loc[component, f'LCOE [{self.env.currency}/kWh]'] is not None:
+                system_lcoe += df.loc[component, f'LCOE [{self.env.currency}/kWh]'] \
+                               * df.loc[component, 'Energy production [kWh]'] / (self.energy_consumption*self.env.lifetime)
         system_lcoe = system_lcoe
 
         return system_lcoe

@@ -122,12 +122,11 @@ class Environment:
 
         # Grid connection
         self.grid_connection = grid_connection
-        if grid_connection:
-            self.add_grid()
-        self.blackout = blackout
         system = {0: 'Off Grid System', 1: 'On Grid System (stable)', 2: 'On Grid System (unstable)'}
-        if self.grid_connection is True:
-            if self.blackout is True:
+        if self.grid_connection:
+            self.add_grid()
+            self.blackout = blackout
+            if self.blackout:
                 blackout_df = pd.read_csv(blackout_data, sep=self.csv_sep)
                 self.df['Blackout'] = blackout_df['Blackout'].values
                 self.system = system[2]

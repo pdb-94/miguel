@@ -100,6 +100,15 @@ class PDF(FPDF):
         th = file.font_size
         for row in table[1]:
             for value in row:
+                if isinstance(value, (int, float)):
+                    alignment = 'R'
+                    value = '{:,}'.format(value)
+                elif value is None:
+                    value = 'None'
+                    alignment = 'L'
+                else:
+                    alignment = 'L'
+                    value = str(value)
                 # Enter data in columns
-                file.cell(w=col_width, h=padding * th, txt=str(value), border=1, align='C')
+                file.cell(w=col_width, h=padding * th, txt=value, border=1, align=alignment)
             file.ln(padding * th)
