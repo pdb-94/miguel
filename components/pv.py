@@ -57,8 +57,10 @@ class PV:
         self.weather_data = self.env.weather_data[0]
         self.weather_data['precipitable_water'] = 0.1
         # Libraries
-        self.module_lib = pvlib.pvsystem.retrieve_sam('CECMod')
-        self.inverter_lib = pvlib.pvsystem.retrieve_sam('CECInverter')
+        self.module_lib = self.retrieve_pvlib_library(component='module')
+        print(self.module_lib)
+        self.inverter_lib = self.retrieve_pvlib_library(component='inverter')
+        print(self.inverter_lib)
 
         if pv_profile is not None:
             # Create DataFrame from existing pv profile
@@ -102,9 +104,10 @@ class PV:
             self.inverter = pv_data.get('inverter')
             self.modules_per_string = pv_data.get('modules_per_string')
             self.strings_per_inverter = pv_data.get('strings_per_inverter')
-            self.pv_module_parameters = pvlib.pvsystem.retrieve_sam('CECMod')[self.pv_module]
-            self.inverter_parameters = pvlib.pvsystem.retrieve_sam('CECInverter')[self.inverter]
-            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters['V_mp_ref'] * self.modules_per_string * self.strings_per_inverter
+            self.pv_module_parameters = self.module_lib[self.pv_module]
+            self.inverter_parameters = self.inverter_lib[self.inverter]
+            self.p_n = self.pv_module_parameters['I_mp_ref'] * self.pv_module_parameters[
+                'V_mp_ref'] * self.modules_per_string * self.strings_per_inverter
             # Create Location, PVSystem and ModelChain
             pvlib_parameters = self.create_pvlib_parameters()
             self.location = pvlib_parameters[0]
@@ -126,11 +129,11 @@ class PV:
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n / 1000, 3),
-                               'Specific investment cost [' + self.env.currency + '/kW]': int(self.c_invest_n),
-                               'Investment cost [' + self.env.currency + ']': int(self.c_invest_n * self.p_n / 1000),
-                               'Specific operation maintenance cost [' + self.env.currency + '/kW]': int(
+                               f'Specific investment cost [{self.env.currency}/kW]': int(self.c_invest_n),
+                               f'Investment cost [{self.env.currency}]': int(self.c_invest_n * self.p_n / 1000),
+                               f'Specific operation maintenance cost [{self.env.currency}/kW]': int(
                                    self.c_op_main_n),
-                               'Operation maintenance cost [' + self.env.currency + '/a]': int(
+                               f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
 
     def create_pvlib_parameters(self):
@@ -281,8 +284,7 @@ class PV:
         modules = []
         # Choose modules depending on module power
         for module in self.module_lib.columns:
-            if (max_module_power > self.module_lib[module].I_mp_ref * self.module_lib[
-                module].V_mp_ref > min_module_power):
+            if max_module_power > self.module_lib[module].I_mp_ref * self.module_lib[module].V_mp_ref > min_module_power:
                 modules.append(module)
         # Pick random module from list
         module_name = modules[random.randint(0, (len(modules) - 1))]
@@ -322,3 +324,24 @@ class PV:
         inverter = self.inverter_lib[inverter_name]
 
         return module, inverter, modules_per_string, strings_per_inverter
+
+    def retrieve_pvlib_library(self, component):
+        """
+        Retrieve and transpose pvlib database from SQLite
+        :param component: str
+            module or inverter
+        :return: pd.DataFrame
+            CEC parameters
+        """
+        conn = self.env.database.connect
+        if component == 'module':
+            table_name = 'pvlib_cec_module'
+        else:
+            table_name = 'pvlib_cec_inverter'
+        df = pd.read_sql_query(f'SELECT * From {table_name}', conn)
+        df = df.transpose()
+        col = df.loc['index']
+        df = df.drop(index='index')
+        df.columns = col
+
+        return df

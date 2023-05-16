@@ -239,3 +239,14 @@ class WindTurbine:
         temperature_hub_height = temperature_df - 0.0065 * (hub_height - initial_height)
 
         return temperature_hub_height
+
+    def pick_windturbine(self, min_height: float, max_height: float):
+        """
+
+        :param min_height:
+        :param max_height:
+        :return:
+        """
+        min_power = 0.8 * self.p_n
+        max_power = 1.2 * self.p_n
+
