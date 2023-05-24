@@ -62,6 +62,7 @@ class Environment:
         self.diesel_generator = []
         self.wind_turbine = []
         self.re_supply = []
+        self.supply_components = []
         self.storage = []
         # Parameters
         self.name = name
@@ -135,6 +136,7 @@ class Environment:
         else:
             self.system = system[0]
         self.feed_in = feed_in
+
 
         # DataBase
         self.database = DB()
@@ -283,6 +285,7 @@ class Environment:
         name = 'Grid_' + str(len(self.grid) + 1)
         self.grid.append(Grid(env=self,
                               name=name))
+        self.supply_components.append(self.grid[-1])
         self.df[name + ': P [W]'] = self.grid[-1].df['P [W]']
         self.df[name + ': Blackout'] = self.grid[-1].df['Blackout']
         self.grid_connection = True
@@ -330,6 +333,7 @@ class Environment:
         else:
             pass
         self.re_supply.append(self.pv[-1])
+        self.supply_components.append(self.pv[-1])
         self.df[name + ': P [W]'] = self.pv[-1].df['P [W]']
         self.df['PV total power [W]'] += self.df[name + ': P [W]']
         self.add_component_data(component=self.pv[-1],
@@ -350,6 +354,7 @@ class Environment:
                                              turbine_data=turbine_data,
                                              wt_profile=wt_profile))
         self.re_supply.append(self.wind_turbine[-1])
+        self.supply_components.append(self.wind_turbine[-1])
         self.df[name + ': P [W]'] = self.wind_turbine[-1].df['P [W]']
         self.df['WT total power [W]'] += self.df[name + ': P [W]']
         self.add_component_data(component=self.wind_turbine[-1], supply=True)
@@ -370,6 +375,7 @@ class Environment:
                                                      fuel_consumption=fuel_consumption,
                                                      fuel_ticks=fuel_ticks,
                                                      fuel_price=fuel_price))
+        self.supply_components.append(self.diesel_generator[-1])
         self.add_component_data(component=self.diesel_generator[-1],
                                 supply=True)
 

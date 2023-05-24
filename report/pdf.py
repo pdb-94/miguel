@@ -112,8 +112,10 @@ class PDF(FPDF):
                                size=size)
             self.chapter_body(name=file[i])
 
-    def create_table(self, file, table, padding):
+    def create_table(self, file, table, padding, sep=True):
         """
+        :param sep: bool
+            1000 separator
         :param file: pdf object
             pdf file
         :param table: list
@@ -137,7 +139,10 @@ class PDF(FPDF):
             for value in row:
                 if isinstance(value, (int, float)):
                     alignment = 'R'
-                    value = '{:,}'.format(value)
+                    if sep:
+                        value = '{:,}'.format(value)
+                    else:
+                        value = str(value)
                 elif value is None:
                     value = 'None'
                     alignment = 'L'

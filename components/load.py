@@ -7,19 +7,17 @@ class Load:
     """
     Class to represent loads
     """
-
     def __init__(self,
                  env,
                  name: str = None,
                  annual_consumption: float = None,
                  load_profile: str = None):
-
         self.env = env
         self.name = name
-        self.annual_consumption = annual_consumption * 1000  # Wh
+        if annual_consumption is not None:
+            self.annual_consumption = annual_consumption * 1000  # Wh
         self.df = pd.DataFrame(columns=['P [W]'], index=self.env.time)
         self.sum = self.df['P [W]'].sum()
-
         if load_profile is not None:
             # Read load_profile
             self.load_profile = pd.read_csv(load_profile,
