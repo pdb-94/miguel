@@ -4,6 +4,10 @@
   <img src="/documentation/MiGUEL_logo.png" alt="drawing" height="200"/>
 </p>
 
+## Disclaimer 
+MiGUEL is continously optimized in terms of handling and outputs.
+
+
 ## Introduction
 MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation and evaluation, only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
