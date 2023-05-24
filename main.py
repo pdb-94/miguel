@@ -58,74 +58,78 @@ PROGRAM DESCRIPTION
         ... create report with all relevant output
 """
 
-"""
-In this code example an off-grid system is simulated. The following system components are modeled:
-- PV System 60 kWp
-- Battery storage 10 kW/30kWh
-- Diesel Generator: 30 kW
-"""
 
-# Create environment
-start = dt.datetime.today()
+def demonstration(grid_connection=True):
+    """
+    Create an Off grid system with the following system components
+        - PV: 60 kWp
+        - Diesel generator: 30 kW
+        - Battery storage: 10 kW/30kWh
+    :return: environemnt
+    """
+    if grid_connection:
+        name = 'Grid connected system'
+    else:
+        name = 'Off grid system'
+    environment = Environment(name=name,
+                              location={'longitude': -0.7983,
+                                        'latitude': 6.0442,
+                                        'altitude': 20,
+                                        'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
+                                                   'at a distance of approx. 250 meters'},
+                              time={'start': dt.datetime(year=2022,
+                                                         month=1,
+                                                         day=1,
+                                                         hour=0,
+                                                         minute=0),
+                                    'end': dt.datetime(year=2022,
+                                                       month=12,
+                                                       day=31,
+                                                       hour=23,
+                                                       minute=59),
+                                    'step': dt.timedelta(minutes=15),
+                                    'timezone': 'GMT'},
+                              economy={'d_rate': 0.03,
+                                       'lifetime': 20,
+                                       'electricity_price': 0.14,
+                                       'diesel_price': 1.385,
+                                       'pv_feed_in_tariff': 0,
+                                       'wt_feed_in_tariff': 0,
+                                       'co2_price': 0,
+                                       'currency': 'US$'},
+                              ecology={'co2_diesel': 0.2665,
+                                       'co2_grid': 0.1350},
+                              grid_connection=grid_connection,
+                              feed_in=False,
+                              blackout=False,
+                              blackout_data=None,
+                              csv_decimal=',',
+                              csv_sep=';')
+    environment.add_load(annual_consumption=150000)  # kWh
+    environment.add_pv(p_n=60000,
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
+                                'max_module_power': 350, 'inverter_power_range': 2500})
+    if grid_connection is False:
+        environment.add_diesel_generator(p_n=10000,
+                                         fuel_consumption=11.98,
+                                         fuel_price=1.385)
+    environment.add_storage(p_n=10000,
+                            c=30000,
+                            soc=0.25)
 
-print('Create environment', dt.datetime.today() - start)
-env = Environment(name='MiGUEL_example_report_1',
-                  location={'longitude': -0.7983,
-                            'latitude': 6.0442,
-                            'altitude': 20,
-                            'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
-                                       'at a distance of approx. 250 meters'},
-                  time={'start': dt.datetime(year=2022,
-                                             month=1,
-                                             day=1,
-                                             hour=0,
-                                             minute=0),
-                        'end': dt.datetime(year=2022,
-                                           month=1,
-                                           day=7,
-                                           hour=23,
-                                           minute=59),
-                        'step': dt.timedelta(minutes=15),
-                        'timezone': 'GMT'},
-                  economy={'d_rate': 0.03,
-                           'lifetime': 20,
-                           'electricity_price': 0.14,
-                           'diesel_price': 1.385,
-                           'pv_feed_in_tariff': 0,
-                           'wt_feed_in_tariff': 0,
-                           'co2_price': 0,
-                           'currency': 'US$'},
-                  ecology={'co2_diesel': 0.2665,
-                           'co2_grid': 0.1350},
-                  grid_connection=False,
-                  feed_in=False,
-                  blackout=False,
-                  blackout_data=None,
-                  csv_decimal=',',
-                  csv_sep=';')
+    return environment
 
-# Add system components
-# Load
-env.add_load(annual_consumption=1000000)
-print('Add components', dt.datetime.today() - start)
-# env.add_wind_turbine(p_n=4200000, turbine_data={'turbine_type': 'E-126/4200', 'hub_height': 135})
-# PV System
-env.add_pv(p_n=60000,
-           pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                    'max_module_power': 350, 'inverter_power_range': 25000})
-# Battery storage
-env.add_storage(p_n=10000,
-                c=30000,
-                soc=0.5)
-# Diesel generator
-env.add_diesel_generator(p_n=10000,
-                         fuel_consumption=11.98,
-                         fuel_price=1.385)
-# Create Operator - Run dispatch
-print('Run dispatch', dt.datetime.today() - start)
+
+# Off Grid system
+print('Create environment')
+env = demonstration(grid_connection=False)
+# On Grid system
+# env = demonstration(grid_connection=True)
+
+# Run Dispatch
+print('Run Dispatch')
 operator = Operator(env=env)
-# Create report
-print('Create report', dt.datetime.today() - start)
-report = Report(env=env,
-                operator=operator)
-print('Finished', dt.datetime.today() - start)
+# Create pdf-Report
+print('Create report')
+report = Report(env=env, operator=operator)
+print('Finished simulation and evaluation.')
