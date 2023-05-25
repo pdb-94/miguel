@@ -15,7 +15,6 @@ class Report:
     """
     Class to create results and report
     """
-
     def __init__(self,
                  env=None,
                  operator=None,
@@ -28,7 +27,7 @@ class Report:
         """
         self.env = env
         self.operator = operator
-        self.evaluation = evaluation
+        self.eval = evaluation
         # Name
         if self.env.name is not None:
             self.name = self.env.name
@@ -42,18 +41,16 @@ class Report:
         # Weather data
         self.weather_data = self.env.weather_data
         self.input_parameter = self.create_input_parameter()
-        self.evaluation_df = self.create_evaluation_parameter()
+        self.evaluation_df = self.eval.evaluation_df
         # Root path
         self.root = sys.path[1]
         self.report_path = self.root + '/report/'
         self.txt_file_path = self.root + '/report/txt_files/'
         # Evaluation parameters
-        # Parameters
-        self.system_annual_energy_consumption = round(self.evaluation_df.loc['System', 'Energy production [kWh]'], 2)
         self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
-        self.system_annual_energy_cost = round(self.system_LCOE * self.system_annual_energy_consumption, 2)
-        self.diesel_cost_comparison = round(self.operator.energy_consumption * self.env.electricity_price, 3)
-        self.grid_cost_comparison = round(self.operator.energy_consumption * self.env.diesel_price, 3)
+        self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
+        self.diesel_cost_comparison = int(self.eval.grid_cost_comparison_annual)
+        self.grid_cost_comparison = int(self.eval.diesel_cost_comparison_annual)
         # PDF
         self.pdf_file = PDF(title=self.name)
         self.create_pdf()
@@ -68,9 +65,8 @@ class Report:
         self.pdf_file.set_creator('Micro Grid User Energy Planning Tool Library')
         self.pdf_file.set_keywords('EnerSHelF, Renewable Energy, Energy systems, MiGUEL, PV-Diesel-Hybrid systems')
         self.pdf_file.add_page()
-        self.pdf_file.chapter_title(label='Energy system: ' + self.name + '\n\n',
+        self.pdf_file.chapter_title(label=f'Energy system: {self.name}\n\n',
                                     size=14)
-
         # Create Chapters
         self.create_sankey()
         self.introduction_summary()
@@ -80,37 +76,40 @@ class Report:
         if len(self.env.pv) or len(self.env.wind_turbine) > 0:
             self.energy_supply()
         self.dispatch()
-        # self.evaluation()
+        self.evaluation()
         # Create report
         self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
-
     def introduction_summary(self):
         """
         Create Introduction and Summary
         :return: None
         """
-        # Retrieve energy values from operator
-        annual_energy_consumption = int(self.operator.energy_data[0])
-        energy_parameters = self.retrieve_energy_parameters()
-        pv_energy = energy_parameters[0]
-        pv_percentage = round(pv_energy / annual_energy_consumption * 100, 2)
-        wt_energy = energy_parameters[1]
-        wt_percentage = round(wt_energy / annual_energy_consumption * 100, 2)
-        grid_energy = energy_parameters[2]
-        grid_percentage = round(grid_energy / annual_energy_consumption * 100, 2)
-        dg_energy = energy_parameters[3]
-        dg_percentage = round(dg_energy / annual_energy_consumption * 100, 2)
-        es_charge = energy_parameters[4]
-        es_discharge = energy_parameters[5]
+        # Retrieve energy values from evaluation
+        annual_energy_consumption = int(self.operator.energy_consumption)
+        energy_parameters = {}
+        for row in self.evaluation_df.index:
+            energy_parameters[row] = self.evaluation_df.loc[row, 'Annual energy supply [kWh/a]']
+        # Summarize values based on component type
+        pv_energy = sum([value for key, value in energy_parameters.items() if 'PV' in key])
+        wt_energy = sum([value for key, value in energy_parameters.items() if 'WT' in key])
+        dg_energy = sum([value for key, value in energy_parameters.items() if 'DG' in key])
+        grid_energy = sum([value for key, value in energy_parameters.items() if 'Grid' in key])
+        # Calculate energy fraction
+        pv_percentage = round(pv_energy / annual_energy_consumption, 3) * 100
+        wt_percentage = round(wt_energy / annual_energy_consumption, 3) * 100
+        dg_percentage = round(dg_energy / annual_energy_consumption, 3) * 100
+        grid_percentage = round(grid_energy / annual_energy_consumption, 3) * 100
+        # Retrieve Storage values
+        es_charge = sum([value for key, value in energy_parameters.items() if '_charge' in key])
+        es_discharge = abs(sum([value for key, value in energy_parameters.items() if '_discharge' in key]))
         # Write chapter depending on if energy consumption is met
         if self.operator.system_covered is True:
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
                             f"configuration, the energy demand of {annual_energy_consumption:,} kWh is covered."
         else:
             energy_demand = int(self.operator.power_sink['P [W]'].sum() * self.env.i_step / 60 / 1000)
-            print(energy_demand, type(energy_demand))
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
                             f"configuration, the energy demand of {annual_energy_consumption:,} kWh is not covered. The maximum " \
                             f"remaining energy to be covered equals {energy_demand:,} kWh. " \
@@ -132,25 +131,20 @@ class Report:
                                           self.txt_file_path + 'summary.txt'])
         # Create evaluation table
         evaluation_header = ['Component',
-                             'Energy [kWh]',
+                             'Lifetime energy [kWh]',
                              f'Invest. Cost [{self.env.currency}]',
                              f'LCOE [{self.env.currency}/kWh]',
-                             f'Feed in [{self.env.currency}]',
-                             'CO2 emissions [t]']
+                             'Lifetime CO2 emissions [t]']
         evaluation_values = [evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
-            data.append(round(self.evaluation_df.loc[row, 'Energy production [kWh]'], 0))
-            data.append(round(self.evaluation_df.loc[row, f'Investment Cost [{self.env.currency}]'], 0))
+            data.append(round(self.evaluation_df.loc[row, 'Lifetime energy supply [kWh]'], 0))
+            data.append(round(self.evaluation_df.loc[row, f'Investment cost [{self.env.currency}]'], 0))
             if self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'] is None:
                 data.append(None)
             else:
                 data.append(round(self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'], 2))
-            if self.evaluation_df.loc[row, f'Feed in [{self.env.currency}]'] is None:
-                data.append(None)
-            else:
-                data.append(round(self.evaluation_df.loc[row, f'Feed in [{self.env.currency}]'], 2))
-            data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
+            data.append(round(self.evaluation_df.loc[row, 'Lifetime CO2 emissions [t]'], 3))
             evaluation_values.append(data)
         evaluation_data = [[''], evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
@@ -290,7 +284,9 @@ class Report:
                      round(self.operator.peak_load / 1000, 3),
                      round(self.operator.peak_load / 1000, 3)]
 
-        cost = [f'Energy cost [{self.env.currency}]', self.grid_cost_comparison, self.diesel_cost_comparison]
+        cost = [f'Energy cost [{self.env.currency}]',
+                int(self.grid_cost_comparison),
+                int(self.diesel_cost_comparison)]
         co2_emission = ['CO2 emissions [t]',
                         round(self.operator.energy_consumption / 1000 * self.env.co2_grid, 3),
                         round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
@@ -324,8 +320,8 @@ class Report:
                          y_label='P [kW]',
                          factor=1000)
         re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start} to ' \
-                        f'{self.env.t_end} in a {self.env.t_step} resolution: Photovoltaic total: ' \
-                        f'{int(pv_energy / 1000)} kWh \n Wind turbine total: {int(wt_energy / 1000)} kWh.'
+                        f'{self.env.t_end} in a {self.env.t_step} resolution: \nPhotovoltaic total: ' \
+                        f'{int(pv_energy / 1000)} kWh \nWind turbine total: {int(wt_energy / 1000)} kWh.'
         self.create_txt(file_name='4_2_re_energy_supply',
                         text=re_production)
         self.pdf_file.print_chapter(chapter_type=[True],
@@ -424,44 +420,51 @@ class Report:
                                     size=10)
         # Create economic evaluation table
         economic_evaluation_header = ['Component',
-                                      'Energy [kWh]',
-                                      f'Investment Cost [{env.currency}]',
-                                      f'LCOE [{env.currency}/kWh]',
-                                      f'Feed in [{env.currency}]']
+                                      'Annual Energy [kWh]',
+                                      f'Lifetime cost [{env.currency}]',
+                                      f'Invest. Cost [{env.currency}]',
+                                      f'Annual Cost [{env.currency}/a]',
+                                      f'LCOE [{env.currency}/kWh]']
         economic_evaluation_values = [economic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
-            data.append(round(self.evaluation_df.loc[row, 'Energy production [kWh]']))
-            data.append(round(self.evaluation_df.loc[row, 'Investment Cost [' + env.currency + ']'], 0))
-            if self.evaluation_df.loc[row, 'LCOE [' + env.currency + '/kWh]'] is None:
+            data.append(self.evaluation_df.loc[row, 'Annual energy supply [kWh/a]'])
+            data.append(self.evaluation_df.loc[row, f'Lifetime cost [{env.currency}]'])
+            data.append(self.evaluation_df.loc[row, f'Investment cost [{env.currency}]'])
+            data.append(self.evaluation_df.loc[row, f'Annual cost [{env.currency}/a]'])
+            if self.evaluation_df.loc[row, f'LCOE [{env.currency}/kWh]'] is None:
                 data.append(None)
             else:
-                data.append(round(self.evaluation_df.loc[row, 'LCOE [' + env.currency + '/kWh]'], 2))
-            if self.evaluation_df.loc[row, 'Feed in [' + env.currency + ']'] is None:
-                data.append(None)
-            else:
-                data.append(round(self.evaluation_df.loc[row, 'Feed in [' + env.currency + ']'], 2))
+                data.append(round(self.evaluation_df.loc[row, f'LCOE [{env.currency}/kWh]'], 2))
             economic_evaluation_values.append(data)
         economic_evaluation_data = [[''], economic_evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=economic_evaluation_data,
                                    padding=2)
-
         economic_table_description = f'The overall system LCOE is {self.system_LCOE} {env.currency}/kWh. The energy costs ' \
                                      f'incurred in the period under consideration amount to {self.system_annual_energy_cost:,} ' \
                                      f'{env.currency}. '
+        # Compare systems with energy supply only from grid or diesel generator
         if self.env.system == 'Off Grid System':
-            comparison = f'In comparison, the energy costs from a complete supply from the ' \
-                         f'power grid amount to {self.grid_cost_comparison:,} {env.currency}. The cost ' \
-                         f'difference in the energy supply costs is ' \
-                         f'{round(self.system_annual_energy_cost - self.grid_cost_comparison):,} {env.currency}.\n\n'
+            comparison = f'In comparison, the energy costs from a complete supply from diesel generators amount to ' \
+                         f'{self.diesel_cost_comparison:,} {env.currency}. '
+            if self.system_annual_energy_cost - self.diesel_cost_comparison > 0:
+                cost = f'Additional cost of {int(self.system_annual_energy_cost - self.diesel_cost_comparison):,} ' \
+                       f'{env.currency} occur to cover the annual energy demand.\n\n'
+            else:
+                cost = f'{int(self.system_annual_energy_cost - self.diesel_cost_comparison):,} {env.currency} are ' \
+                       f'saved annually with simulated system configuration.\n\n'
         else:
-            comparison = f'In comparison, the energy costs from a complete supply from ' \
-                         f'diesel generators amount to {self.diesel_cost_comparison:,} {env.currency}. The cost ' \
-                         f'difference in the energy supply costs is ' \
-                         f'{round(self.system_annual_energy_cost - self.diesel_cost_comparison):,} {env.currency}.\n\n'
+            comparison = f'In comparison, the energy costs from a complete supply from the power grid amount to ' \
+                         f'{self.grid_cost_comparison:,} {env.currency}. '
+            if self.system_annual_energy_cost - self.grid_cost_comparison > 0:
+                cost = f'Additional cost of {int(self.system_annual_energy_cost - self.grid_cost_comparison):,} ' \
+                       f'{env.currency} occur to cover the annual energy demand.\n\n'
+            else:
+                cost = f'{int(self.system_annual_energy_cost - self.grid_cost_comparison):,} {env.currency} are ' \
+                       f'saved annually with simulated system configuration.\n\n'
         self.create_txt(file_name='6_1_table_description',
-                        text=economic_table_description + comparison)
+                        text=economic_table_description + comparison + cost)
         self.pdf_file.ln(h=10)
         self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt',
                                    size=10)
@@ -471,15 +474,15 @@ class Report:
                                     size=10)
         # Ecologic evaluation
         ecologic_evaluation_header = ['Component',
-                                      'Total CO2 emissions [t]',
-                                      'Initial CO2 emissions [t]',
-                                      'Operational CO2 emissions [t]']
+                                      'Lifetime CO2 emission [t]',
+                                      'Initial CO2 emission [t]',
+                                      'Annual CO2 emission [t/a]']
         ecologic_evaluation_values = [ecologic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
-            data.append(round(self.evaluation_df.loc[row, 'Total CO2-emissions [t]'], 3))
-            data.append(round(self.evaluation_df.loc[row, 'Initial CO2-emissions [t]'], 3))
-            data.append(round(self.evaluation_df.loc[row, 'Annual CO2-emissions [t/a]'], 3))
+            data.append(round(self.evaluation_df.loc[row, 'Lifetime CO2 emissions [t]'], 3))
+            data.append(round(self.evaluation_df.loc[row, 'Initial CO2 emissions [t]'], 3))
+            data.append(round(self.evaluation_df.loc[row, 'Annual CO2 emissions [t/a]'], 3))
             ecologic_evaluation_values.append(data)
         ecologic_evaluation_data = [[''], ecologic_evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
@@ -487,14 +490,13 @@ class Report:
                                    padding=2)
         self.pdf_file.ln(h=10)
         self.create_bar_plot(df=self.evaluation_df,
-                             columns=['Initial CO2-emissions [t]', 'Annual CO2-emissions [t/a]'],
-                             file_name='co2-emissions',
-                             y_label='CO2-emissions [t]')
-        self.pdf_file.image(name=self.report_path + 'pictures/co2-emissions.png', w=150)
+                             columns=['Initial CO2 emissions [t]', 'Annual CO2 emissions [t/a]'],
+                             file_name='co2_emissions',
+                             y_label='CO2 emissions [t]')
+        self.pdf_file.image(name=self.report_path + 'pictures/co2_emissions.png', w=150)
         self.pdf_file.chapter_body(name=self.txt_file_path + 'default/6_2_table_description.txt', size=10)
 
-    '''Functions to create chapter data'''
-
+    '''Functions to support chapter content'''
     def create_input_parameter(self):
         """
         Create DataFrame with input Parameters
@@ -515,74 +517,6 @@ class Report:
         df = pd.DataFrame.from_dict(data=data)
 
         return df
-
-    def create_evaluation_parameter(self):
-        """
-        Create df with system evaluation parameters
-        :return: pd.DataFrame
-            Parameters for system evaluation
-        """
-        env = self.env
-        op = self.operator
-        df = self.operator.evaluation_df
-        df = df.set_index('Component')
-        for pv in self.env.pv:
-            df.loc[pv.name, f'Investment Cost [' + env.currency + ']'] = int(pv.c_invest_n * pv.p_n / 1000)
-            if env.grid_connection or env.feed_in is False:
-                df.loc[pv.name, f'Feed in [{env.currency}]'] = None
-            else:
-                df.loc[pv.name, f'Feed in [{env.currency}]'] = op.df[
-                    pv.name + f' Feed in [{env.currency}]'].sum()
-        for wt in self.env.wind_turbine:
-            df.loc[wt.name, f'Investment Cost [{env.currency}]'] = int(wt.c_invest_n * wt.p_n / 1000)
-            if env.grid_connection or env.feed_in is False:
-                df.loc[wt.name, f'Feed in [{env.currency}]]'] = None
-            else:
-                df.loc[wt.name, f'Feed in [{env.currency}]'] = op.df[
-                    wt.name + f' Feed in [{env.currency}]]'].sum()
-        for grid in self.env.grid:
-            df.loc[grid.name, f'Investment Cost [{env.currency}]'] = 0
-            df.loc[grid.name, f'Feed in [{env.currency}]'] = None
-        for dg in self.env.diesel_generator:
-            df.loc[dg.name, f'Investment Cost [{env.currency}]'] = int(dg.c_invest_n * dg.p_n / 1000)
-            df.loc[dg.name, f'Feed in [{env.currency}]'] = None
-        for es in self.env.storage:
-            df.loc[es.name, f'Investment Cost [{env.currency}]'] \
-                = int(es.c_invest_n * es.c / 1000 + es.total_replacement_cost)
-            df.loc[es.name, f'Feed in [{env.currency}]'] = None
-        if len(df) == 0:
-            df.loc['System', f'Investment Cost [{env.currency}]'] = 0
-        else:
-            df.loc['System', f'Investment Cost [{env.currency}]'] = df[f'Investment Cost [{env.currency}]'].sum()
-        return df
-
-    def retrieve_energy_parameters(self):
-        """
-        Retrieve and calculate energy supply per component group
-        :return: list
-            energy supply values
-        """
-        env = self.env
-        data = self.operator.energy_supply_parameters
-        pv_energy = 0
-        wt_energy = 0
-        grid_energy = 0
-        dg_energy = 0
-        es_charge = 0
-        es_discharge = 0
-        for pv in env.pv:
-            pv_energy += int(data[0][pv.name])
-        for wt in env.wind_turbine:
-            wt_energy += int(data[1][wt.name])
-        for grid in env.grid:
-            grid_energy += int(data[2][grid.name])
-        for dg in env.diesel_generator:
-            dg_energy += int(data[3][dg.name])
-        for es in env.storage:
-            es_charge += int(data[4][es.name + '_charge'])
-            es_discharge += int(data[5][es.name + '_discharge'])
-
-        return pv_energy, wt_energy, grid_energy, dg_energy, es_charge, es_discharge
 
     def create_plot(self, df: pd.DataFrame, columns: list, file_name: str, x_label: str = None, y_label: str = None,
                     factor: float = None):

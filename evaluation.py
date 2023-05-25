@@ -201,9 +201,9 @@ class Evaluation:
         :return: float
         """
         if isinstance(component, DieselGenerator):
-            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_diesel
+            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_diesel / 1000
         elif isinstance(component, Grid):
-            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_grid
+            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_grid / 1000
         else:
             co2_annual = 0
         self.evaluation_df.loc[component.name, 'Annual CO2 emissions [t/a]'] = round(co2_annual, 3)
