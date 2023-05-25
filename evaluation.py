@@ -136,10 +136,16 @@ class Evaluation:
         col = component.name + ' [W]'
         energy_supply = self.op.df[col].sum() * self.env.i_step / 60 / 1000
         if isinstance(component, PV):
-            charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
+            if len(self.env.storage) == 0:
+                charge = 0
+            else:
+                charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
             self.pv_energy_supply[component.name] = energy_supply + charge
         elif isinstance(component, WindTurbine):
-            charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
+            if len(self.env.storage) == 0:
+                charge = 0
+            else:
+                charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
             self.wt_energy_supply[component.name] = energy_supply + charge
         elif isinstance(component, Grid):
             charge = 0

@@ -189,3 +189,4 @@ class Storage:
             co2_replacement[year] = (self.co2_init * self.c) / ((1 + self.env.d_rate) ** year)
 
         return c_invest_replacement, co2_replacement
+

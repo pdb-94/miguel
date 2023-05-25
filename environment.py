@@ -342,7 +342,8 @@ class Environment:
     def add_wind_turbine(self,
                          p_n: float = None,
                          turbine_data: dict = None,
-                         wt_profile: pd.Series = None):
+                         wt_profile: pd.Series = None,
+                         selection_parameters: list = None):
         """
         Add Wind Turbine to environment
         :return: None
@@ -352,12 +353,13 @@ class Environment:
                                              name=name,
                                              p_n=p_n,
                                              turbine_data=turbine_data,
-                                             wt_profile=wt_profile))
+                                             wt_profile=wt_profile,
+                                             selection_parameters=selection_parameters))
         self.re_supply.append(self.wind_turbine[-1])
         self.supply_components.append(self.wind_turbine[-1])
         self.df[name + ': P [W]'] = self.wind_turbine[-1].df['P [W]']
         self.df['WT total power [W]'] += self.df[name + ': P [W]']
-        self.add_component_data(component=self.wind_turbine[-1], supply=True)
+        # self.add_component_data(component=self.wind_turbine[-1], supply=True)
 
     def add_diesel_generator(self,
                              p_n: float = None,
