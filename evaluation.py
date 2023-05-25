@@ -183,7 +183,9 @@ class Evaluation:
         :return: None
         """
         if isinstance(component, Storage):
-            co2_init = component.co2_init * component.c / 1e6
+            co2_init = (component.co2_init * component.c + component.replacement_co2) / 1e6
+        elif isinstance(component, Grid):
+            co2_init = 0
         else:
             co2_init = component.co2_init * component.p_n / 1e6
 
@@ -233,7 +235,7 @@ class Evaluation:
         if isinstance(component, Grid):
             investment_cost = 0
         elif isinstance(component, Storage):
-            investment_cost = component.c_invest_n * component.c / 1000 + sum(component.replacement_cost.values())
+            investment_cost = component.c_invest_n * component.c / 1000 + component.replacement_cost
         else:
             investment_cost = component.c_invest_n * component.p_n / 1000
 
