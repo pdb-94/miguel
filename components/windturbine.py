@@ -281,16 +281,45 @@ class WindTurbine:
             if power_max > df.loc[wt, 'nominal_power'] > power_min:
                 turbine.append(wt)
         # Select random wind turbine
-        windturbine = turbine[random.randint(0, (len(turbine)-1))]
+        turbine_parameters = self.select_turbine(turbine=turbine, df=df)
+        windturbine = turbine_parameters[0]
+        height = turbine_parameters[1]
+        while height is None:
+            turbine_parameters = self.select_turbine(turbine=turbine, df=df)
+            windturbine = turbine_parameters[0]
+            height = turbine_parameters[1]
         # Select hub height
-        height_string = df.loc[windturbine, 'hub_height'].replace(' ', '')
-        variations = height_string.split(';')
-        hub_height = float(variations[random.randint(0, (len(variations)-1))])
+        if isinstance(df.loc[windturbine, 'hub_height'], str):
+            height_string = df.loc[windturbine, 'hub_height'].replace(' ', '')
+            height_string = height_string.replace('None', '')
+            height_string = height_string.replace(',', '.')
+            variations = height_string.split(';')
+            for height in variations:
+                if height == '':
+                    variations.remove(height)
+            hub_height = float(variations[random.randint(0, (len(variations)-1))])
+        else:
+            hub_height = df.loc[windturbine, 'hub_height']
         p_n = df.loc[windturbine, 'nominal_power']
 
         turbine_data = {'turbine_type': windturbine, 'hub_height': hub_height, 'p_n': p_n}
 
         return turbine_data
+
+    def select_turbine(self, turbine, df):
+        """
+        Select random wind turbine
+        :param turbine: list
+            turbine types
+        :param df: pd.DataFrame
+            turbine parameters
+        :return: list
+            windturbine: str, height: str or None
+        """
+        windturbine = turbine[random.randint(0, (len(turbine) - 1))]
+        height = df.loc[windturbine, 'hub_height']
+
+        return windturbine, height
 
 
 
