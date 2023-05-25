@@ -1,3 +1,4 @@
+import random
 import sys
 import numpy as np
 import datetime as dt
@@ -17,6 +18,7 @@ class WindTurbine:
                  wt_profile: pd.DataFrame = None,
                  turbine_data: dict = None,
                  wind_speed: pd.Series = None,
+                 selection_parameters: list = None,
                  c_invest_n: float = 1160,
                  c_op_main_n: float = 43,
                  c_var: float = 0.0035,
@@ -44,6 +46,7 @@ class WindTurbine:
         self.env = env
         self.p_n = p_n
         self.name = name
+        self.selection_parameters = selection_parameters
         self.c_invest_n = c_invest_n  # USD/kW
         self.c_op_main_n = c_op_main_n  # USD/kW
         self.c_var = c_var  # USD/kWh
@@ -56,6 +59,10 @@ class WindTurbine:
         # DataFrame
         self.df = pd.DataFrame(columns=['P [W]'],
                                index=self.env.time)
+        if self.selection_parameters is not None:
+            self.turbine_data = self.pick_windturbine(selection_parameters=selection_parameters)
+            self.hub_height = self.turbine_data.get('hub_height')
+            self.p_n = self.turbine_data.get('p_n')
         if wind_speed is not None:
             self.df['Wind speed [km/h]'] = wind_speed
         if wt_profile is not None:
@@ -252,13 +259,39 @@ class WindTurbine:
 
         return temperature_hub_height
 
-    def pick_windturbine(self, min_height: float, max_height: float):
+    def pick_windturbine(self, selection_parameters):
         """
+        Pick wind turbine based on power range
+        :param selection_parameters: list
+            min and max power
+        :return: dict
+            turbine_data (turbine_type & hub_height)
+        """
+        # Unpack parameters
+        power_min = selection_parameters[0]
+        power_max = selection_parameters[1]
+        # Retrieve turbine parameters from database
+        conn = self.env.database.connect
+        df = pd.read_sql_query("SELECT * FROM windpowerlib_turbine WHERE has_power_curve = 1", conn)
+        df = df.drop('index', axis=1)
+        df = df.set_index('turbine_type')
+        # Collect wind turbines if nominal power in power range
+        turbine = []
+        for wt in df.index:
+            if power_max > df.loc[wt, 'nominal_power'] > power_min:
+                turbine.append(wt)
+        # Select random wind turbine
+        windturbine = turbine[random.randint(0, (len(turbine)-1))]
+        # Select hub height
+        height_string = df.loc[windturbine, 'hub_height'].replace(' ', '')
+        variations = height_string.split(';')
+        hub_height = float(variations[random.randint(0, (len(variations)-1))])
+        p_n = df.loc[windturbine, 'nominal_power']
 
-        :param min_height:
-        :param max_height:
-        :return:
-        """
-        min_power = 0.8 * self.p_n
-        max_power = 1.2 * self.p_n
+        turbine_data = {'turbine_type': windturbine, 'hub_height': hub_height, 'p_n': p_n}
+
+        return turbine_data
+
+
+
 
