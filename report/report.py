@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import io
 import folium
-import numpy as np
 import pandas as pd
 from PIL import Image
 from report.pdf import PDF
@@ -49,8 +48,6 @@ class Report:
         # Evaluation parameters
         self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
         self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
-        self.diesel_cost_comparison = int(self.eval.grid_cost_comparison_annual)
-        self.grid_cost_comparison = int(self.eval.diesel_cost_comparison_annual)
         # PDF
         self.pdf_file = PDF(title=self.name)
         self.create_pdf()
@@ -285,8 +282,8 @@ class Report:
                      round(self.operator.peak_load / 1000, 3)]
 
         cost = [f'Energy cost [{self.env.currency}]',
-                int(self.grid_cost_comparison),
-                int(self.diesel_cost_comparison)]
+                int(self.eval.grid_cost_comparison_annual),
+                int(self.eval.dg_cost_comparison_annual)]
         co2_emission = ['CO2 emissions [t]',
                         round(self.operator.energy_consumption / 1000 * self.env.co2_grid, 3),
                         round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
@@ -413,6 +410,9 @@ class Report:
         :return: None
         """
         env = self.env
+        system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [{self.env.currency}]'])
+        gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
+        dg_lifetime_cost = int(self.eval.dg_cost_comparison_lifetime)
         self.pdf_file.print_chapter(chapter_type=[True, False],
                                     title=['6 Evaluation', '6.1 Economic evaluation'],
                                     file=[self.txt_file_path + 'default/6_evaluation.txt',
@@ -442,27 +442,27 @@ class Report:
                                    table=economic_evaluation_data,
                                    padding=2)
         economic_table_description = f'The overall system LCOE is {self.system_LCOE} {env.currency}/kWh. The energy costs ' \
-                                     f'incurred in the period under consideration amount to {self.system_annual_energy_cost:,} ' \
+                                     f'incurred in the period under consideration amount to {system_lifetime_cost:,} ' \
                                      f'{env.currency}. '
         # Compare systems with energy supply only from grid or diesel generator
         if self.env.system == 'Off Grid System':
             comparison = f'In comparison, the energy costs from a complete supply from diesel generators amount to ' \
-                         f'{self.diesel_cost_comparison:,} {env.currency}. '
-            if self.system_annual_energy_cost - self.diesel_cost_comparison > 0:
-                cost = f'Additional cost of {int(self.system_annual_energy_cost - self.diesel_cost_comparison):,} ' \
-                       f'{env.currency} occur to cover the annual energy demand.\n\n'
+                         f'{dg_lifetime_cost:,} {env.currency}. '
+            if system_lifetime_cost - dg_lifetime_cost > 0:
+                cost = f'Additional cost of {int(system_lifetime_cost - dg_lifetime_cost):,} ' \
+                       f'{env.currency} occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(self.system_annual_energy_cost - self.diesel_cost_comparison):,} {env.currency} are ' \
-                       f'saved annually with simulated system configuration.\n\n'
+                cost = f'{int(system_lifetime_cost - dg_lifetime_cost):,} {env.currency} are ' \
+                       f'saved over the system lifetime with simulated system configuration.\n\n'
         else:
             comparison = f'In comparison, the energy costs from a complete supply from the power grid amount to ' \
-                         f'{self.grid_cost_comparison:,} {env.currency}. '
-            if self.system_annual_energy_cost - self.grid_cost_comparison > 0:
-                cost = f'Additional cost of {int(self.system_annual_energy_cost - self.grid_cost_comparison):,} ' \
-                       f'{env.currency} occur to cover the annual energy demand.\n\n'
+                         f'{gird_lifetime_cost:,} {env.currency}. '
+            if system_lifetime_cost - gird_lifetime_cost > 0:
+                cost = f'Additional cost of {int(system_lifetime_cost - gird_lifetime_cost):,} ' \
+                       f'{env.currency} occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(self.system_annual_energy_cost - self.grid_cost_comparison):,} {env.currency} are ' \
-                       f'saved annually with simulated system configuration.\n\n'
+                cost = f'{int(system_lifetime_cost - gird_lifetime_cost):,} {env.currency} are ' \
+                       f'saved over the system lifetime with simulated system configuration.\n\n'
         self.create_txt(file_name='6_1_table_description',
                         text=economic_table_description + comparison + cost)
         self.pdf_file.ln(h=10)

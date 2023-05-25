@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pandas as pd
 from lcoe.lcoe import lcoe as py_lcoe
@@ -26,7 +27,11 @@ class Evaluation:
         self.energy_consumption_annual = self.calc_energy_consumption_annual()  # kWh
         self.peak_load = self.calc_peak_load()  # kW
         self.grid_cost_comparison_annual = self.calc_grid_energy_annual_cost()
-        self.diesel_cost_comparison_annual = self.calc_dg_energy_annual_cost()
+        self.grid_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
+                                                                      annual_value=self.grid_cost_comparison_annual)
+        self.dg_cost_comparison_annual = self.calc_dg_energy_annual_cost()
+        self.dg_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
+                                                                        annual_value=self.dg_cost_comparison_annual)
         # Components evaluation parameters
         self.pv_energy_supply = {}
         self.wt_energy_supply = {}
@@ -44,7 +49,9 @@ class Evaluation:
         self.calc_lifetime_energy_supply()
         self.calc_system_values()
         self.calc_lcoe()
-        self.evaluation_df.to_csv('system_evaluation_parameters.csv', sep=';', decimal=',')
+        self.evaluation_df.to_csv(sys.path[1] + '/export/system_evaluation.csv',
+                                  sep=self.env.csv_sep,
+                                  decimal=self.env.csv_decimal)
 
     def build_evaluation_df(self):
         """
@@ -73,6 +80,7 @@ class Evaluation:
             energy_consumption [kWh]
         """
         energy_consumption = self.env.df['P_Res [W]'].sum() * self.env.i_step / 60 / 1000
+
         self.evaluation_df.loc['System', 'Annual energy supply [kWh/a]'] = int(energy_consumption)
 
         return energy_consumption
@@ -92,6 +100,7 @@ class Evaluation:
         :return: float
 
         """
+        # Conversion factor kWh/l 1l/9.8 kWh/l = 0.102 l/kWh
         cost = self.energy_consumption_annual * self.env.diesel_price * 0.102
 
         return cost
@@ -201,9 +210,11 @@ class Evaluation:
         :return: float
         """
         if isinstance(component, DieselGenerator):
-            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_diesel / 1000
+            co2_annual = self.evaluation_df.loc[
+                             component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_diesel / 1000
         elif isinstance(component, Grid):
-            co2_annual = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_grid / 1000
+            co2_annual = self.evaluation_df.loc[
+                             component.name, 'Annual energy supply [kWh/a]'] * self.env.co2_grid / 1000
         else:
             co2_annual = 0
         self.evaluation_df.loc[component.name, 'Annual CO2 emissions [t/a]'] = round(co2_annual, 3)
@@ -254,7 +265,7 @@ class Evaluation:
         co2 = self.evaluation_df.loc[component.name, 'Annual CO2 emissions [t/a]']
         co2_cost = co2 * self.env.avg_co2_price
         if isinstance(component, DieselGenerator):
-            fuel_cost = component.df[f'Fuel cost [{self.env.currency}]'].sum()
+            fuel_cost = annual_output * self.env.diesel_price * 0.102
             operation_cost = component.c_op_main_n * component.p_n / 1000
             additional_variable_cost = annual_output * component.c_var
             annual_cost = fuel_cost + operation_cost + co2_cost + additional_variable_cost

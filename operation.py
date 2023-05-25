@@ -9,7 +9,6 @@ from components.dieselgenerator import DieselGenerator
 from components.windturbine import WindTurbine
 from components.storage import Storage
 from components.grid import Grid
-from lcoe.lcoe import lcoe as py_lcoe
 
 
 class Operator:
@@ -118,6 +117,7 @@ class Operator:
         else:
             self.power_sink_max = float(self.power_sink.max().iloc[0])
             self.system_covered = False
+        # self.env.diesel_generator[0].df.to_csv('dg.csv')
 
     def check_dispatch(self):
         """
