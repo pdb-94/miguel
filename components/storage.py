@@ -69,10 +69,11 @@ class Storage:
         self.co2_init = co2_init  # kg/kWh
         self.lifetime = lifetime  # a
         self.replacements = self.env.lifetime / self.lifetime - 1
-        self.replacement_cost = self.calc_replacements()
-        self.total_replacement_cost = sum(self.replacement_cost.values())
+        self.replacement_parameters = self.calc_replacements()
+        self.replacement_cost = sum(self.replacement_parameters[0].values())
+        self.replacement_co2 = sum(self.replacement_parameters[1].values())
 
-        self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC', ],
+        self.df = pd.DataFrame(columns=['P [W]', 'Q [Wh]', 'SOC'],
                                index=self.env.time)
         self.set_initial_values()
 
@@ -180,9 +181,11 @@ class Storage:
             replacement years + cost in US$
         """
         c_invest_replacement = {}
+        co2_replacement = {}
         replacements = self.env.lifetime / self.lifetime
         interval = self.env.lifetime / replacements
         for year in range(int(interval), int(replacements*interval)-1, int(interval)):
             c_invest_replacement[year] = (self.c_invest_n * self.c/1000) / ((1 + self.env.d_rate) ** year)
+            co2_replacement[year] = (self.co2_init * self.c) / ((1 + self.env.d_rate) ** year)
 
-        return c_invest_replacement
+        return c_invest_replacement, co2_replacement
