@@ -19,6 +19,7 @@ The results are provided in the form of csv files for each simulation step and i
   - [Main](#main)
   - [Environment](#environment)
   - [Operator](#operator)
+  - [Evaluation](#evaluation)
   - [Output](#output)
 - [Database](#database)
 - [Project partners](#project-partners)
@@ -194,6 +195,8 @@ The energy system type depends on the input parameters and the system components
 RE = Renewable energies &emsp; ES = Energy storage &emsp; DG = Diesel generator
 
 The figure displays the dispatch strategies for all system components. If a system component is not added to the system, this component will be skipped in the dispatch.
+
+### Evaluation
 
 #### System evaluation
 The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
