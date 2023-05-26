@@ -198,12 +198,11 @@ The figure displays the dispatch strategies for all system components. If a syst
 
 ### Evaluation
 
-#### System evaluation
 The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
 
 Note: The specific values for investment, operating and maintenance costs have been partially converted from euros to US$ (27.03.2023). The costs may differ depending on the exchange rate.
 
-##### Levelized Cost of Energy
+#### Levelized Cost of Energy
 The LCOE are calculated according to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole systems lifetime. The LCOE includes the initial investment costs and the operation and maintenance costs. Costs for recycling are neglected in this evaluation. The investment and operation and maintenance cost are based on specific costs from literature values. The specific costs are scaled by the power (energy supply components) or capacity (energy storage).
 
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
@@ -213,7 +212,7 @@ The LCOE are calculated according to Michael Papapetrou et. al. for every energy
 |Diesel generator|468|Investment cost *0.03; 0.021 US$/kWh|US$/kW|[10] [11]|
 |Energy storage|1200|30|US$/kWh|[12]|
 
-##### CO2-emissions
+#### CO2-emissions
 The CO2-emissions are evaluated over the systems lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
 | System component | Specific CO2 emissions production/installation | Unit | Source |
 |-|-|-|-|
