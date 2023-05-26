@@ -286,6 +286,8 @@ MiGUEL features a SQLite database in the directory /data/miguel.db. The followin
 
 [plotly](https://plotly.com/python/)
 
+[lcoe](https://pypi.org/project/lcoe/)
+
 
 ## References
 
