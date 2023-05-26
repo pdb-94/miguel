@@ -67,8 +67,8 @@ To create an instance of the class, the following parameters have to be provided
 |electricity_price |Electricity price|float|-|US$/kWh||
 |diesel_price| Diesel price|float|-|US$/l|
 |co2_price| Average CO2-price over system lifetime|float|-|US$/t||
-|pv_feed_in_tariff| PV feed-in traiff | float |-|US$/kWh||
-|wt_feed_in_tariff| Wind turbine feed-in traiff | float |-|US$/kWh||
+|pv_feed_in_tariff| PV feed-in tariff | float |-|US$/kWh||
+|wt_feed_in_tariff| Wind turbine feed-in tariff | float |-|US$/kWh||
 |**ecology**| **Ecological parameters** | **dict** |-|-|
 |co2_grid| Specific CO2-emissions power grid |float|-|kg/kWh||
 |co2_diesel| Specific CO2-emissions diesel |float |0.2665|kg/kWh||
