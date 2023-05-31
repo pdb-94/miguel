@@ -402,10 +402,10 @@ class Environment:
         self.add_component_data(component=self.storage[-1],
                                 supply=False)
 
-    def add_test_storage(self):
-        name = 'BS_' + str(len(self.storage) + 1)
-        self.storage.append(BatteryStorage(env=self,
-                                           name=name))
+    # def add_test_storage(self):
+    #     name = 'BS_' + str(len(self.storage) + 1)
+    #     self.storage.append(BatteryStorage(env=self,
+    #                                        name=name))
 
     def add_component_data(self,
                            component,

@@ -123,7 +123,6 @@ class Operator:
     def dispatch_vector(self):
         env = self.env
         df = self.df
-        print(df.columns)
         for component in env.re_supply:
             # Calculate RE self consumption
             df[f'{component.name} [W]'] = np.where(df['P_Res [W]'] >= component.df['P [W]'],
@@ -139,10 +138,8 @@ class Operator:
                 prev_q = es.df['Q [Wh]'].shift(freq=env.t_step,
                                                fill_value=q_initial)
                 prev_soc = prev_q / es.c
-                print(es.name, prev_soc)
                 q_charge = df[f'{component.name} remain [W]']
                 charge_condition = prev_q + q_charge < es.c * es.soc_max
-                print(charge_condition)
         if env.grid_connection:
             df['Grid_1 [W]'] = df['P_Res [W]']
             df['P_Res [W]'] = 0
@@ -150,8 +147,6 @@ class Operator:
             for dg in env.diesel_generator:
                 df[f'{dg.name} [W]'] = np.where(df['P_Res [W]'] >= dg.p_n, dg.p_n, df['P_Res [W]'])
                 df['P_Res [W]'] -= df[f'{dg.name} [W]']
-        print(df)
-        df.to_csv('vector.csv')
 
     def check_dispatch(self):
         """
@@ -185,7 +180,7 @@ class Operator:
                 power = self.df.at[clock, 'P_Res [W]']
                 discharge_power = es.discharge(clock=clock,
                                                power=power)
-                self.df.at[clock, es.name + ' [W]'] += discharge_power
+                self.df.at[clock, f'{es.name} [W]'] += discharge_power
                 self.df.at[clock, 'P_Res [W]'] += discharge_power
         # Priority 4: Cover load from grid
         self.grid_profile(clock=clock)
@@ -211,7 +206,7 @@ class Operator:
                     power = self.df.at[clock, 'P_Res [W]']
                     discharge_power = es.discharge(clock=clock,
                                                    power=power)
-                    self.df.at[clock, es.name + ' [W]'] += discharge_power
+                    self.df.at[clock, f'{es.name} [W]'] += discharge_power
                     self.df.at[clock, 'P_Res [W]'] += discharge_power
             for dg in env.diesel_generator:
                 self.dg_profile(clock=clock,
@@ -236,7 +231,7 @@ class Operator:
                 power = self.df.at[clock, 'P_Res [W]']
                 discharge_power = es.discharge(clock=clock,
                                                power=power)
-                self.df.at[clock, es.name + ' [W]'] += discharge_power
+                self.df.at[clock, f'{es.name} [W]'] += discharge_power
                 self.df.at[clock, 'P_Res [W]'] += discharge_power
         for dg in env.diesel_generator:
             self.dg_profile(clock=clock,
@@ -251,15 +246,15 @@ class Operator:
         if self.env.grid_connection is False:
             pass
         else:
-            self.df[component.name + ' Feed in [W]'] = self.df[component.name + ' remain [W]']
+            self.df[f'{component.name} Feed in [W]'] = self.df[f'{component.name} remain [W]']
             if isinstance(component, PV):
-                self.df[component.name + f' Feed in [{self.env.currency}]'] \
+                self.df[f'{component.name} Feed in [{self.env.currency}]'] \
                     = self.df[
-                          component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.pv_feed_in_tariff
+                          f'{component.name} Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.pv_feed_in_tariff
             elif isinstance(component, WindTurbine):
-                self.df[component.name + f' Feed in [{self.env.currency}]'] \
+                self.df[f'{component.name} Feed in [{self.env.currency}]'] \
                     = self.df[
-                          component.name + ' Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
+                          f'{component.name} Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
 
     def re_self_supply(self, clock: dt.datetime, component: PV or WindTurbine):
         """
@@ -271,15 +266,15 @@ class Operator:
         :return: None
         """
         df = self.df
-        df.at[clock, component.name + ' [W]'] = np.where(
+        df.at[clock, f'{component.name} [W]'] = np.where(
             df.at[clock, 'P_Res [W]'] > component.df.at[clock, 'P [W]'],
             component.df.at[clock, 'P [W]'], df.at[clock, 'P_Res [W]'])
-        df.at[clock, component.name + ' [W]'] = np.where(
-            df.at[clock, component.name + ' [W]'] < 0, 0, df.at[clock, component.name + ' [W]'])
-        df.at[clock, component.name + ' remain [W]'] = np.where(
+        df.at[clock, f'{component.name} [W]'] = np.where(
+            df.at[clock, f'{component.name} [W]'] < 0, 0, df.at[clock, f'{component.name} [W]'])
+        df.at[clock, f'{component.name} remain [W]'] = np.where(
             component.df.at[clock, 'P [W]'] - df.at[clock, 'P_Res [W]'] < 0,
             0, component.df.at[clock, 'P [W]'] - df.at[clock, 'P_Res [W]'])
-        df.at[clock, 'P_Res [W]'] -= df.at[clock, component.name + ' [W]']
+        df.at[clock, 'P_Res [W]'] -= df.at[clock, f'{component.name} [W]']
         if df.at[clock, 'P_Res [W]'] < 0:
             df.at[clock, 'P_Res [W]'] = 0
 
@@ -304,10 +299,10 @@ class Operator:
                 es.df.at[clock, 'Q [Wh]'] = es.soc * es.c
         # Charge storage
         charge_power = es.charge(clock=clock,
-                                 power=self.df.at[clock, component.name + ' remain [W]'])
-        self.df.at[clock, es.name + ' [W]'] = charge_power
-        self.df.at[clock, component.name + '_charge [W]'] = charge_power
-        self.df.at[clock, component.name + ' remain [W]'] -= charge_power
+                                 power=self.df.at[clock, f'{component.name} remain [W]'])
+        self.df.at[clock, f'{es.name} [W]'] = charge_power
+        self.df.at[clock, f'{component.name}_charge [W]'] = charge_power
+        self.df.at[clock, f'{component.name} remain [W]'] -= charge_power
 
     def grid_profile(self, clock: dt.datetime):
         """
@@ -318,7 +313,7 @@ class Operator:
         """
         df = self.df
         grid = self.env.grid[0].name
-        df.at[clock, grid + ' [W]'] = self.df.at[clock, 'P_Res [W]']
+        df.at[clock, f'{grid} [W]'] = self.df.at[clock, 'P_Res [W]']
         df.at[clock, 'P_Res [W]'] = 0
 
     def dg_profile(self, clock: dt.datetime, dg: DieselGenerator):
@@ -332,9 +327,9 @@ class Operator:
         :return: None
         """
         power = self.df.at[clock, 'P_Res [W]']
-        self.df.at[clock, dg.name + ' [W]'] = dg.run(clock=clock,
-                                                      power=power)
-        self.df.at[clock, 'P_Res [W]'] -= self.df.at[clock, dg.name + ' [W]']
+        self.df.at[clock, f'{dg.name} [W]'] = dg.run(clock=clock,
+                                                     power=power)
+        self.df.at[clock, 'P_Res [W]'] -= self.df.at[clock, f'{dg.name} [W]']
 
     def export_data(self):
         """
@@ -346,6 +341,6 @@ class Operator:
         root = sys.path[1]
         Path(f'{sys.path[1]}/export').mkdir(parents=True, exist_ok=True)
         self.df.to_csv(root + '/export/operator.csv', sep=sep, decimal=decimal)
-        self.env.weather_data[0].to_csv(root + '/export/weather_data.csv', sep=sep, decimal=decimal)
-        self.env.wt_weather_data.to_csv(root + '/export/wt_weather_data.csv', sep=sep, decimal=decimal)
-        self.env.monthly_weather_data.to_csv(root + '/export/monthly_weather_data.csv', sep=sep, decimal=decimal)
+        self.env.weather_data[0].to_csv(f'{root}/export/weather_data.csv', sep=sep, decimal=decimal)
+        self.env.wt_weather_data.to_csv(f'{root}/export/wt_weather_data.csv', sep=sep, decimal=decimal)
+        self.env.monthly_weather_data.to_csv(f'{root}/export/monthly_weather_data.csv', sep=sep, decimal=decimal)

@@ -54,12 +54,13 @@ def demonstration(grid_connection=True):
                               csv_decimal=',',
                               csv_sep=';')
     # Add load profile from csv-file
-    environment.add_load(load_profile=sys.path[1] + '/data/St. Dominics Hospital.csv')
+    environment.add_load(annual_consumption=150000)  # kWh
+    # environment.add_load(load_profile=sys.path[1] + '/data/St. Dominics Hospital.csv')
     # Add PV system
     environment.add_pv(p_n=60000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
                                 'max_module_power': 350, 'inverter_power_range': 2500})
-    environment.add_wind_turbine(selection_parameters=[3000000, 4000000])
+    # environment.add_wind_turbine(selection_parameters=[3000000, 4000000])
     if grid_connection is False:
         environment.add_diesel_generator(p_n=30000,
                                          fuel_consumption=12,
@@ -71,17 +72,18 @@ def demonstration(grid_connection=True):
     return environment
 
 
+start = dt.datetime.today()
 print('Create environment')
 # Off Grid system
-env = demonstration(grid_connection=False)
+env = demonstration(grid_connection=True)
 # On Grid system
 # env = demonstration(grid_connection=True)
 
 # Run Dispatch
-print('Run Dispatch')
+print('Run Dispatch', dt.datetime.today() - start)
 operator = Operator(env=env)
 evaluation = Evaluation(env=env, operator=operator)
 # Create pdf-Report
-print('Create report')
+print('Create report', dt.datetime.today() - start)
 report = Report(env=env, operator=operator, evaluation=evaluation)
-print('Finished simulation and evaluation.')
+print('Finished simulation and evaluation.', dt.datetime.today() - start)
