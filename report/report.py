@@ -14,6 +14,7 @@ class Report:
     """
     Class to create results and report
     """
+
     def __init__(self,
                  env=None,
                  operator=None,
@@ -48,6 +49,9 @@ class Report:
         # Evaluation parameters
         self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
         self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
+        self.system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [{self.env.currency}]'])
+        self.gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
+        self.dg_lifetime_cost = int(self.eval.dg_cost_comparison_lifetime)
         # PDF
         self.pdf_file = PDF(title=self.name)
         self.create_pdf()
@@ -78,6 +82,7 @@ class Report:
         self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
+
     def introduction_summary(self):
         """
         Create Introduction and Summary
@@ -94,26 +99,43 @@ class Report:
         dg_energy = sum([value for key, value in energy_parameters.items() if 'DG' in key])
         grid_energy = sum([value for key, value in energy_parameters.items() if 'Grid' in key])
         # Calculate energy fraction
-        pv_percentage = round(pv_energy / annual_energy_consumption, 3) * 100
-        wt_percentage = round(wt_energy / annual_energy_consumption, 3) * 100
-        dg_percentage = round(dg_energy / annual_energy_consumption, 3) * 100
-        grid_percentage = round(grid_energy / annual_energy_consumption, 3) * 100
+        pv_percentage = round(pv_energy / annual_energy_consumption, 2) * 100
+        wt_percentage = round(wt_energy / annual_energy_consumption, 2) * 100
+        dg_percentage = round(dg_energy / annual_energy_consumption, 2) * 100
+        print(dg_percentage)
+        grid_percentage = round(grid_energy / annual_energy_consumption, 2) * 100
         # Retrieve Storage values
         es_charge = sum([value for key, value in energy_parameters.items() if '_charge' in key])
         es_discharge = abs(sum([value for key, value in energy_parameters.items() if '_discharge' in key]))
+        # Calculate cost savings
+        if self.env.system == 'Off Grid System':
+            cost_difference = self.dg_lifetime_cost - self.system_lifetime_cost
+            sys_comparison = 'a diesel generator'
+        else:
+            cost_difference = self.gird_lifetime_cost - self.system_lifetime_cost
+            sys_comparison = 'the power grid'
+        if cost_difference < 0:
+            cost_paragraph = f" Additional costs of {int(cost_difference):,} {self.env.currency} occur over the system " \
+                             f"lifetime of {self.env.lifetime} years, compared to an energy supply provided through " \
+                             f"{sys_comparison}."
+        else:
+            cost_paragraph = f" Cost savings of {int(cost_difference):,} {self.env.currency} occur over the system " \
+                             f"lifetime of {self.env.lifetime} years due to the implementation of the energy system, " \
+                             f"compared to an energy supply provided through {sys_comparison}."
         # Write chapter depending on if energy consumption is met
         if self.operator.system_covered is True:
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
                             f"configuration, the energy demand of {annual_energy_consumption:,} kWh is covered."
+            system_status = system_status + cost_paragraph
         else:
             energy_demand = int(self.operator.power_sink['P [W]'].sum() * self.env.i_step / 60 / 1000)
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
-                            f"configuration, the energy demand of {annual_energy_consumption:,} kWh is not covered. The maximum " \
-                            f"remaining energy to be covered equals {energy_demand:,} kWh. " \
-                            f"The highest load peak to be covered equals {self.operator.power_sink_max:,}. " \
+                            f"configuration, THE ANNUAL ENERGY DEMAND OF {annual_energy_consumption:,} kWh IS NOT COVERED. " \
+                            f"The remaining energy to be covered equals {energy_demand:,} kWh. " \
+                            f"The highest load peak to be covered equals {self.operator.power_sink_max/1000:,} kW. " \
                             f"The table shows the time stamps and the power to be covered."
         summary = system_status + \
-                  f"The PV system(s) account for {pv_percentage}% ({pv_energy:,} kWh); The wind turbine(s) account for " \
+                  f" The PV system(s) account for {pv_percentage}% ({pv_energy:,} kWh); The wind turbine(s) account for " \
                   f"{wt_percentage}% ({wt_energy:,} kWh); The grid accounts {grid_percentage}% ({grid_energy: ,} kWh); " \
                   f"The diesel generator(s) account for {dg_percentage}% ({dg_energy:,} kWh) of the total energy " \
                   f"consumption. The energy storage(s) provide {abs(es_discharge):,} kWh and are charged with " \
@@ -410,9 +432,7 @@ class Report:
         :return: None
         """
         env = self.env
-        system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [{self.env.currency}]'])
-        gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
-        dg_lifetime_cost = int(self.eval.dg_cost_comparison_lifetime)
+
         self.pdf_file.print_chapter(chapter_type=[True, False],
                                     title=['6 Evaluation', '6.1 Economic evaluation'],
                                     file=[self.txt_file_path + 'default/6_evaluation.txt',
@@ -442,27 +462,27 @@ class Report:
                                    table=economic_evaluation_data,
                                    padding=2)
         economic_table_description = f'The overall system LCOE is {self.system_LCOE} {env.currency}/kWh. The energy costs ' \
-                                     f'incurred in the period under consideration amount to {system_lifetime_cost:,} ' \
+                                     f'incurred in the period under consideration amount to {self.system_lifetime_cost:,} ' \
                                      f'{env.currency}. '
         # Compare systems with energy supply only from grid or diesel generator
         if self.env.system == 'Off Grid System':
             comparison = f'In comparison, the energy costs from a complete supply from diesel generators amount to ' \
-                         f'{dg_lifetime_cost:,} {env.currency}. '
-            if system_lifetime_cost - dg_lifetime_cost > 0:
-                cost = f'Additional cost of {int(system_lifetime_cost - dg_lifetime_cost):,} ' \
+                         f'{self.dg_lifetime_cost:,} {env.currency}. '
+            if self.dg_lifetime_cost - self.system_lifetime_cost < 0:
+                cost = f'Additional cost of {int(abs(self.dg_lifetime_cost - self.system_lifetime_cost)):,} ' \
                        f'{env.currency} occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(system_lifetime_cost - dg_lifetime_cost):,} {env.currency} are ' \
-                       f'saved over the system lifetime with simulated system configuration.\n\n'
+                cost = f'{int(self.dg_lifetime_cost - self.system_lifetime_cost):,} {env.currency} are ' \
+                       f'saved over the system lifetime with the simulated system configuration.\n\n'
         else:
             comparison = f'In comparison, the energy costs from a complete supply from the power grid amount to ' \
-                         f'{gird_lifetime_cost:,} {env.currency}. '
-            if system_lifetime_cost - gird_lifetime_cost > 0:
-                cost = f'Additional cost of {int(system_lifetime_cost - gird_lifetime_cost):,} ' \
+                         f'{self.gird_lifetime_cost:,} {env.currency}. '
+            if self.gird_lifetime_cost - self.system_lifetime_cost < 0:
+                cost = f'Additional cost of {int(abs(self.gird_lifetime_cost - self.system_lifetime_cost)):,} ' \
                        f'{env.currency} occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(system_lifetime_cost - gird_lifetime_cost):,} {env.currency} are ' \
-                       f'saved over the system lifetime with simulated system configuration.\n\n'
+                cost = f'{int(self.gird_lifetime_cost - self.system_lifetime_cost):,} {env.currency} are ' \
+                       f'saved over the system lifetime with the simulated system configuration.\n\n'
         self.create_txt(file_name='6_1_table_description',
                         text=economic_table_description + comparison + cost)
         self.pdf_file.ln(h=10)
@@ -497,6 +517,7 @@ class Report:
         self.pdf_file.chapter_body(name=self.txt_file_path + 'default/6_2_table_description.txt', size=10)
 
     '''Functions to support chapter content'''
+
     def create_input_parameter(self):
         """
         Create DataFrame with input Parameters
