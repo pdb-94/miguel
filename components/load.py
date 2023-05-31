@@ -101,12 +101,17 @@ class Load:
         :return: pd.DataFrame
             standard_load_profile
         """
+        # Retrieve standard load profile from database
         s_lp = pd.read_sql_query("""SELECT * from standard_load_profile""", con=self.env.database.connect)
+        # Format and set index
         s_lp['time'] = pd.to_datetime(s_lp['time'], format='%H:%M')
         s_lp = s_lp.set_index('time')
+        # Calculate daily demand
         daily_consumption = self.annual_consumption / 365  # Wh/d
-        daily_sum = s_lp['Percentage [P/P_max]'].sum()
+        # Sum load percentages to calculate scale
+        daily_sum = s_lp['Percentage [P/P_max]'].sum() * self.env.i_step / 60
         scale = daily_consumption / daily_sum
+        # Calculate load values
         s_lp['P [W]'] = s_lp['Percentage [P/P_max]'] * scale
 
         return s_lp
