@@ -4,7 +4,6 @@ import pvlib
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
 from data.data import DB
-from components.batterystorage import BatteryStorage
 from components.pv import PV
 from components.windturbine import WindTurbine
 from components.dieselgenerator import DieselGenerator

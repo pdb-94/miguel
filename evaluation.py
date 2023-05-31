@@ -79,6 +79,7 @@ class Evaluation:
         :return: float
             energy_consumption [kWh]
         """
+        print(self.env.df['P_Res [W]'].sum())
         energy_consumption = self.env.df['P_Res [W]'].sum() * self.env.i_step / 60 / 1000
 
         self.evaluation_df.loc['System', 'Annual energy supply [kWh/a]'] = int(energy_consumption)

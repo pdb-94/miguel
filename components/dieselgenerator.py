@@ -86,15 +86,15 @@ class DieselGenerator:
         """
         if power > self.p_n:
             power = self.p_n
-        self.df.loc[clock, 'P [W]'] = power
-        self.df.loc[clock, 'P [%]'] = round(self.df.loc[clock, 'P [W]'] / self.p_n, 2)
-        self.df.loc[clock, 'Fuel Ticks [%]'] = self.fuel_df.loc[self.df.loc[clock, 'P [%]'], 'Fuel Ticks [%]']
-        self.df.loc[clock, 'Fuel Consumption [l/h]'] = self.df.loc[clock, 'Fuel Ticks [%]'] * self.fuel_consumption
-        self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] = \
-            self.df.loc[clock, 'Fuel Consumption [l/h]'] * self.env.i_step / 60
-        self.df.loc[clock, 'Fuel cost [US$]'] = self.df.loc[clock, 'Fuel Consumption [l/Timestamp]'] * self.fuel_price
+        self.df.at[clock, 'P [W]'] = power
+        self.df.at[clock, 'P [%]'] = round(self.df.at[clock, 'P [W]'] / self.p_n, 2)
+        self.df.at[clock, 'Fuel Ticks [%]'] = self.fuel_df.loc[self.df.at[clock, 'P [%]'], 'Fuel Ticks [%]']
+        self.df.at[clock, 'Fuel Consumption [l/h]'] = self.df.at[clock, 'Fuel Ticks [%]'] * self.fuel_consumption
+        self.df.at[clock, 'Fuel Consumption [l/Timestamp]'] = \
+            self.df.at[clock, 'Fuel Consumption [l/h]'] * self.env.i_step / 60
+        self.df.at[clock, 'Fuel cost [US$]'] = self.df.at[clock, 'Fuel Consumption [l/Timestamp]'] * self.fuel_price
 
-        return self.df.loc[clock, 'P [W]']
+        return self.df.at[clock, 'P [W]']
 
     def calc_fuel_ticks(self):
         """

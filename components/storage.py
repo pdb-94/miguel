@@ -93,8 +93,8 @@ class Storage:
         :return: None
         """
         initial_time = self.df.index[0]
-        self.df.loc[initial_time, 'SOC'] = self.soc
-        self.df.loc[initial_time, 'Q [Wh]'] = self.c * self.df.loc[initial_time, 'SOC']
+        self.df.at[initial_time, 'SOC'] = self.soc
+        self.df.at[initial_time, 'Q [Wh]'] = self.c * self.df.at[initial_time, 'SOC']
         self.df['P [W]'] = 0
 
     def charge(self, clock: dt.datetime, power: float):
@@ -115,24 +115,24 @@ class Storage:
             power = self.p_n
         # Calculate charging energy
         q_charge = power * self.n_charge * (t_step / 60)
-        if self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_charge < self.c * self.soc_max:
-            self.df.loc[clock, 'P [W]'] = power
-            self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_charge
-            self.df.loc[clock, 'SOC'] = self.df.loc[clock, 'Q [Wh]'] / self.c
+        if self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_charge < self.c * self.soc_max:
+            self.df.at[clock, 'P [W]'] = power
+            self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_charge
+            self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
             return power
         else:
             # Calculate remaining energy to charge storage
-            q_remain = (self.c * self.soc_max) - self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
+            q_remain = (self.c * self.soc_max) - self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
             power = (60 * q_remain) / (t_step * self.n_charge)
             if power == 0:
-                self.df.loc[clock, 'P [W]'] = 0
-                self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
-                self.df.loc[clock, 'SOC'] = self.soc_max
+                self.df.at[clock, 'P [W]'] = 0
+                self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
+                self.df.at[clock, 'SOC'] = self.soc_max
                 return 0
             else:
-                self.df.loc[clock, 'P [W]'] = power
-                self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] + q_remain
-                self.df.loc[clock, 'SOC'] = self.df.loc[clock, 'Q [Wh]'] / self.c
+                self.df.at[clock, 'P [W]'] = power
+                self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] + q_remain
+                self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
                 return power
 
     def discharge(self, clock: dt.datetime, power: float):
@@ -154,24 +154,24 @@ class Storage:
             power = -self.p_n
         q_discharge = power * self.n_discharge * (t_step / 60)
         # Check if SOC after discharge > soc_min
-        if self.soc_min < self.df.loc[clock, 'SOC'] + (q_discharge/self.c):
-            self.df.loc[clock, 'P [W]'] = power
-            self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_discharge
-            self.df.loc[clock, 'SOC'] = self.df.loc[clock, 'Q [Wh]'] / self.c
+        if self.soc_min < self.df.at[clock, 'SOC'] + (q_discharge/self.c):
+            self.df.at[clock, 'P [W]'] = power
+            self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_discharge
+            self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
             return power
         else:
             # Calculate remaining energy to discharge storage
-            q_remain = self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] - (self.c * self.soc_min)
+            q_remain = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] - (self.c * self.soc_min)
             power = -(60 * q_remain) / (t_step * self.n_charge)
             if power == 0:
-                self.df.loc[clock, 'P [W]'] = 0
-                self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
-                self.df.loc[clock, 'SOC'] = self.soc_min
+                self.df.at[clock, 'P [W]'] = 0
+                self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
+                self.df.at[clock, 'SOC'] = self.soc_min
                 return 0
             else:
-                self.df.loc[clock, 'P [W]'] = power
-                self.df.loc[clock, 'Q [Wh]'] = self.df.loc[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] - q_remain
-                self.df.loc[clock, 'SOC'] = self.df.loc[clock, 'Q [Wh]'] / self.c
+                self.df.at[clock, 'P [W]'] = power
+                self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] - q_remain
+                self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
                 return power
 
     def calc_replacements(self):
