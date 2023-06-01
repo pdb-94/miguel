@@ -102,7 +102,6 @@ class Report:
         pv_percentage = round(pv_energy / annual_energy_consumption, 2) * 100
         wt_percentage = round(wt_energy / annual_energy_consumption, 2) * 100
         dg_percentage = round(dg_energy / annual_energy_consumption, 2) * 100
-        print(dg_percentage)
         grid_percentage = round(grid_energy / annual_energy_consumption, 2) * 100
         # Retrieve Storage values
         es_charge = sum([value for key, value in energy_parameters.items() if '_charge' in key])
