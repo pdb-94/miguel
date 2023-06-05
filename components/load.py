@@ -25,7 +25,7 @@ class Load:
                                             header=0,
                                             sep=self.env.csv_sep,
                                             decimal=self.env.csv_decimal)
-
+            self.original_load_profile = self.load_profile
         else:
             self.load_profile = self.standard_load_profile()
         self.load_profile.index = pd.to_datetime(self.load_profile.index)

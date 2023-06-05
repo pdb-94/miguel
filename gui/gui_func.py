@@ -213,4 +213,7 @@ def create_pixmap(path, widget, w, h):
     :return:
     """
     pixmap = QPixmap(path)
-    widget.setPixmap(pixmap.scaled(w, h, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+    widget.setPixmap(pixmap.scaled(w,
+                                   h,
+                                   Qt.KeepAspectRatio,
+                                   Qt.SmoothTransformation))

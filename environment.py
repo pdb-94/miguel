@@ -1,3 +1,4 @@
+import sys
 import datetime as dt
 import pandas as pd
 import pvlib
@@ -163,6 +164,8 @@ class Environment:
         """
         geolocator = Nominatim(user_agent="geoapiExercises")
         location = geolocator.reverse(str(self.latitude) + ',' + str(self.longitude))
+        if location is None:
+            sys.exit('Coordinates not on land.')
         address = location.raw['address']
         city = address.get('city', '')
         if city == '':
@@ -281,12 +284,12 @@ class Environment:
         Add Grid to environment
         :return: None
         """
-        name = 'Grid_' + str(len(self.grid) + 1)
+        name = f'Grid_{len(self.grid) + 1}'
         self.grid.append(Grid(env=self,
                               name=name))
         self.supply_components.append(self.grid[-1])
-        self.df[name + ': P [W]'] = self.grid[-1].df['P [W]']
-        self.df[name + ': Blackout'] = self.grid[-1].df['Blackout']
+        self.df[f'{name}: P [W]'] = self.grid[-1].df['P [W]']
+        self.df[f'{name}: Blackout'] = self.grid[-1].df['Blackout']
         self.grid_connection = True
 
     def add_load(self,
@@ -300,7 +303,7 @@ class Environment:
             load profile path
         :return: None
         """
-        name = 'Load_' + str(len(self.load) + 1)
+        name = f'Load_{len(self.load) + 1}'
         self.load.append(Load(env=self,
                               name=name,
                               annual_consumption=annual_consumption,
@@ -315,7 +318,7 @@ class Environment:
         Add PV system to environment
         :return: None
         """
-        name = 'PV_' + str(len(self.pv) + 1)
+        name = f'PV_{len(self.pv) + 1}'
         if pv_profile is not None:
             self.pv.append(PV(env=self,
                               name=name,
@@ -333,8 +336,8 @@ class Environment:
             pass
         self.re_supply.append(self.pv[-1])
         self.supply_components.append(self.pv[-1])
-        self.df[name + ': P [W]'] = self.pv[-1].df['P [W]']
-        self.df['PV total power [W]'] += self.df[name + ': P [W]']
+        self.df[f'{name}: P [W]'] = self.pv[-1].df['P [W]']
+        self.df['PV total power [W]'] += self.df[f'{name}: P [W]']
         self.add_component_data(component=self.pv[-1],
                                 supply=True)
 
@@ -347,7 +350,7 @@ class Environment:
         Add Wind Turbine to environment
         :return: None
         """
-        name = 'WT_' + str(len(self.wind_turbine) + 1)
+        name = f'WT_{len(self.wind_turbine) + 1}'
         self.wind_turbine.append(WindTurbine(env=self,
                                              name=name,
                                              p_n=p_n,
@@ -356,8 +359,8 @@ class Environment:
                                              selection_parameters=selection_parameters))
         self.re_supply.append(self.wind_turbine[-1])
         self.supply_components.append(self.wind_turbine[-1])
-        self.df[name + ': P [W]'] = self.wind_turbine[-1].df['P [W]']
-        self.df['WT total power [W]'] += self.df[name + ': P [W]']
+        self.df[f'{name}: P [W]'] = self.wind_turbine[-1].df['P [W]']
+        self.df['WT total power [W]'] += self.df[f'{name}: P [W]']
         # self.add_component_data(component=self.wind_turbine[-1], supply=True)
 
     def add_diesel_generator(self,
@@ -369,7 +372,7 @@ class Environment:
         Add Diesel Generator to environment
         :return: None
         """
-        name = 'DG_' + str(len(self.diesel_generator) + 1)
+        name = f'DG_{len(self.diesel_generator) + 1}'
         self.diesel_generator.append(DieselGenerator(env=self,
                                                      name=name,
                                                      p_n=p_n,
@@ -390,7 +393,7 @@ class Environment:
         Add Energy Storage to environment
         :return: None
         """
-        name = 'ES_' + str(len(self.storage) + 1)
+        name = f'ES_{len(self.storage) + 1}'
         self.storage.append(Storage(env=self,
                                     name=name,
                                     p_n=p_n,
@@ -398,14 +401,9 @@ class Environment:
                                     soc=soc,
                                     soc_min=soc_min,
                                     soc_max=soc_max))
-        self.df[name + ': P [W]'] = self.storage[-1].df['P [W]']
+        self.df[f'{name}: P [W]'] = self.storage[-1].df['P [W]']
         self.add_component_data(component=self.storage[-1],
                                 supply=False)
-
-    # def add_test_storage(self):
-    #     name = 'BS_' + str(len(self.storage) + 1)
-    #     self.storage.append(BatteryStorage(env=self,
-    #                                        name=name))
 
     def add_component_data(self,
                            component,

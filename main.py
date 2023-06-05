@@ -54,8 +54,8 @@ def demonstration(grid_connection=True):
                               csv_decimal=',',
                               csv_sep=';')
     # Add load profile from csv-file
-    environment.add_load(annual_consumption=150000)  # kWh
-    # environment.add_load(load_profile=f'{sys.path[1]}/data/St. Dominics Hospital.csv')
+    # environment.add_load(annual_consumption=150000)  # kWh
+    environment.add_load(load_profile=f'{sys.path[1]}/data/St. Dominics Hospital.csv')
     # Add PV system
     environment.add_pv(p_n=60000,
                        pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
@@ -75,10 +75,9 @@ def demonstration(grid_connection=True):
 start = dt.datetime.today()
 print('Create environment')
 # Off Grid system
-# env = demonstration(grid_connection=False)
+env = demonstration(grid_connection=False)
 # On Grid system
-env = demonstration(grid_connection=True)
-
+# env = demonstration(grid_connection=True)
 # Run Dispatch
 print('Run Dispatch', dt.datetime.today() - start)
 operator = Operator(env=env)

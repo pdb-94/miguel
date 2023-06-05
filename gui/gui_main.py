@@ -123,8 +123,9 @@ class TabWidget(QWidget):
         tabs = self.tabs.widget
         tab = tabs(index)
         if index == 1:
-            # Energy system
+            # Environment
             self.create_env()
+            # Plot weather data
             self.plot_monthly_weather_data()
             # Reset widgets
             gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude, tab.altitude,
@@ -135,6 +136,11 @@ class TabWidget(QWidget):
             tab.grid.setChecked(True)
             # Enable widgets
             gui_func.enable_widget(widget=[tabs(2), tabs(3)], enable=True)
+        elif index == 3:
+            # Load profile
+            self.gui_add_load_profile()
+            # Clear widgets
+            gui_func.clear_widget(widget=[tab.consumption, tab.load_profile])
 
     def create_env(self):
         """
@@ -199,22 +205,53 @@ class TabWidget(QWidget):
                                grid_connection=grid_connection,
                                blackout=blackout,
                                blackout_data=blackout_data,
-                               feed_in=feed_in)
+                               feed_in=feed_in,
+                               csv_decimal=',',
+                               csv_sep=';')
         # Update folium map
         tab.update_map(latitude=location['latitude'], longitude=location['longitude'], name=name)
 
+    def gui_add_load_profile(self):
+        """
+        Create load profile
+        :return:
+        """
+        tab = self.tabs.widget(3)
+        annual_consumption = tab.consumption.text()
+        load_profile_path = tab.load_profile.text()
+        load_profile_path = load_profile_path.replace('\\', '/')
+        if annual_consumption != "":
+            annual_consumption = float(annual_consumption)
+        if load_profile_path != "":
+            annual_consumption = None
+        else:
+            load_profile_path = None
+        if isinstance(self.env, Environment):
+            self.env.add_load(annual_consumption=annual_consumption,
+                              load_profile=load_profile_path)
+            tab.adjust_plot(time_series=self.env.time_series,
+                            df=self.env.df['P_Res [W]'])
+
     def plot_monthly_weather_data(self):
-        """"""
+        """
+
+        :return:
+        """
         wind_data = self.env.monthly_weather_data[['wind_speed', 'wind_direction']]
         self.create_wind_plot(name='wind_data',
                               data_1=wind_data['wind_speed'],
                               data_2=wind_data['wind_direction'])
-        gui_func.create_pixmap(path=self.root + '/gui/images/wind_data.png', widget=self.tabs.widget(2).wind_plot,
-                               w=540, h=400)
+        gui_func.create_pixmap(path=f'{self.root}/gui/images/wind_data.png',
+                               widget=self.tabs.widget(2).wind_plot,
+                               w=540,
+                               h=400)
         solar_data = self.env.monthly_weather_data[['ghi', 'dhi', 'dni']]
-        self.create_solar_plot(name='solar_data', data=solar_data)
-        gui_func.create_pixmap(path=self.root + '/gui/images/solar_data.png', widget=self.tabs.widget(2).solar_plot,
-                               w=540, h=400)
+        self.create_solar_plot(name='solar_data',
+                               data=solar_data)
+        gui_func.create_pixmap(path=f'{self.root}/gui/images/solar_data.png',
+                               widget=self.tabs.widget(2).solar_plot,
+                               w=540,
+                               h=400)
 
     def create_wind_plot(self, name, data_1, data_2):
         """
@@ -255,6 +292,36 @@ class TabWidget(QWidget):
         plt.legend(loc='upper left')
         fig.tight_layout()
         plt.savefig(f'{self.root}/gui/images/{name}.png')
+
+    def plot_load_profile(self):
+        """
+
+        :return:
+        """
+        data = self.env.load[0].load_profile
+        self.create_load_profile_plot(name='load_profile',
+                                      data=data)
+        gui_func.create_pixmap(path=f'{self.root}/gui/images/load_profile.png',
+                               widget=self.tabs.widget(3).load_profile_plot,
+                               w=1260,
+                               h=540)
+
+    def create_load_profile_plot(self, name, data):
+        """
+
+        :param name:
+        :param data:
+        :return:
+        """
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_xlabel('Time hh:mm')
+        data['P [W]'].plot(kind='line', color='blue', ax=ax, label='Load [W]')
+        ax.set_ylabel(ylabel='P [W]')
+        plt.legend(loc='upper left')
+        fig.tight_layout()
+        plt.savefig(f'{self.root}/gui/images/{name}.png')
+
 
 
 if __name__ == '__main__':
