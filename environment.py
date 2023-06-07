@@ -19,6 +19,7 @@ class Environment:
     Negative power values are power consumption (load, storage)
     Positive power values are power production (PV, DieselGenerator, WindTurbine, Grid, Storage)
     """
+
     def __init__(self,
                  name: str = None,
                  time: dict = None,
@@ -76,6 +77,7 @@ class Environment:
         self.i_step = self.t_step.seconds / 60
         self.time_series = self.create_df()[0]
         self.time = self.create_df()[1]
+        self.year = self.t_start.year
         # Location
         self.location = location
         self.longitude = self.location.get('longitude')
@@ -83,6 +85,8 @@ class Environment:
         self.altitude = self.location.get('altitude')
         self.terrain = self.location.get('terrain')
         self.address = self.find_location()
+        self.hemisphere = self.address[-1]
+        self.seasons = self.find_season()
         # Economy
         if economy is None:
             self.currency = 'US$'
@@ -137,7 +141,6 @@ class Environment:
             self.system = system[0]
         self.feed_in = feed_in
 
-
         # DataBase
         self.database = DB()
 
@@ -174,8 +177,27 @@ class Environment:
         country = address.get('country', '')
         code = address.get('country_code')
         zipcode = address.get('postcode')
+        if self.latitude < 0:
+            hemisphere = 'south'
+        else:
+            hemisphere = 'north'
 
-        return city, zipcode, state, country, code
+        return city, zipcode, state, country, code, hemisphere
+
+    def find_season(self):
+        if self.hemisphere == 'south':
+            seasons = {
+                'summer': [12, 1, 2],
+                'transition': [3, 4, 5, 9, 10, 11],
+                'winter': [6, 7, 8],
+            }
+        else:
+            seasons = {
+                'winter': [12, 1, 2],
+                'transition': [3, 4, 5, 9, 10, 11],
+                'summer': [6, 7, 8],
+            }
+        return seasons
 
     def create_df(self):
         """
@@ -210,18 +232,18 @@ class Environment:
         # Set data.index to current year
         current_year = dt.datetime.today().year
         data.index = pd.date_range(start=dt.datetime(
-                                        year=current_year,
-                                        month=1,
-                                        day=1,
-                                        hour=0,
-                                        minute=0),
-                                   end=dt.datetime(
-                                       year=current_year,
-                                       month=12,
-                                       day=31,
-                                       hour=23,
-                                       minute=0),
-                                   freq='1h')
+            year=current_year,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0),
+            end=dt.datetime(
+                year=current_year,
+                month=12,
+                day=31,
+                hour=23,
+                minute=0),
+            freq='1h')
 
         return data, months_selected, inputs, metadata
 
@@ -256,8 +278,8 @@ class Environment:
             wt_data = wt_data.asfreq(self.t_step)
             wt_data.index = wt_data.index.to_pydatetime()
             dates = []
-            for i in range(1, int(dt.timedelta(minutes=60)/self.t_step)):
-                dates.append(wt_data.index[-1]+pd.Timedelta(i*int(self.t_step/dt.timedelta(minutes=1)), 'min'))
+            for i in range(1, int(dt.timedelta(minutes=60) / self.t_step)):
+                dates.append(wt_data.index[-1] + pd.Timedelta(i * int(self.t_step / dt.timedelta(minutes=1)), 'min'))
             dates_df = pd.DataFrame(columns=wt_data.columns,
                                     index=dates)
             wt_data = pd.concat([wt_data, dates_df])
@@ -294,6 +316,7 @@ class Environment:
 
     def add_load(self,
                  annual_consumption: float = None,
+                 ref_profile: str = None,
                  load_profile: str = None):
         """
         Add Load to environment
@@ -307,6 +330,7 @@ class Environment:
         self.load.append(Load(env=self,
                               name=name,
                               annual_consumption=annual_consumption,
+                              ref_profile=ref_profile,
                               load_profile=load_profile))
         self.df['P_Res [W]'] = self.load[-1].df['P [W]']
 

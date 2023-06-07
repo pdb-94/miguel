@@ -29,11 +29,13 @@ class WeatherData(QWidget):
         self.solar_l.setText('Solar irradiation \nThe plot display the global horizontal, direct normal and direct horizontal irradiation in W/m².')
         self.solar_plot = QLabel()
         self.solar_plot.setAlignment(Qt.AlignHCenter)
+        self.solar_plot.adjustSize()
         # Wind
         self.wind_l = QLabel()
         self.wind_l.setText('Wind \nThe plot displays the monthly average wind speed in m/s and wind direction in degree (180° south).')
         self.wind_plot = QLabel()
         self.wind_plot.setAlignment(Qt.AlignHCenter)
+        self.wind_plot.adjustSize()
         # EU
         self.eu = QLabel()
         gui_func.create_pixmap(self.root + '/gui/images/European_Commission.png', widget=self.eu, w=100, h=100)

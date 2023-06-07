@@ -15,3 +15,4 @@ kaleido
 geopandas==0.13.0
 geonames
 scipy
+tzfpy
