@@ -9,7 +9,7 @@ from PyQt5.QtWebEngineWidgets import *
 import gui_func as gui_func
 
 
-class SystemConfig(QWidget):
+class PV(QWidget):
     """
     Tab Welcome Screen
     """

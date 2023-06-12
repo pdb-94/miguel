@@ -52,8 +52,6 @@ class Load:
             self.fill_values(values=values)
             # Adjust scaled profile length to env.time_series
             self.adjust_length(profile=self.scaled_load_profile)
-        print(self.load_profile)
-        print(self.load_profile['P [W]'].sum()/1000/4)
 
     def check_resolution(self):
         """
@@ -127,7 +125,7 @@ class Load:
 
     def bdew_reference_load_profile(self, profile: str = None):
         """
-
+        Build BDEW reference load profile
         :param profile: str
             BDEW profile identification
         :return:
@@ -151,6 +149,7 @@ class Load:
             season = df.at[df.index[i], 'Season']
             profile = bdew_profile.get(season).get(day)
             df.loc[df.index[i]:df.index[i+95], 'P [W]'] = profile.values
+        # Scale annual consumption and fill values
         total = df['P [W]'].sum() * self.env.i_step / 60
         scale = self.annual_consumption / total
         df['P [W]'] = df['P [W]'] * scale
@@ -159,7 +158,7 @@ class Load:
 
     def retrieve_bdew_profile(self, profile: str = None):
         """
-
+        Retrieve BDEW reference load profile from miguel.db
         :param profile: str
         :return: list
             bdew standard load profiles

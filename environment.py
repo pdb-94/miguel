@@ -58,7 +58,7 @@ class Environment:
         """
         # Container
         self.grid = []
-        self.load = []
+        self.load = None
         self.pv = []
         self.diesel_generator = []
         self.wind_turbine = []
@@ -326,13 +326,13 @@ class Environment:
             load profile path
         :return: None
         """
-        name = f'Load_{len(self.load) + 1}'
-        self.load.append(Load(env=self,
-                              name=name,
-                              annual_consumption=annual_consumption,
-                              ref_profile=ref_profile,
-                              load_profile=load_profile))
-        self.df['P_Res [W]'] = self.load[-1].df['P [W]']
+        name = 'Load_1'
+        self.load = Load(env=self,
+                         name=name,
+                         annual_consumption=annual_consumption,
+                         ref_profile=ref_profile,
+                         load_profile=load_profile)
+        self.df['P_Res [W]'] = self.load.df['P [W]']
 
     def add_pv(self,
                p_n: float = None,
@@ -410,9 +410,10 @@ class Environment:
     def add_storage(self,
                     p_n: float = None,
                     c: float = None,
-                    soc: float = 0.5,
+                    soc: float = 0.25,
                     soc_max: float = 0.95,
-                    soc_min: float = 0.05):
+                    soc_min: float = 0.05,
+                    lifetime: int = 10):
         """
         Add Energy Storage to environment
         :return: None
@@ -424,7 +425,8 @@ class Environment:
                                     c=c,
                                     soc=soc,
                                     soc_min=soc_min,
-                                    soc_max=soc_max))
+                                    soc_max=soc_max,
+                                    lifetime=lifetime))
         self.df[f'{name}: P [W]'] = self.storage[-1].df['P [W]']
         self.add_component_data(component=self.storage[-1],
                                 supply=False)

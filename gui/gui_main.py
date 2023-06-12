@@ -7,15 +7,19 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-
 from tzfpy import get_tz
 from environment import Environment
 import gui_func as gui_func
 from gui.projectsetup import ProjectSetup
 from gui.energysystem import EnergySystem
 from gui.weatherdata import WeatherData
-from gui.systemconfiguration import SystemConfig
 from gui.loadprofile import LoadProfile
+from gui.gui_pv import PV
+from gui.gui_wt import WT
+from gui.gui_dg import DG
+from gui.energystorage import EnergyStorage
+from gui.gui_dispatch import Dispatch
+from gui.gui_evaluation import Evaluation
 
 
 class TabWidget(QWidget):
@@ -27,8 +31,12 @@ class TabWidget(QWidget):
         super().__init__()
         self.root = sys.path[1]
 
-        # Environment Container
+        # Class containers
         self.env = None
+        self.operator = None
+        self.evaluation = None
+        self.report = None
+        # Style sheet
         self.setStyleSheet("""QWidget {font: Calibri}""")
 
         # Set up TabWidget
@@ -38,17 +46,26 @@ class TabWidget(QWidget):
                           'Energy system',
                           'Weather data',
                           'Load profile',
-                          'System configuration']
+                          'PV system',
+                          'Wind turbine',
+                          'Diesel generator',
+                          'Energy storage',
+                          'Dispatch',
+                          'System evaluation']
         self.tab_classes = [ProjectSetup,
                             EnergySystem,
                             WeatherData,
                             LoadProfile,
-                            SystemConfig]
-        enabled = [True, True, False, False, False]
-
-        for i in range(len(self.tab_classes)):
-            self.tabs.addTab(self.tab_classes[i](), self.tab_title[i])
-            self.tabs.widget(i).setEnabled(enabled[i])
+                            PV,
+                            WT,
+                            DG,
+                            EnergyStorage,
+                            Dispatch,
+                            Evaluation]
+        enabled = [True, True, False, False, False, False, False, False, False, False]
+        for count, tab in enumerate(self.tab_classes, start=0):
+            self.tabs.addTab(tab(), self.tab_title[count])
+            self.tabs.widget(count).setEnabled(enabled[count])
 
         # Set up Pushbutton
         self.delete_btn = QPushButton('Delete')
@@ -73,7 +90,12 @@ class TabWidget(QWidget):
         self.layout.addWidget(self.next_btn, 3, 1)
         self.setLayout(self.layout)
 
-        self.setGeometry(200, 200, 1300, 800)
+        # Geometry
+        self.screen_geometry = QDesktopWidget().screenGeometry(-1)
+        self.screen_width = self.screen_geometry.width()
+        self.screen_height = self.screen_geometry.height()
+        self.scale = 1.5
+        self.setGeometry(200, 200, int(self.screen_width/self.scale), int(self.screen_height/self.scale))
         self.setWindowTitle('Micro Grid User Energy Tool Library')
         window_icon = QIcon(self.root + '/documentation/MiGUEL_icon.png')
         self.setWindowIcon(window_icon)
@@ -81,6 +103,7 @@ class TabWidget(QWidget):
 
     def next_tab(self):
         """
+        Show next tab
         :return: None
         """
         index = self.tabs.currentIndex()
@@ -108,7 +131,7 @@ class TabWidget(QWidget):
             gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], show=False)
             gui_func.enable_widget(widget=[self.next_btn], enable=True)
         elif index == 1:
-            # Tab Hospital
+            # Tab Energy System
             # Change widget text, show and enable/disable widgets
             gui_func.change_widget_text(widget=[self.next_btn], text=['Next'])
             gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], show=True)
@@ -117,7 +140,7 @@ class TabWidget(QWidget):
     def save(self):
         """
         Define save function based on tab index
-        :return:
+        :return: None
         """
         index = self.tabs.currentIndex()
         tabs = self.tabs.widget
@@ -135,32 +158,40 @@ class TabWidget(QWidget):
             tab.feed_in.setChecked(False)
             tab.grid.setChecked(True)
             # Enable widgets
-            gui_func.enable_widget(widget=[tabs(2), tabs(3)], enable=True)
+            gui_func.enable_widget(widget=[tabs(2), tabs(3), tabs(4), tabs(5)], enable=True)
         elif index == 3:
             # Load profile
             self.gui_add_load_profile()
             # Clear widgets
             gui_func.clear_widget(widget=[tab.consumption, tab.load_profile])
+            gui_func.change_combo_index(combo=[tab.ref_profile], index=[0])
+        elif index == 4:
+            # Energy supply
+            print('Added energy supply component')
+        elif index == 5:
+            # Energy Storage
+            self.gui_add_storage()
+            gui_func.clear_widget(widget=[tab.p, tab.c, tab.soc, tab.lifetime])
 
     def create_env(self):
         """
         Create Environment from User Input
-        :return:
+        :return: None
         """
         tab = self.tabs.widget(1)
         # Collect input parameters
         name = tab.project_name.text()
-        longitude = float(tab.longitude.text())
-        latitude = float(tab.latitude.text())
-        altitude = float(tab.altitude.text())
+        longitude = gui_func.convert_str_float(string=tab.longitude.text())
+        latitude = gui_func.convert_str_float(string=tab.latitude.text())
+        altitude = gui_func.convert_str_float(string=tab.altitude.text())
         terrain = tab.terrain.currentText()
         start_time = tab.start_time.text()
         end_time = tab.end_time.text()
         time_step = tab.time_step.currentText()
-        d_rate = float(tab.d_rate.text())
-        lifetime = int(tab.lifetime.text())
-        electricity_price = float(tab.electricity_price.text())
-        co2_price = float(tab.co2_price.text())
+        d_rate = gui_func.convert_str_float(string=tab.d_rate.text())
+        lifetime = int(gui_func.convert_str_float(string=tab.lifetime.text()))
+        electricity_price = gui_func.convert_str_float(string=tab.electricity_price.text())
+        co2_price = gui_func.convert_str_float(string=tab.co2_price.text())
         grid_connection = tab.grid.isChecked()
         blackout = tab.blackout.isChecked()
         if blackout:
@@ -169,8 +200,8 @@ class TabWidget(QWidget):
             blackout_data = None
         feed_in = tab.feed_in.isChecked()
         if feed_in:
-            pv_feed_in = float(tab.pv_feed.text())
-            wt_feed_in = float(tab.wt_feed.text())
+            pv_feed_in = gui_func.convert_str_float(string=tab.pv_feed.text())
+            wt_feed_in = gui_func.convert_str_float(string=tab.wt_feed.text())
         else:
             pv_feed_in = None
             wt_feed_in = None
@@ -217,25 +248,45 @@ class TabWidget(QWidget):
         :return:
         """
         tab = self.tabs.widget(3)
-        annual_consumption = tab.consumption.text()
+        annual_consumption = gui_func.convert_str_float(string=tab.consumption.text())
+        ref_profile_index = tab.ref_profile.currentIndex()
+        profiles = ['hospital_ghana', 'H0', 'G0', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'L0', 'L1', 'L2']
+        ref_profile = profiles[ref_profile_index]
         load_profile_path = tab.load_profile.text()
         load_profile_path = load_profile_path.replace('\\', '/')
-        if annual_consumption != "":
-            annual_consumption = float(annual_consumption)
         if load_profile_path != "":
             annual_consumption = None
+            ref_profile = None
         else:
             load_profile_path = None
         if isinstance(self.env, Environment):
             self.env.add_load(annual_consumption=annual_consumption,
+                              ref_profile=ref_profile,
                               load_profile=load_profile_path)
             tab.adjust_plot(time_series=self.env.time_series,
                             df=self.env.df['P_Res [W]'])
 
+    def gui_add_storage(self):
+        """
+        Create energy storage
+        :return: None
+        """
+        tab = self.tabs.widget(5)
+        p = gui_func.convert_str_float(tab.p.text())
+        c = gui_func.convert_str_float(tab.c.text())
+        soc = gui_func.convert_str_float(tab.soc.text())
+        lifetime = int(gui_func.convert_str_float(tab.lifetime.text()))
+        if p is not None and c is not None:
+            print('Storage')
+            self.env.add_storage(p_n=p*1000,
+                                 c=c*1000,
+                                 soc=soc,
+                                 lifetime=lifetime)
+
     def plot_monthly_weather_data(self):
         """
-
-        :return:
+        Plot monthly weather data based on location
+        :return: None
         """
         wind_data = self.env.monthly_weather_data[['wind_speed', 'wind_direction']]
         self.create_wind_plot(name='wind_data',
@@ -243,22 +294,25 @@ class TabWidget(QWidget):
                               data_2=wind_data['wind_direction'])
         gui_func.create_pixmap(path=f'{self.root}/gui/images/wind_data.png',
                                widget=self.tabs.widget(2).wind_plot,
-                               w=540,
-                               h=400)
+                               w=int(self.screen_width / 3),
+                               h=int(self.screen_height / 3))
         solar_data = self.env.monthly_weather_data[['ghi', 'dhi', 'dni']]
         self.create_solar_plot(name='solar_data',
                                data=solar_data)
         gui_func.create_pixmap(path=f'{self.root}/gui/images/solar_data.png',
                                widget=self.tabs.widget(2).solar_plot,
-                               w=540,
-                               h=400)
+                               w=int(self.screen_width / 3),
+                               h=int(self.screen_height / 3))
 
-    def create_wind_plot(self, name, data_1, data_2):
+    def create_wind_plot(self, name: str, data_1: pd.Series, data_2: pd.Series):
         """
         Create monthly wind data plot
-        :param name:
-        :param data_1:
-        :param data_2:
+        :param name: str
+            Image name
+        :param data_1: pd.Series
+            Wind speed data array
+        :param data_2: pd.Series
+            Wind direction data array
         :return:
         """
         fig = plt.figure()
@@ -275,12 +329,14 @@ class TabWidget(QWidget):
         fig.tight_layout()
         plt.savefig(f'{self.root}/gui/images/{name}.png')
 
-    def create_solar_plot(self, name, data):
+    def create_solar_plot(self, name: str, data: pd.DataFrame):
         """
-
-        :param name:
-        :param data:
-        :return:
+        Create monthly solar data plot
+        :param name: str
+            image name
+        :param data: pd:DataFrame
+            Data source
+        :return: None
         """
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -292,36 +348,6 @@ class TabWidget(QWidget):
         plt.legend(loc='upper left')
         fig.tight_layout()
         plt.savefig(f'{self.root}/gui/images/{name}.png')
-
-    def plot_load_profile(self):
-        """
-
-        :return:
-        """
-        data = self.env.load[0].load_profile
-        self.create_load_profile_plot(name='load_profile',
-                                      data=data)
-        gui_func.create_pixmap(path=f'{self.root}/gui/images/load_profile.png',
-                               widget=self.tabs.widget(3).load_profile_plot,
-                               w=1260,
-                               h=540)
-
-    def create_load_profile_plot(self, name, data):
-        """
-
-        :param name:
-        :param data:
-        :return:
-        """
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel('Time hh:mm')
-        data['P [W]'].plot(kind='line', color='blue', ax=ax, label='Load [W]')
-        ax.set_ylabel(ylabel='P [W]')
-        plt.legend(loc='upper left')
-        fig.tight_layout()
-        plt.savefig(f'{self.root}/gui/images/{name}.png')
-
 
 
 if __name__ == '__main__':

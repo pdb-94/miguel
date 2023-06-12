@@ -13,7 +13,7 @@ class Storage:
                  name: str = None,
                  p_n: float = None,
                  c: float = None,
-                 soc: float = 0.5,
+                 soc: float = 0.25,
                  soc_max: float = 0.95,
                  soc_min: float = 0.05,
                  n_charge: float = 0.8,
@@ -22,7 +22,9 @@ class Storage:
                  c_invest_n: float = 1200,
                  c_op_main_n: float = 30,
                  c_var: float = 0,
-                 co2_init: float = 103):
+                 co2_init: float = 103,
+                 c_invest: float = None,
+                 c_op_main: float = None):
         """
         :param env: environment.Environment
             storage Environment

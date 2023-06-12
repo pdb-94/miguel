@@ -217,3 +217,16 @@ def create_pixmap(path, widget, w, h):
                                    h,
                                    Qt.KeepAspectRatio,
                                    Qt.SmoothTransformation))
+
+def convert_str_float(string):
+    """
+    Convert string to float
+    :param string: str
+    :return: float/None
+    """
+    if string != '':
+        parameter = float(string)
+    else:
+        parameter = None
+
+    return parameter
