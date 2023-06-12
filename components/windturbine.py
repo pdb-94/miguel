@@ -21,8 +21,10 @@ class WindTurbine:
                  selection_parameters: list = None,
                  c_invest_n: float = 1160,
                  c_op_main_n: float = 43,
-                 c_var: float = 0.0035,
-                 co2_init: float = 200):
+                 c_var_n: float = 0.0035,
+                 co2_init: float = 200,
+                 c_invest: float = None,
+                 c_op_main: float = None):
         """
         :param env: environment
         :param name: str
@@ -49,8 +51,16 @@ class WindTurbine:
         self.selection_parameters = selection_parameters
         self.c_invest_n = c_invest_n  # USD/kW
         self.c_op_main_n = c_op_main_n  # USD/kW
-        self.c_var = c_var  # USD/kWh
+        self.c_var_n = c_var_n  # USD/kWh
         self.co2_init = co2_init  # kg/kW
+        if c_invest is None:
+            self.c_invest = self.c_invest_n * self.p_n / 1000
+        else:
+            self.c_invest = c_invest
+        if c_op_main is None:
+            self.c_op_main = self.c_op_main_n * self.p_n / 1000
+        else:
+            self.c_op_main = c_op_main
         # Location
         self.longitude = self.env.location.get('longitude')
         self.latitude = self.env.location.get('latitude')

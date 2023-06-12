@@ -18,8 +18,10 @@ class PV:
                  pv_data: dict = None,
                  c_invest_n: float = 496,
                  c_op_main_n: float = 7.55,
-                 c_var: float = 0,
-                 co2_init: float = 460):
+                 c_var_n: float = 0,
+                 co2_init: float = 460,
+                 c_invest: float = None,
+                 c_op_main: float = None):
         """
         :param env: env.Environment
             System Environment
@@ -122,8 +124,16 @@ class PV:
         # Economic parameters
         self.c_invest_n = c_invest_n
         self.c_op_main_n = c_op_main_n
-        self.c_var = c_var
+        self.c_var_n = c_var_n
         self.co2_init = co2_init  # kg/kW
+        if c_invest is None:
+            self.c_invest = self.c_invest_n * self.p_n / 1000
+        else:
+            self.c_invest = c_invest
+        if c_op_main is None:
+            self.c_op_main = self.c_op_main_n * self.p_n / 1000
+        else:
+            self.c_op_main = c_op_main
         # Dict with technical data
         self.technical_data = {'Component': 'PV System',
                                'Name': self.name,

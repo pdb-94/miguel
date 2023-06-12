@@ -79,7 +79,6 @@ class Evaluation:
         :return: float
             energy_consumption [kWh]
         """
-        print(self.env.df['P_Res [W]'].sum())
         energy_consumption = self.env.df['P_Res [W]'].sum() * self.env.i_step / 60 / 1000
 
         self.evaluation_df.loc['System', 'Annual energy supply [kWh/a]'] = int(energy_consumption)
@@ -244,55 +243,56 @@ class Evaluation:
         self.evaluation_df.loc[component.name, f'Lifetime cost [{self.env.currency}]'] = int(lifetime_cost)
 
     def calc_investment_cost(self,
-                             component):
+                             component: object):
         """
         Calculate component investment cost
-        :param component:
-        :return:
+        :param component: object
+            energy system component
+        :return: float
+            component investment cost
         """
         if isinstance(component, Grid):
             investment_cost = 0
         elif isinstance(component, Storage):
-            investment_cost = component.c_invest_n * component.c / 1000 + component.replacement_cost
+            investment_cost = component.c_invest + component.replacement_cost
         else:
-            investment_cost = component.c_invest_n * component.p_n / 1000
+            investment_cost = component.c_invest
 
         self.evaluation_df.loc[component.name, f'Investment cost [{self.env.currency}]'] = int(investment_cost)
 
         return investment_cost
 
     def calc_annual_cost(self,
-                         component):
+                         component: object):
         """
-
-        :param component:
-        :return:
+        Calculate component annual cost
+        :param component: object
+            energy system component
+        :return: float
+            annual_cost
         """
         annual_output = self.evaluation_df.loc[component.name, 'Annual energy supply [kWh/a]']
         co2 = self.evaluation_df.loc[component.name, 'Annual CO2 emissions [t/a]']
         co2_cost = co2 * self.env.avg_co2_price
         if isinstance(component, DieselGenerator):
             fuel_cost = annual_output * self.env.diesel_price * 0.102
-            operation_cost = component.c_op_main_n * component.p_n / 1000
-            additional_variable_cost = annual_output * component.c_var
-            annual_cost = fuel_cost + operation_cost + co2_cost + additional_variable_cost
+            additional_variable_cost = annual_output * component.c_var_n
+            annual_cost = fuel_cost + component.c_op_main + co2_cost + additional_variable_cost
         elif isinstance(component, Grid):
             electricity_cost = self.evaluation_df.loc[
                                    component.name, 'Annual energy supply [kWh/a]'] * self.env.electricity_price
-            additional_variable_cost = annual_output * component.c_var
+            additional_variable_cost = annual_output * component.c_var_n
             annual_cost = electricity_cost + co2_cost + additional_variable_cost
         elif isinstance(component, Storage):
-            operation_cost = component.c_op_main_n * component.c / 1000
-            additional_variable_cost = annual_output * component.c_var
-            annual_cost = operation_cost + co2_cost + additional_variable_cost
+            additional_variable_cost = annual_output * component.c_var_n
+            annual_cost = component.c_op_main + co2_cost + additional_variable_cost
         else:
-            operation_cost = component.c_op_main_n * component.p_n / 1000
             if self.env.feed_in:
                 annual_revenues = self.op.df[component.name + f' Feed in [{self.env.currency}]'].sum()
             else:
                 annual_revenues = 0
-            additional_variable_cost = annual_output * component.c_var
-            annual_cost = operation_cost + co2_cost - annual_revenues + additional_variable_cost
+            additional_variable_cost = annual_output * component.c_var_n
+            annual_cost = component.c_op_main + co2_cost - annual_revenues + additional_variable_cost
 
         self.evaluation_df.loc[component.name, f'Annual cost [{self.env.currency}/a]'] = int(annual_cost)
 

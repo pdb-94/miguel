@@ -21,7 +21,7 @@ class Storage:
                  lifetime: int = 10,
                  c_invest_n: float = 1200,
                  c_op_main_n: float = 30,
-                 c_var: float = 0,
+                 c_var_n: float = 0,
                  co2_init: float = 103,
                  c_invest: float = None,
                  c_op_main: float = None):
@@ -57,8 +57,8 @@ class Storage:
         """
         self.env = env
         self.name = name
-        self.p_n = p_n
-        self.c = c
+        self.p_n = p_n  # W
+        self.c = c  # Wh
         self.soc = soc
         self.soc_max = soc_max
         self.soc_min = soc_min
@@ -67,8 +67,16 @@ class Storage:
         # Economical and ecological parameters
         self.c_invest_n = c_invest_n  # US$/kWh
         self.c_op_main_n = c_op_main_n  # US$/kWh
-        self.c_var = c_var  # US$/kWh
+        self.c_var_n = c_var_n  # US$/kWh
         self.co2_init = co2_init  # kg/kWh
+        if c_invest is None:
+            self.c_invest = self.c_invest_n * self.c / 1000
+        else:
+            self.c_invest = c_invest
+        if c_op_main is None:
+            self.c_op_main = self.c_op_main_n * self.c / 1000
+        else:
+            self.c_op_main = c_op_main
         self.lifetime = lifetime  # a
         self.replacements = self.env.lifetime / self.lifetime - 1
         self.replacement_parameters = self.calc_replacements()

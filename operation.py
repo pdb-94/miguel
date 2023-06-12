@@ -63,8 +63,8 @@ class Operator:
         for es in self.env.storage:
             es_col = es.name + ' [W]'
             df[es_col] = 0
-        for grid in self.env.grid:
-            grid_col = grid.name + ' [W]'
+        if self.env.grid is not None:
+            grid_col = self.env.grid.name + ' [W]'
             df[grid_col] = 0
         for dg in self.env.diesel_generator:
             dg_col = dg.name + ' [W]'
@@ -312,7 +312,7 @@ class Operator:
         :return: None
         """
         df = self.df
-        grid = self.env.grid[0].name
+        grid = self.env.grid.name
         df.at[clock, f'{grid} [W]'] = self.df.at[clock, 'P_Res [W]']
         df.at[clock, 'P_Res [W]'] = 0
 

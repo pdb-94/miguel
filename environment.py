@@ -57,7 +57,7 @@ class Environment:
              co2_grid: float}
         """
         # Container
-        self.grid = []
+        self.grid = None
         self.load = None
         self.pv = []
         self.diesel_generator = []
@@ -301,17 +301,18 @@ class Environment:
         return monthly_weather_data
 
     # Add Components to Environment
-    def add_grid(self):
+    def add_grid(self, c_var_n: float = 0):
         """
         Add Grid to environment
         :return: None
         """
-        name = f'Grid_{len(self.grid) + 1}'
-        self.grid.append(Grid(env=self,
-                              name=name))
-        self.supply_components.append(self.grid[-1])
-        self.df[f'{name}: P [W]'] = self.grid[-1].df['P [W]']
-        self.df[f'{name}: Blackout'] = self.grid[-1].df['Blackout']
+        name = 'Grid_1'
+        self.grid = Grid(env=self,
+                         name=name,
+                         c_var_n=c_var_n)
+        self.supply_components.append(self.grid)
+        self.df[f'{name}: P [W]'] = self.grid.df['P [W]']
+        self.df[f'{name}: Blackout'] = self.grid.df['Blackout']
         self.grid_connection = True
 
     def add_load(self,
@@ -337,7 +338,10 @@ class Environment:
     def add_pv(self,
                p_n: float = None,
                pv_data: dict = None,
-               pv_profile: pd.Series = None):
+               pv_profile: pd.Series = None,
+               c_invest: float = None,
+               c_op_main: float = None,
+               c_var_n: float = 0):
         """
         Add PV system to environment
         :return: None
@@ -346,16 +350,25 @@ class Environment:
         if pv_profile is not None:
             self.pv.append(PV(env=self,
                               name=name,
-                              pv_profile=pv_profile))
+                              pv_profile=pv_profile,
+                              c_invest=c_invest,
+                              c_op_main=c_op_main,
+                              c_var_n=c_var_n))
         elif p_n is not None:
             self.pv.append(PV(env=self,
                               name=name,
                               p_n=p_n,
-                              pv_data=pv_data))
+                              pv_data=pv_data,
+                              c_invest=c_invest,
+                              c_op_main=c_op_main,
+                              c_var_n=c_var_n))
         elif pv_data is not None:
             self.pv.append(PV(env=self,
                               name=name,
-                              pv_data=pv_data))
+                              pv_data=pv_data,
+                              c_invest=c_invest,
+                              c_op_main=c_op_main,
+                              c_var_n=c_var_n))
         else:
             pass
         self.re_supply.append(self.pv[-1])
@@ -369,7 +382,10 @@ class Environment:
                          p_n: float = None,
                          turbine_data: dict = None,
                          wt_profile: pd.Series = None,
-                         selection_parameters: list = None):
+                         selection_parameters: list = None,
+                         c_invest: float = None,
+                         c_op_main: float = None,
+                         c_var_n: float = 0):
         """
         Add Wind Turbine to environment
         :return: None
@@ -380,7 +396,10 @@ class Environment:
                                              p_n=p_n,
                                              turbine_data=turbine_data,
                                              wt_profile=wt_profile,
-                                             selection_parameters=selection_parameters))
+                                             selection_parameters=selection_parameters,
+                                             c_invest=c_invest,
+                                             c_op_main=c_op_main,
+                                             c_var_n=c_var_n))
         self.re_supply.append(self.wind_turbine[-1])
         self.supply_components.append(self.wind_turbine[-1])
         self.df[f'{name}: P [W]'] = self.wind_turbine[-1].df['P [W]']
@@ -391,7 +410,10 @@ class Environment:
                              p_n: float = None,
                              fuel_consumption: float = None,
                              fuel_ticks: dict = None,
-                             fuel_price: float = None):
+                             fuel_price: float = None,
+                             c_invest: float = None,
+                             c_op_main: float = None,
+                             c_var_n: float = 0):
         """
         Add Diesel Generator to environment
         :return: None
@@ -402,7 +424,10 @@ class Environment:
                                                      p_n=p_n,
                                                      fuel_consumption=fuel_consumption,
                                                      fuel_ticks=fuel_ticks,
-                                                     fuel_price=fuel_price))
+                                                     fuel_price=fuel_price,
+                                                     c_invest=c_invest,
+                                                     c_op_main=c_op_main,
+                                                     c_var_n=c_var_n))
         self.supply_components.append(self.diesel_generator[-1])
         self.add_component_data(component=self.diesel_generator[-1],
                                 supply=True)
@@ -413,7 +438,10 @@ class Environment:
                     soc: float = 0.25,
                     soc_max: float = 0.95,
                     soc_min: float = 0.05,
-                    lifetime: int = 10):
+                    lifetime: int = 10,
+                    c_invest: float = None,
+                    c_op_main: float = None,
+                    c_var_n: float = 0.021):
         """
         Add Energy Storage to environment
         :return: None
@@ -426,7 +454,10 @@ class Environment:
                                     soc=soc,
                                     soc_min=soc_min,
                                     soc_max=soc_max,
-                                    lifetime=lifetime))
+                                    lifetime=lifetime,
+                                    c_invest=c_invest,
+                                    c_op_main=c_op_main,
+                                    c_var_n=c_var_n))
         self.df[f'{name}: P [W]'] = self.storage[-1].df['P [W]']
         self.add_component_data(component=self.storage[-1],
                                 supply=False)
