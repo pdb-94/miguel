@@ -1,6 +1,7 @@
 import sys
 import os
 import calendar
+import threading
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import io
@@ -25,9 +26,11 @@ class Report:
         :param operator:
             MiGUEL Operator
         """
+        self.timeout = 15
         self.env = env
         self.operator = operator
         self.eval = evaluation
+        self.sankey = None
         # Name
         if self.env.name is not None:
             self.name = self.env.name
@@ -64,12 +67,21 @@ class Report:
         # Set author
         self.pdf_file.set_author('Paul Bohn')
         self.pdf_file.set_creator('Micro Grid User Energy Planning Tool Library')
-        self.pdf_file.set_keywords('EnerSHelF, Renewable Energy, Energy systems, MiGUEL, PV-Diesel-Hybrid systems')
+        self.pdf_file.set_keywords('EnerSHelF, Renewable Energy, Energy systems, MiGUEL, Ghana, '
+                                   'PV-Diesel-Hybrid systems')
         self.pdf_file.add_page()
         self.pdf_file.chapter_title(label=f'Energy system: {self.name}\n\n',
                                     size=14)
         # Create Chapters
-        self.create_sankey()
+        event = threading.Event()
+        thread = threading.Thread(target=self.create_sankey, daemon=True)
+        thread.start()
+        thread.join(self.timeout)
+        if thread.is_alive():
+            event.set()
+            print(f'The function create_sankey was interrupted because it lasted longer than {self.timeout}s.')
+        else:
+            self.sankey = True
         self.introduction_summary()
         self.base_data()
         self.climate_data()
@@ -82,7 +94,6 @@ class Report:
         self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
-
     def introduction_summary(self):
         """
         Create Introduction and Summary
@@ -407,8 +418,8 @@ class Report:
             columns.append(wt.name + ' [W]')
         for es in env.storage:
             columns.append(es.name + ' [W]')
-        for grid in env.grid:
-            columns.append(grid.name + ' [W]')
+        if self.env.grid is not None:
+            columns.append(self.env.grid.name + ' [W]')
         for dg in env.diesel_generator:
             columns.append(dg.name + ' [W]')
         self.create_plot(df=self.operator.df,
@@ -421,9 +432,10 @@ class Report:
                             h=120)
         self.pdf_file.chapter_body(name=self.txt_file_path + '/default/5_sankey.txt',
                                    size=10)
-        self.pdf_file.image(name=self.report_path + 'pictures/sankey.png',
-                            w=150,
-                            x=30)
+        if self.sankey:
+            self.pdf_file.image(name=self.report_path + 'pictures/sankey.png',
+                                w=150,
+                                x=30)
 
     def evaluation(self):
         """
@@ -616,31 +628,31 @@ class Report:
         pv_charge = 0
         pv_feed_in = 0
         for pv in env.pv:
-            pv_sc += op.df[pv.name + ' [W]'].sum() * time_factor
+            pv_sc += op.df[f'{pv.name} [W]'].sum() * time_factor
             if len(env.storage) > 0:
-                pv_charge += op.df[pv.name + '_charge [W]'].sum() * time_factor
+                pv_charge += op.df[f'{pv.name}_charge [W]'].sum() * time_factor
             if env.grid_connection and env.feed_in is True:
-                pv_feed_in += op.df[pv.name + ' Feed in [W]'].sum() * time_factor
+                pv_feed_in += op.df[f'{pv.name} Feed in [W]'].sum() * time_factor
         pv_production = pv_sc
         wt_sc = 0
         wt_charge = 0
         wt_feed_in = 0
-        for wt in env.wind_turbine:
-            wt_sc += op.df[wt.name + ' [W]'].sum() * time_factor
-            if len(env.storage) > 0:
-                wt_charge += op.df[wt.name + '_charge [W]'].sum() * time_factor
-            if env.grid_connection and env.feed_in is True:
-                wt_feed_in += op.df[wt.name + ' Feed in [W]'].sum() * time_factor
-        wt_production = wt_sc
         grid_production = 0
-        for grid in env.grid:
-            grid_production += op.df[grid.name + ' [W]'].sum() * time_factor
+        if env.grid is not None:
+            grid_production += op.df[f'{env.grid.name} [W]'].sum() * time_factor
+        for wt in env.wind_turbine:
+            wt_sc += op.df[f'{wt.name} [W]'].sum() * time_factor
+            if len(env.storage) > 0:
+                wt_charge += op.df[f'{wt.name}_charge [W]'].sum() * time_factor
+            if env.grid_connection and env.feed_in is True:
+                wt_feed_in += op.df[f'{wt.name} Feed in [W]'].sum() * time_factor
+        wt_production = wt_sc
         dg_production = 0
         for dg in env.diesel_generator:
-            dg_production += op.df[dg.name + ' [W]'].sum() * time_factor
+            dg_production += op.df[f'{dg.name} [W]'].sum() * time_factor
         es_discharge = 0
         for es in env.storage:
-            es_discharge += op.df[op.df[es.name + ' [W]'] > 0].sum() * time_factor
+            es_discharge += op.df[op.df[f'{es.name} [W]'] > 0].sum() * time_factor
         source = [6, 7, 0, 1, 0, 2, 2, 0, 3, 4, 3, 5, 5, 3, 8, 9, 9]
         target = [10, 10, 1, 10, 2, 8, 12, 11, 4, 10, 5, 8, 12, 11, 9, 10, 12]
         value = [grid_production,
