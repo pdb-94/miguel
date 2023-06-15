@@ -36,7 +36,7 @@ class ProjectSetup(QWidget):
                                w=int(self.screen_width/10),
                                h=int(self.screen_width/10))
         # Description
-        description = """The Micro Grid User Energy Planning Tool Library (MiGUEL) was developed in the course of the project Energy-Self-Sufficiency for Health Facilities in Ghana (EnerSHelF). EnerSHelF was funded by the German Federal Ministry for Education and Research from June 2019 until March 2023. The main author of MiGUEL is Paul Bohn (Technische Hochschule Köln) other contributors were Moritz End and Silvan Rummeny. The development was supervised by Prof. Dr. Thorsten Schneiders (Cologne Institute for Renewable Energies, Technische Hochschule Köln). MiGUEL is a python-based, open source tool to model, simulate and analyse PV-diesel hybrid systems. MiGUEL aims to have a low entry barrier and understandable results. Neither is the user required to deliver datasets to the program nor are programming skills required. Only basic parameters are needed to carry out the simulation in the basic form. As results MiGUEL delivers both csv-files with every simulation time step as well as a pdf-report with an overview of the most important results as well as the system evaluation."""
+        description = "The Micro Grid User Energy Planning Tool Library (MiGUEL) was developed in the course of the project Energy-Self-Sufficiency for Health Facilities in Ghana (EnerSHelF). EnerSHelF was funded by the German Federal Ministry for Education and Research from June 2019 until March 2023. The main author of MiGUEL is Paul Bohn (Technische Hochschule Köln) other contributors were Moritz End and Silvan Rummeny. The development was supervised by Prof. Dr. Thorsten Schneiders (Cologne Institute for Renewable Energies, Technische Hochschule Köln). MiGUEL is a python-based, open source tool to model, simulate and analyse PV-diesel hybrid systems. MiGUEL aims to have a low entry barrier and understandable results. Neither is the user required to deliver datasets to the program nor are programming skills required. Only basic parameters are needed to carry out the simulation in the basic form. As results MiGUEL delivers both csv-files with every simulation time step as well as a pdf-report with an overview of the most important results as well as the system evaluation."
         font = QFont('Calibri', 13)
         self.description = QLabel(description)
         self.description.setAlignment(Qt.AlignJustify)
@@ -50,6 +50,3 @@ class ProjectSetup(QWidget):
         self.layout.addWidget(self.th_logo, 2, 0, Qt.AlignLeft)
         self.layout.addWidget(self.enershelf_logo, 2, 1, Qt.AlignLeft)
         self.setLayout(self.layout)
-
-
-

@@ -176,8 +176,8 @@ def clear_widget(widget: list):
         Widget to clear
     :return: None
     """
-    for i in range(len(widget)):
-        widget[i].clear()
+    for x in widget:
+        x.clear()
 
 
 def change_widget_text(widget: list, text: list):
@@ -187,7 +187,7 @@ def change_widget_text(widget: list, text: list):
         Widget to change text
     :param text: str
         new text
-    :return: NOne
+    :return: None
     """
     for i in range(len(widget)):
         widget[i].setText(text[i])

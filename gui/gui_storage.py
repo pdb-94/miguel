@@ -37,8 +37,8 @@ class EnergyStorage(QWidget):
         self.lifetime_l.setText('Calendaric lifetime [a]')
         self.invest_l = QLabel()
         self.invest_l.setText('Investment cost (optional) [US$]')
-        self.op_main_l = QLabel()
-        self.op_main_l.setText('Operation and maintenance cost (optional) [US$/a]')
+        self.opm_l = QLabel()
+        self.opm_l.setText('Operation and maintenance cost (optional) [US$/a]')
         # Edits
         self.p = QLineEdit()
         self.c = QLineEdit()
@@ -49,7 +49,7 @@ class EnergyStorage(QWidget):
         self.n_discharge = QLineEdit('0.8')
         self.lifetime = QLineEdit('10')
         self.invest = QLineEdit()
-        self.op_main = QLineEdit()
+        self.opm = QLineEdit()
         # Set up Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.p_l, 1, 0)
@@ -70,6 +70,6 @@ class EnergyStorage(QWidget):
         self.layout.addWidget(self.lifetime, 8, 1)
         self.layout.addWidget(self.invest_l, 9, 0)
         self.layout.addWidget(self.invest, 9, 1)
-        self.layout.addWidget(self.op_main_l, 10, 0)
-        self.layout.addWidget(self.op_main, 10, 1)
+        self.layout.addWidget(self.opm_l, 10, 0)
+        self.layout.addWidget(self.opm, 10, 1)
         self.setLayout(self.layout)
