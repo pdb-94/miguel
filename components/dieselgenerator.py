@@ -37,7 +37,7 @@ class DieselGenerator:
             specific investment cost [US$/kW]
         :param c_op_main_n: float
             operation and maintenance cost [US$/kW/a]
-        :param c_var: float
+        :param c_var_n: float
             variable cost [US$/kWh]
         :param co2_init: float
             initial CO2-emissions during production [US$/kW]
@@ -53,7 +53,7 @@ class DieselGenerator:
         self.c_var_n = c_var_n  # USD/kWh
         self.fuel_consumption = fuel_consumption  # [l/p_n]
         self.fuel_price = fuel_price  # [US$/l]
-        self.co2_init = co2_init  # kg/kW
+        self.co2_init = co2_init * self.p_n / 1000  # kg
         if c_invest is None:
             self.c_invest = self.c_invest_n * self.p_n / 1000
         else:

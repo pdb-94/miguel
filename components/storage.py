@@ -2,6 +2,8 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
+# TODO: Add Bleach-Acid, LiIon and Redox-Flow parameters (soc-boarders, efficiency, specific cost and co2 emissions)
+
 
 class Storage:
     """
@@ -11,6 +13,7 @@ class Storage:
     def __init__(self,
                  env,
                  name: str = None,
+                 storage_type: str = 'Default',
                  p_n: float = None,
                  c: float = None,
                  soc: float = 0.25,
@@ -50,25 +53,27 @@ class Storage:
             specific investment cost [US$/kWh]
         :param c_op_main_n: float
             operation and maintenance cost [US$/kWh/a]
-        :param c_var: float
+        :param c_var_n: float
             variable cost [US$/kWh]
         :param co2_init: float
             initial CO2-emissions during production [US$/kW]
         """
         self.env = env
         self.name = name
+        self.storage_type = storage_type
         self.p_n = p_n  # W
         self.c = c  # Wh
         self.soc = soc
         self.soc_max = soc_max
         self.soc_min = soc_min
-        self.n_charge = n_charge
-        self.n_discharge = n_discharge
+        if self.storage_type == 'Default':
+            self.n_charge = n_charge
+            self.n_discharge = n_discharge
         # Economical and ecological parameters
         self.c_invest_n = c_invest_n  # US$/kWh
         self.c_op_main_n = c_op_main_n  # US$/kWh
         self.c_var_n = c_var_n  # US$/kWh
-        self.co2_init = co2_init  # kg/kWh
+        self.co2_init = co2_init * self.c / 1000 # kg/kWh
         if c_invest is None:
             self.c_invest = self.c_invest_n * self.c / 1000
         else:
@@ -196,7 +201,7 @@ class Storage:
         interval = self.env.lifetime / replacements
         for year in range(int(interval), int(replacements*interval)-1, int(interval)):
             c_invest_replacement[year] = (self.c_invest_n * self.c/1000) / ((1 + self.env.d_rate) ** year)
-            co2_replacement[year] = (self.co2_init * self.c) / ((1 + self.env.d_rate) ** year)
+            co2_replacement[year] = (self.co2_init * self.c / 1000) / ((1 + self.env.d_rate) ** year)
 
         return c_invest_replacement, co2_replacement
 

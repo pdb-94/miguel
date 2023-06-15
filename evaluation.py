@@ -198,11 +198,11 @@ class Evaluation:
         :return: None
         """
         if isinstance(component, Storage):
-            co2_init = (component.co2_init * component.c + component.replacement_co2) / 1e6
+            co2_init = (component.co2_init + component.replacement_co2) / 1000
         elif isinstance(component, Grid):
             co2_init = 0
         else:
-            co2_init = component.co2_init * component.p_n / 1e6
+            co2_init = component.co2_init / 1000
 
         self.evaluation_df.loc[component.name, 'Initial CO2 emissions [t]'] = round(co2_init, 3)
 

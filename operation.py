@@ -34,7 +34,6 @@ class Operator:
         self.power_sink_max = None
         self.df = self.build_df()
         self.dispatch()
-        # self.dispatch_vector()
         self.export_data()
 
     ''' Basic Functions'''
@@ -119,34 +118,6 @@ class Operator:
         else:
             self.power_sink_max = float(self.power_sink.max().iloc[0])
             self.system_covered = False
-
-    def dispatch_vector(self):
-        env = self.env
-        df = self.df
-        for component in env.re_supply:
-            # Calculate RE self consumption
-            df[f'{component.name} [W]'] = np.where(df['P_Res [W]'] >= component.df['P [W]'],
-                                                   component.df['P [W]'],
-                                                   df['P_Res [W]'])
-            df[f'{component.name} remain [W]'] = np.where(
-                component.df['P [W]'] - df['P_Res [W]'] < 0,
-                0, component.df['P [W]'] - df['P_Res [W]'])
-            df['P_Res [W]'] -= df[f'{component.name} [W]']
-            # Charge Storage
-            for es in env.storage:
-                q_initial = es.soc * es.c
-                prev_q = es.df['Q [Wh]'].shift(freq=env.t_step,
-                                               fill_value=q_initial)
-                prev_soc = prev_q / es.c
-                q_charge = df[f'{component.name} remain [W]']
-                charge_condition = prev_q + q_charge < es.c * es.soc_max
-        if env.grid_connection:
-            df['Grid_1 [W]'] = df['P_Res [W]']
-            df['P_Res [W]'] = 0
-        else:
-            for dg in env.diesel_generator:
-                df[f'{dg.name} [W]'] = np.where(df['P_Res [W]'] >= dg.p_n, dg.p_n, df['P_Res [W]'])
-                df['P_Res [W]'] -= df[f'{dg.name} [W]']
 
     def check_dispatch(self):
         """
@@ -344,3 +315,5 @@ class Operator:
         self.env.weather_data[0].to_csv(f'{root}/export/weather_data.csv', sep=sep, decimal=decimal)
         self.env.wt_weather_data.to_csv(f'{root}/export/wt_weather_data.csv', sep=sep, decimal=decimal)
         self.env.monthly_weather_data.to_csv(f'{root}/export/monthly_weather_data.csv', sep=sep, decimal=decimal)
+
+

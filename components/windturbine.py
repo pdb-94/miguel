@@ -40,7 +40,7 @@ class WindTurbine:
             specific investment cost [US$/kW]
         :param c_op_main_n: float
             operation and maintenance cost [US$/kW/a]
-        :param c_var: float
+        :param c_var_n: float
             variable cost [US$/kWh]
         :param co2_init: float
             initial CO2-emissions during production [US$/kW]
@@ -52,15 +52,6 @@ class WindTurbine:
         self.c_invest_n = c_invest_n  # USD/kW
         self.c_op_main_n = c_op_main_n  # USD/kW
         self.c_var_n = c_var_n  # USD/kWh
-        self.co2_init = co2_init  # kg/kW
-        if c_invest is None:
-            self.c_invest = self.c_invest_n * self.p_n / 1000
-        else:
-            self.c_invest = c_invest
-        if c_op_main is None:
-            self.c_op_main = self.c_op_main_n * self.p_n / 1000
-        else:
-            self.c_op_main = c_op_main
         # Location
         self.longitude = self.env.location.get('longitude')
         self.latitude = self.env.location.get('latitude')
@@ -77,9 +68,19 @@ class WindTurbine:
             self.df['Wind speed [km/h]'] = wind_speed
         if wt_profile is not None:
             self.df['P [W]'] = wt_profile
+            self.p_n = p_n
         if turbine_data is not None:
             self.turbine_data = turbine_data
             self.hub_height = self.turbine_data.get('hub_height')
+        if c_invest is None:
+            self.c_invest = self.c_invest_n * self.p_n / 1000
+        else:
+            self.c_invest = c_invest
+        if c_op_main is None:
+            self.c_op_main = self.c_op_main_n * self.p_n / 1000
+        else:
+            self.c_op_main = c_op_main
+        self.co2_init = co2_init * self.p_n / 1000  # kg
 
         self.turbine_df = self.get_turbine_data()
         self.windturbine = self.create_wind_turbine()

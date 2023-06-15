@@ -42,7 +42,7 @@ class PV:
             specific investment cost [US$/kW]
         :param c_op_main_n: float
             operation and maintenance cost [US$/kW/a]
-        :param c_var: float
+        :param c_var_n: float
             variable cost [US$/kWh]
         :param co2_init: float
             initial CO2-emissions during production [US$/kW]
@@ -65,6 +65,7 @@ class PV:
         if pv_profile is not None:
             # Create DataFrame from existing pv profile
             self.df['P [W]'] = pv_profile
+            self.p_n = p_n
         elif p_n is not None:
             self.p_n = p_n
             self.longitude = self.env.location.get('longitude')
@@ -125,7 +126,7 @@ class PV:
         self.c_invest_n = c_invest_n
         self.c_op_main_n = c_op_main_n
         self.c_var_n = c_var_n
-        self.co2_init = co2_init  # kg/kW
+        self.co2_init = co2_init * self.p_n / 1000  # kg/kW
         if c_invest is None:
             self.c_invest = self.c_invest_n * self.p_n / 1000
         else:
@@ -194,7 +195,7 @@ class PV:
         :return: pvlib.Location
             Location object
         """
-        location = pvlib.location.Location(name=self.name + ' Location',
+        location = pvlib.location.Location(name=f'{self.name} Location',
                                            longitude=self.longitude,
                                            latitude=self.latitude,
                                            altitude=self.altitude,

@@ -75,8 +75,9 @@ class Environment:
         self.t_step = time.get('step')
         self.timezone = time.get('timezone')
         self.i_step = self.t_step.seconds / 60
-        self.time_series = self.create_df()[0]
-        self.time = self.create_df()[1]
+        time_parameters = self.create_df()
+        self.time_series = time_parameters[0]
+        self.time = time_parameters[1]
         self.year = self.t_start.year
         # Location
         self.location = location
@@ -96,16 +97,16 @@ class Environment:
             self.wt_feed_in_tariff = 0.05  # US$/kWh
             self.electricity_price = 0.40  # US$/kWh
             self.diesel_price = 1.20  # US$/l
-            self.avg_co2_price = 0  # currency/t
+            self.avg_co2_price = 0  # US$//t
         else:
             self.currency = economy.get('currency')
             self.d_rate = economy.get('d_rate')
             self.lifetime = economy.get('lifetime')  # a
-            self.electricity_price = economy.get('electricity_price')  # currency/kWh
-            self.diesel_price = economy.get('diesel_price')
-            self.avg_co2_price = economy.get('co2_price')  # currency/kg
-            self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # currency/kWh
-            self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # currency/kWh
+            self.electricity_price = economy.get('electricity_price')  # US$//kWh
+            self.diesel_price = economy.get('diesel_price')  # US$/l
+            self.avg_co2_price = economy.get('co2_price')  # US$//kg
+            self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # US$//kWh
+            self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # US$//kWh
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
             self.co2_grid = 0
