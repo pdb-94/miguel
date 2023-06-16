@@ -53,7 +53,7 @@ To create an instance of the class, the following parameters have to be provided
 | **time** | **Project time data** | **dict** |-|-||
 | start | Start time | datetime.datetime |-|-||
 | end | End time | datetime.datetime |-|-||
-| step | Time resolution | datetime.timedelta |15|min|Possible resolutions: 1min, 15min, 60min|
+| step | Time resolution | datetime.timedelta |15|min|Possible resolutions: 15min, 60min|
 | timezone | Time zone | str |-|-||
 | **location** | **Project location** | **dict** |-|-||
 | longitude | Longitude | float |-|°||
