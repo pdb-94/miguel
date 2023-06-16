@@ -3,6 +3,8 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 
+# TODO: enable 1min time resolution (interpolate values of reference profiles)
+
 
 class Load:
     """
@@ -31,14 +33,15 @@ class Load:
                                             decimal=self.env.csv_decimal)
             self.original_load_profile = self.load_profile
         else:
+            # Differentiate ghanaian or bdew reference load profie
             if self.ref_profile == 'hospital_ghana':
                 self.load_profile = self.standard_load_profile()
             else:
                 self.load_profile = self.bdew_reference_load_profile(profile=self.ref_profile)
         self.load_profile.index = pd.to_datetime(self.load_profile.index)
-        # Check load profile resolution
+        # Check if load profile resolution matches environment time resolution
         resolution = self.check_resolution()
-        if resolution is True:
+        if resolution:
             self.adjust_length(profile=self.load_profile)
         else:
             # Create Scaled load profile
@@ -71,10 +74,14 @@ class Load:
             mean values
         """
         values = []
-        i_step = int(self.env.t_step / dt.timedelta(minutes=1))
-        for i in range(0, len(self.load_profile), i_step):
-            lp_index = self.load_profile.index
-            values.append(self.load_profile.loc[lp_index[i]:lp_index[i + i_step - 1], 'P [W]'].mean())
+        if self.env.i_step == 60:
+            for i in range(0, len(self.load_profile), int(self.env.i_step/15)):
+                lp_index = self.load_profile.index
+                values.append(self.load_profile.loc[lp_index[i]:lp_index[int(i + (self.env.i_step/15) - 1)], 'P [W]'].mean())
+        elif self.env.i_step == 1:
+            print('Interpolate values')
+        else:
+            return
 
         return values
 
@@ -144,11 +151,23 @@ class Load:
         # Retrieve BDEW profile
         bdew_profile = self.retrieve_bdew_profile(profile=profile)
         # FIll df with matching reference profile based on season and weekday
-        for i in range(0, len(df.index), 96):
-            day = df.at[df.index[i], 'Weekday']
-            season = df.at[df.index[i], 'Season']
-            profile = bdew_profile.get(season).get(day)
-            df.loc[df.index[i]:df.index[i+95], 'P [W]'] = profile.values
+        if self.env.i_step == 15:
+            for i in range(0, len(df.index), 96):
+                day = df.at[df.index[i], 'Weekday']
+                season = df.at[df.index[i], 'Season']
+                profile = bdew_profile.get(season).get(day)
+                df.loc[df.index[i]:df.index[i+95], 'P [W]'] = profile.values
+        elif self.env.i_step == 60:
+            for i in range(0, len(df.index), 24):
+                day = df.at[df.index[i], 'Weekday']
+                season = df.at[df.index[i], 'Season']
+                profile = bdew_profile.get(season).get(day)
+                adjusted_profile = profile.rolling(4).mean().iloc[3::4].reset_index(drop=True)
+                df.loc[df.index[i]:df.index[i + 23], 'P [W]'] = adjusted_profile.values
+        elif self.env.i_step == 1:
+            print('Interpolate Values')
+        else:
+            return
         # Scale annual consumption and fill values
         total = df['P [W]'].sum() * self.env.i_step / 60
         scale = self.annual_consumption / total
@@ -188,7 +207,5 @@ class Load:
                             'transition': {5: transition_5, 6: transition_6, 0: transition_w}}
 
             return bdew_profile
-
         else:
-
             return
