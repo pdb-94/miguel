@@ -3,8 +3,6 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 
-# TODO: enable 1min time resolution (interpolate values of reference profiles)
-
 
 class Load:
     """
@@ -73,15 +71,8 @@ class Load:
         :return: list
             mean values
         """
-        values = []
-        if self.env.i_step == 60:
-            for i in range(0, len(self.load_profile), int(self.env.i_step/15)):
-                lp_index = self.load_profile.index
-                values.append(self.load_profile.loc[lp_index[i]:lp_index[int(i + (self.env.i_step/15) - 1)], 'P [W]'].mean())
-        elif self.env.i_step == 1:
-            print('Interpolate values')
-        else:
-            return
+        lp_index = self.load_profile.index
+        values = self.load_profile.groupby(np.arange(len(lp_index)) // int(self.env.i_step / 15))['P [W]'].mean().tolist()
 
         return values
 
@@ -92,8 +83,7 @@ class Load:
             list with values
         :return: None
         """
-        for k in range(len(values)):
-            self.scaled_load_profile.loc[self.scaled_load_profile.index[k], 'P [W]'] = values[k]
+        self.scaled_load_profile['P [W]'] = values
 
     def adjust_length(self, profile: pd.DataFrame):
         """
@@ -105,9 +95,10 @@ class Load:
         df_index = self.df.index
         p_index = profile.index
         factor = int(len(df_index) / len(p_index))
-        for i in range(factor):
-            self.df.loc[df_index[len(p_index) * i]:df_index[len(p_index) * (i + 1) - 1], 'P [W]'] = profile[
-                'P [W]'].values
+        # Repeat load profile according to factor
+        repeated_profile = np.repeat(profile['P [W]'].values, factor)
+        # Assign values to df
+        self.df.loc[:, 'P [W]'] = repeated_profile
 
     def standard_load_profile(self):
         """
@@ -144,33 +135,30 @@ class Load:
         df['Weekday'] = np.where(df['Weekday'] < 5, 0, df['Weekday'])
         # Define season
         month = df.index.month
-        season = np.select(
-            [month.isin(self.env.seasons[season]) for season in self.env.seasons],
-            list(self.env.seasons.keys()))
-        df['Season'] = season
+        season_conditions = [month.isin(self.env.seasons[season]) for season in self.env.seasons]
+        season_values = list(self.env.seasons.keys())
+        df['Season'] = np.select(season_conditions, season_values)
         # Retrieve BDEW profile
         bdew_profile = self.retrieve_bdew_profile(profile=profile)
         # FIll df with matching reference profile based on season and weekday
         if self.env.i_step == 15:
-            for i in range(0, len(df.index), 96):
-                day = df.at[df.index[i], 'Weekday']
-                season = df.at[df.index[i], 'Season']
-                profile = bdew_profile.get(season).get(day)
-                df.loc[df.index[i]:df.index[i+95], 'P [W]'] = profile.values
+            day_values = df.loc[::96, 'Weekday'].values
+            season_values = df.loc[::96, 'Season'].values
+            profiles = [bdew_profile.get(season).get(day) for day, season in zip(day_values, season_values)]
+            df['P [W]'] = np.concatenate([profile.values for profile in profiles])
         elif self.env.i_step == 60:
-            for i in range(0, len(df.index), 24):
-                day = df.at[df.index[i], 'Weekday']
-                season = df.at[df.index[i], 'Season']
-                profile = bdew_profile.get(season).get(day)
-                adjusted_profile = profile.rolling(4).mean().iloc[3::4].reset_index(drop=True)
-                df.loc[df.index[i]:df.index[i + 23], 'P [W]'] = adjusted_profile.values
-        elif self.env.i_step == 1:
-            print('Interpolate Values')
+            day_values = df.loc[::24, 'Weekday'].values
+            season_values = df.loc[::24, 'Season'].values
+            profiles = [bdew_profile.get(season).get(day) for day, season in zip(day_values, season_values)]
+            adjusted_profiles = [profile.rolling(4).mean().iloc[3::4].reset_index(drop=True) for profile in profiles]
+            df['P [W]'] = np.concatenate([adjusted_profile.values for adjusted_profile in adjusted_profiles])
         else:
             return
         # Scale annual consumption and fill values
-        total = df['P [W]'].sum() * self.env.i_step / 60
+        total = df['P [W]'].sum() * self.env.i_step / 60  # Annual consumption in kWH - scaled to time resolution
+        # print(total)
         scale = self.annual_consumption / total
+        # print(df)
         df['P [W]'] = df['P [W]'] * scale
 
         return df
