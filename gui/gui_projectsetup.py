@@ -11,7 +11,7 @@ class ProjectSetup(QWidget):
     """
     def __init__(self):
         super().__init__()
-
+        self.setFont(QFont('Calibri', 12))
         self.screen_geometry = QDesktopWidget().screenGeometry(-1)
         self.screen_width = self.screen_geometry.width()
         self.screen_height = self.screen_geometry.height()

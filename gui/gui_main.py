@@ -10,7 +10,6 @@ from PyQt5.QtGui import *
 from tzfpy import get_tz
 from environment import Environment
 from operation import Operator
-from components.storage import Storage
 from report.report import Report
 import gui_func as gui_func
 from gui.gui_projectsetup import ProjectSetup
@@ -66,6 +65,7 @@ class TabWidget(QWidget):
                             EnergyStorage,
                             Dispatch,
                             Evaluation]
+        # Add tabs to TabWidget and disable widgets
         enabled = [True, True, False, False, False, False, False, False, False, False]
         for count, tab in enumerate(self.tab_classes, start=0):
             self.tabs.addTab(tab(), self.tab_title[count])
@@ -73,28 +73,28 @@ class TabWidget(QWidget):
 
         # Set up Pushbutton
         self.delete_btn = QPushButton('Delete')
-        self.delete_btn.setFixedSize(QSize(200, 40))
+        self.delete_btn.setFixedSize(QSize(220, 40))
         self.save_btn = QPushButton('Save')
-        self.save_btn.setFixedSize(QSize(200, 40))
+        self.save_btn.setFixedSize(QSize(220, 40))
         self.return_btn = QPushButton('Return')
-        self.return_btn.setFixedSize(QSize(200, 40))
+        self.return_btn.setFixedSize(QSize(220, 40))
         self.next_btn = QPushButton('Start')
-        self.next_btn.setFixedSize(QSize(200, 40))
-        gui_func.enable_widget(widget=[self.save_btn, self.return_btn], enable=False)
-        gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], show=False)
+        self.next_btn.setFixedSize(QSize(220, 40))
+        gui_func.enable_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], enable=False)
         # Functions
         self.tabs.currentChanged.connect(self.tab_changed)
         self.next_btn.clicked.connect(self.next_tab)
         self.return_btn.clicked.connect(self.previous_tab)
         self.save_btn.clicked.connect(self.save)
+        self.delete_btn.clicked.connect(self.delete)
 
         # Set up Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.tabs, 0, 0, 4, 1)
-        self.layout.addWidget(self.delete_btn, 0, 1, Qt.AlignBottom)
-        self.layout.addWidget(self.save_btn, 1, 1)
-        self.layout.addWidget(self.return_btn, 2, 1)
-        self.layout.addWidget(self.next_btn, 3, 1)
+        self.layout.addWidget(self.delete_btn, 1, 1, Qt.AlignBottom)
+        self.layout.addWidget(self.save_btn, 2, 1)
+        self.layout.addWidget(self.return_btn, 3, 1)
+        self.layout.addWidget(self.next_btn, 4, 1)
         self.setLayout(self.layout)
 
         # Geometry
@@ -104,7 +104,7 @@ class TabWidget(QWidget):
         self.scale = 1.5
         self.setGeometry(200, 200, int(self.screen_width / self.scale), int(self.screen_height / self.scale))
         self.setWindowTitle('Micro Grid User Energy Tool Library')
-        window_icon = QIcon(self.root + '/documentation/MiGUEL_icon.png')
+        window_icon = QIcon(f'{self.root}/documentation/MiGUEL_icon.png')
         self.setWindowIcon(window_icon)
         self.show()
 
@@ -133,26 +133,96 @@ class TabWidget(QWidget):
         index = self.tabs.currentIndex()
         if index == 0:
             # Tab Start
-            # Change widget text, show and enable widgets
-            gui_func.change_widget_text(widget=[self.next_btn], text=['Start'])
-            gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], show=False)
-            gui_func.show_widget(widget=[self.next_btn], show=True)
-            gui_func.enable_widget(widget=[self.next_btn], enable=True)
+            gui_func.enable_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], enable=False)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Save', 'Delete', 'Start', 'Return'])
+        elif index == 1:
+            # Tab environment
+            gui_func.enable_widget(widget=[self.save_btn, self.next_btn, self.return_btn], enable=True)
+            gui_func.enable_widget(widget=[self.delete_btn], enable=False)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Save', 'Delete', 'Next', 'Return'])
+        elif index == 2:
+            # Tab weather data
+            gui_func.enable_widget(widget=[self.delete_btn, self.save_btn],
+                                   enable=False)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Save', 'Delete', 'Next', 'Return'])
+        elif index == 3:
+            # Tab load profile
+            gui_func.enable_widget(widget=[self.delete_btn],
+
+                                   enable=False)
         elif index == 8:
             # Tab dispatch
-            gui_func.change_widget_text(widget=[self.save_btn], text=['Run Dispatch'])
-            gui_func.show_widget(widget=[self.delete_btn], show=False)
-            self.update_dispatch_table()
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Run dispatch', 'Delete', 'Next', 'Return'])
+            gui_func.enable_widget(widget=[self.save_btn, self.return_btn, self.next_btn],
+                                   enable=True)
+            gui_func.enable_widget(widget=[self.delete_btn],
+                                   enable=False)
+            gui_func.update_listview(tab=self.tabs.widget(8))
         elif index == 9:
             # Tab evaluation
-            # self.layout.addWidget(self.return_btn, 2, 1, Qt.AlignBottom)
-            gui_func.change_widget_text(widget=[self.save_btn], text=['Export'])
-            gui_func.show_widget(widget=[self.next_btn, self.delete_btn], show=False)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Evaluate system', 'Delete', 'Export', 'Return'])
+            gui_func.enable_widget(widget=[self.return_btn],
+                                   enable=True)
+            # Enable tab if dispatch has been finished
+            if self.operator is not None:
+                gui_func.enable_widget(widget=[self.save_btn, self.next_btn],
+                                       enable=True)
+                gui_func.enable_widget(widget=[self.delete_btn],
+                                       enable=False)
+            else:
+                gui_func.enable_widget(widget=[self.save_btn, self.next_btn, self.delete_btn],
+                                       enable=False)
         else:
             # Change widget text, show and enable/disable widgets
-            gui_func.change_widget_text(widget=[self.next_btn, self.save_btn], text=['Next', 'Save'])
-            gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn, self.next_btn], show=True)
-            gui_func.enable_widget(widget=[self.save_btn, self.return_btn], enable=True)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Save', 'Delete', 'Next', 'Return'])
+            gui_func.show_widget(widget=[self.save_btn, self.return_btn, self.delete_btn, self.next_btn],
+                                 show=True)
+            gui_func.enable_widget(widget=[self.save_btn, self.return_btn, self.delete_btn],
+                                   enable=True)
+
+    def delete(self):
+        """
+        Delete components from environment
+        :return: None
+        """
+        index = self.tabs.currentIndex()
+        tabs = self.tabs.widget
+        tab = tabs(index)
+        if index == 4:
+            component = self.env.pv
+        elif index == 5:
+            component = self.env.wind_turbine
+        elif index == 6:
+            component = self.env.diesel_generator
+        elif index == 7:
+            component = self.env.storage
+        # Check if component has been created
+        if len(component) > 0:
+            row = tab.overview.currentIndex().row()
+            # Check if component has been selected
+            if row != -1:
+                name = component[row].name
+                # Delete item from environment
+                del (component[row])
+                # Remove item from QListView
+                tab.component_df = tab.component_df.drop(row, axis=0)
+                gui_func.update_listview(tab=tab)
+                # Remove item from dispatch listview
+                dispatch_row = tabs(8).component_df.index[tabs(8).component_df['Name'] == name].to_list()[0]
+                tabs(8).component_df = tabs(8).component_df.drop(dispatch_row, axis=0)
+                gui_func.update_listview(tab=tabs(8))
+            else:
+                # No component selected
+                print('Select item to delete from list.')
+        else:
+            # No component existing
+            print('No component existing.')
 
     def save(self):
         """
@@ -167,6 +237,9 @@ class TabWidget(QWidget):
             self.create_env(tab)
             # Plot weather data
             self.plot_monthly_weather_data()
+            # Change system type widget
+            system_type = self.env.system
+            gui_func.change_widget_text(widget=[tabs(8).system_type], text=[system_type])
             # Reset widgets
             gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude, tab.altitude,
                                           tab.electricity_price, tab.co2_price, tab.wt_feed, tab.pv_feed,
@@ -187,20 +260,39 @@ class TabWidget(QWidget):
         elif index == 4:
             # PV system
             self.gui_add_pv(tab)
-            pv_data = self.collect_component_data(self.env.pv[-1])
-            self.update_component_df(pv_data)
+            data = gui_func.collect_component_data(self.env.pv[-1])
+            # Update QListWidget
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index))
+            # Update component df in tab dispatch
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(8))
         elif index == 5:
             # Wind turbine
             self.gui_add_wt(tab)
-            wt_data = self.collect_component_data(self.env.wind_turbine[-1])
-            self.update_component_df(wt_data)
+            data = gui_func.collect_component_data(self.env.wind_turbine[-1])
+            # Update QListWidget
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index))
+            # Update component df in tab dispatch
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(8))
         elif index == 6:
             # Diesel generator
             self.gui_add_dg(tab)
             gui_func.clear_widget(widget=[tab.p, tab.fuel, tab.invest, tab.op_main])
-            gui_func.change_widget_text(widget=[tab.c_var], text=['0.021'])
-            dg_data = self.collect_component_data(self.env.diesel_generator[-1])
-            self.update_component_df(dg_data)
+            gui_func.change_widget_text(widget=[tab.c_var],
+                                        text=['0.021'])
+            data = gui_func.collect_component_data(self.env.diesel_generator[-1])
+            # Update QListWidget
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index))
+            # Update component df in tab dispatch
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(8))
         elif index == 7:
             # Energy Storage
             self.gui_add_storage(tab)
@@ -208,13 +300,23 @@ class TabWidget(QWidget):
             gui_func.change_widget_text(
                 widget=[tab.soc, tab.soc_min, tab.soc_max, tab.n_charge, tab.n_discharge, tab.lifetime],
                 text=['0.25', '0.05', '0.95', '0.8', '0.8', '10'])
-            storage_data = self.collect_component_data(self.env.storage[-1])
-            self.update_component_df(storage_data)
+            data = gui_func.collect_component_data(self.env.storage[-1])
+            # Update QListWidget
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index))
+            # Update component df in tab dispatch
+            gui_func.update_component_df(data=data,
+                                         tab=self.tabs.widget(8))
         elif index == 8:
-            # Dispatch
+            # Tab dispatch
             print('Dispatch running')
             self.create_operator()
             print('Dispatch finished')
+        elif index == 9:
+            # Tab evaluation
+            self.evaluation = Evaluation()
+            print(self.evaluation.evaluation_df)
 
     def create_env(self, tab: QWidget):
         """
@@ -480,8 +582,8 @@ class TabWidget(QWidget):
 
     def pvlib_database(self):
         """
-
-        :return:
+        Retrieve pvlib database
+        :return: None
         """
         tab = self.tabs.widget(4)
         conn = self.env.database.connect
@@ -512,6 +614,10 @@ class TabWidget(QWidget):
         tab.inverter.addItems(tab.inverter_lib)
 
     def windpowerlib_database(self):
+        """
+        Retrieve wwindpowerlib database
+        :return:
+        """
         tab = self.tabs.widget(5)
         conn = self.env.database.connect
         df = pd.read_sql_query("SELECT * FROM windpowerlib_turbine WHERE has_power_curve = 1", conn)
@@ -527,109 +633,20 @@ class TabWidget(QWidget):
         :return: None
         """
         wind_data = self.env.monthly_weather_data[['wind_speed', 'wind_direction']]
-        self.create_wind_plot(name='wind_data',
-                              data_1=wind_data['wind_speed'],
-                              data_2=wind_data['wind_direction'])
+        gui_func.create_wind_plot(name='wind_data',
+                                  data_1=wind_data['wind_speed'],
+                                  data_2=wind_data['wind_direction'])
         gui_func.create_pixmap(path=f'{self.root}/gui/images/wind_data.png',
                                widget=self.tabs.widget(2).wind_plot,
                                w=int(self.screen_width / 3),
                                h=int(self.screen_height / 3))
         solar_data = self.env.monthly_weather_data[['ghi', 'dhi', 'dni']]
-        self.create_solar_plot(name='solar_data',
-                               data=solar_data)
+        gui_func.create_solar_plot(name='solar_data',
+                                   data=solar_data)
         gui_func.create_pixmap(path=f'{self.root}/gui/images/solar_data.png',
                                widget=self.tabs.widget(2).solar_plot,
                                w=int(self.screen_width / 3),
                                h=int(self.screen_height / 3))
-
-    def create_wind_plot(self, name: str, data_1: pd.Series, data_2: pd.Series):
-        """
-        Create monthly wind data plot
-        :param name: str
-            Image name
-        :param data_1: pd.Series
-            Wind speed data array
-        :param data_2: pd.Series
-            Wind direction data array
-        :return:
-        """
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel('Month')
-        fig.legend(['wind speed', 'wind direction'])
-        ax2 = ax.twinx()
-        data_1.plot(kind='bar', color='lightgreen', ax=ax, width=0.2, position=1, label='Wind speed')
-        data_2.plot(kind='bar', color='steelblue', ax=ax2, width=0.2, position=0, label='Wind direction')
-        ax.set_ylabel(ylabel='wind speed [m/s]')
-        ax2.set_ylabel(ylabel='wind direction [°]')
-        ax.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-        fig.tight_layout()
-        plt.savefig(f'{self.root}/gui/images/{name}.png')
-
-    def create_solar_plot(self, name: str, data: pd.DataFrame):
-        """
-        Create monthly solar data plot
-        :param name: str
-            image name
-        :param data: pd:DataFrame
-            Data source
-        :return: None
-        """
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel('Month')
-        data['ghi'].plot(kind='bar', color='yellow', ax=ax, width=0.2, position=1,
-                         label='Global horizontal irradiation')
-        data['dhi'].plot(kind='bar', color='gold', ax=ax, width=0.2, position=0, label='Direct horizontal irradiation')
-        data['dni'].plot(kind='bar', color='darkorange', ax=ax, width=0.2, position=2,
-                         label='Direct normal irradiation')
-        ax.set_ylabel(ylabel='Solar irradiation [W/m²]')
-        plt.legend(loc='upper left')
-        fig.tight_layout()
-        plt.savefig(f'{self.root}/gui/images/{name}.png')
-
-    def update_component_df(self, data):
-        """
-        Update dispatch component df
-        :param data: pd.DataFrame
-            Component data
-        :return: None
-        """
-        self.tabs.widget(8).component_df = pd.concat([self.tabs.widget(8).component_df, data], ignore_index=True)
-
-    def collect_component_data(self, component):
-        """
-        Collect parameters for overview
-        :param component: object
-        :return: dict
-            component data
-        """
-        if isinstance(component, Storage):
-            c = component.c / 1000
-        else:
-            c = None
-        c_type = component.name.split('_')[0]
-        data = {'Component': [c_type],
-                'Name': [component.name],
-                'Power [kW]': [component.p_n / 1000],
-                'Capacity [kWh]': [c],
-                'Investment cost [US$]': [component.c_invest],
-                'Operation maintenance cost [US$/a]': [component.c_op_main],
-                'Initial CO2 emissions [kg]': [component.co2_init]}
-
-        component_data = pd.DataFrame(data)
-
-        return component_data
-
-    def update_dispatch_table(self):
-        """
-
-        :return: None
-        """
-        tab = self.tabs.widget(8)
-        tab.table = Table(data=tab.component_df)
-        tab.overview.setModel(tab.table)
 
 
 if __name__ == '__main__':

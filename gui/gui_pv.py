@@ -2,11 +2,13 @@ import sys
 import folium
 import io
 import datetime as dt
+import pandas as pd
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
 import gui_func as gui_func
+from gui_table import Table
 
 
 class PV(QWidget):
@@ -17,17 +19,17 @@ class PV(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setFont(QFont('Calibri', 11))
+        self.setFont(QFont('Calibri', 12))
 
         # pvlib parameters
         self.module_lib = []
         self.inverter_lib = []
 
         # Standard widgets
-        description = 'Add PV system to energy system. ' \
-                      '\nMethod 1 - Default: data input: min. power & max. power, inverter power range. Random PV module, inverter and configuration is selected within the parameters \n' \
-                      'Method 2 - Advanced (only recommended for experienced users): data input: PV module, inverter and configuration \n' \
-                      'Method 3 - Profile: data input: path to PV energy production profile (csv-file)'
+        description = 'Add PV system to energy system\n'\
+                      'Method 1 - Default: data input: min. power & max. power, inverter power range. Random PV module, inverter and configuration is selected within the parameters. \n' \
+                      'Method 2 - Advanced (only recommended for experienced users): data input: PV module, inverter and configuration. \n' \
+                      'Method 3 - Profile: data input: path to PV energy production profile (csv-file).\n\n'
         self.description = QLabel(description)
         self.description.setAlignment(Qt.AlignJustify)
         self.description.setWordWrap(True)
@@ -62,6 +64,18 @@ class PV(QWidget):
         self.inverter_range = QLineEdit()
         self.azimuth = QLineEdit()
         self.tilt = QLineEdit()
+        # Overview
+        self.component_df = pd.DataFrame(columns=['Component',
+                                                  'Name',
+                                                  'Power [kW]',
+                                                  'Capacity [kWh]',
+                                                  'Investment cost [US$]',
+                                                  'Operation maintenance cost [US$/a]',
+                                                  'Initial CO2 emissions [kg]'])
+
+        self.table = Table(data=self.component_df)
+        self.overview = QTableView()
+        self.update_data()
         # Method 2
         self.module_l = QLabel()
         self.module_l.setText('PV module')
@@ -88,40 +102,41 @@ class PV(QWidget):
                          self.module, self.inverter, self.modules_string, self.string, self.azimuth, self.tilt]
         self.method_3 = [self.p_l, self.p, self.profile_l, self.profile]
 
-
+        # Connect function to ComboBox
         self.method_combo.currentIndexChanged.connect(self.simulation_method)
 
         # Set up Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.description, 0, 0, 1, 2)
-        self.layout.addWidget(self.method_combo_l, 1, 0)
-        self.layout.addWidget(self.method_combo, 1, 1)
-        self.layout.addWidget(self.p_l, 2, 0)
-        self.layout.addWidget(self.p, 2, 1)
-        self.layout.addWidget(self.module_l, 2, 0)
-        self.layout.addWidget(self.module, 2, 1)
-        self.layout.addWidget(self.profile_l, 3, 0)
-        self.layout.addWidget(self.profile, 3, 1)
-        self.layout.addWidget(self.p_min_l, 3, 0)
-        self.layout.addWidget(self.p_min, 3, 1)
-        self.layout.addWidget(self.inverter_l, 3, 0)
-        self.layout.addWidget(self.inverter, 3, 1)
-        self.layout.addWidget(self.p_max_l, 4, 0)
-        self.layout.addWidget(self.p_max, 4, 1)
-        self.layout.addWidget(self.modules_string_l, 4, 0)
-        self.layout.addWidget(self.modules_string, 4, 1)
-        self.layout.addWidget(self.inverter_range_l, 5, 0)
-        self.layout.addWidget(self.inverter_range, 5, 1)
-        self.layout.addWidget(self.string_l, 5, 0)
-        self.layout.addWidget(self.string, 5, 1)
-        self.layout.addWidget(self.azimuth_l, 6, 0)
-        self.layout.addWidget(self.azimuth, 6, 1)
-        self.layout.addWidget(self.tilt_l, 7, 0)
-        self.layout.addWidget(self.tilt, 7, 1)
-        self.layout.addWidget(self.invest_l, 8, 0)
-        self.layout.addWidget(self.invest, 8, 1)
-        self.layout.addWidget(self.opm_l, 9, 0)
-        self.layout.addWidget(self.opm, 9, 1)
+        self.layout.addWidget(self.method_combo_l, 1, 0, Qt.AlignTop)
+        self.layout.addWidget(self.method_combo, 1, 1, Qt.AlignTop)
+        self.layout.addWidget(self.p_l, 2, 0, Qt.AlignTop)
+        self.layout.addWidget(self.p, 2, 1, Qt.AlignTop)
+        self.layout.addWidget(self.module_l, 2, 0, Qt.AlignTop)
+        self.layout.addWidget(self.module, 2, 1, Qt.AlignTop)
+        self.layout.addWidget(self.profile_l, 3, 0, Qt.AlignTop)
+        self.layout.addWidget(self.profile, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.p_min_l, 3, 0, Qt.AlignTop)
+        self.layout.addWidget(self.p_min, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.inverter_l, 3, 0, Qt.AlignTop)
+        self.layout.addWidget(self.inverter, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.p_max_l, 4, 0, Qt.AlignTop)
+        self.layout.addWidget(self.p_max, 4, 1, Qt.AlignTop)
+        self.layout.addWidget(self.modules_string_l, 4, 0, Qt.AlignTop)
+        self.layout.addWidget(self.modules_string, 4, 1, Qt.AlignTop)
+        self.layout.addWidget(self.inverter_range_l, 5, 0, Qt.AlignTop)
+        self.layout.addWidget(self.inverter_range, 5, 1, Qt.AlignTop)
+        self.layout.addWidget(self.string_l, 5, 0, Qt.AlignTop)
+        self.layout.addWidget(self.string, 5, 1, Qt.AlignTop)
+        self.layout.addWidget(self.azimuth_l, 6, 0, Qt.AlignTop)
+        self.layout.addWidget(self.azimuth, 6, 1, Qt.AlignTop)
+        self.layout.addWidget(self.tilt_l, 7, 0, Qt.AlignTop)
+        self.layout.addWidget(self.tilt, 7, 1, Qt.AlignTop)
+        self.layout.addWidget(self.invest_l, 8, 0, Qt.AlignTop)
+        self.layout.addWidget(self.invest, 8, 1, Qt.AlignTop)
+        self.layout.addWidget(self.opm_l, 9, 0, Qt.AlignTop)
+        self.layout.addWidget(self.opm, 9, 1, Qt.AlignTop)
+        self.layout.addWidget(self.overview, 10, 0, 1, 2)
         self.setLayout(self.layout)
 
         gui_func.show_widget(widget=self.method_2, show=False)
@@ -142,5 +157,10 @@ class PV(QWidget):
             gui_func.show_widget(widget=self.method_1, show=False)
             gui_func.show_widget(widget=self.method_2, show=False)
             gui_func.show_widget(widget=self.method_3, show=True)
+
+    def update_data(self):
+        self.table = Table(data=self.component_df)
+        self.overview.setModel(self.table)
+        self.overview.resizeColumnsToContents()
 
 

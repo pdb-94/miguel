@@ -17,7 +17,7 @@ class Evaluation(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setFont(QFont('Calibri', 10))
+        self.setFont(QFont('Calibri', 12))
 
         # Set up Layout
         self.layout = QGridLayout()

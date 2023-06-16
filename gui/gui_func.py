@@ -7,10 +7,15 @@ Module including GUI functions
 __version__ = '0.1'
 __author__ = 'pdb-94'
 
+import sys
 import datetime as dt
+import pandas as pd
+import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from gui_table import Table
+from components.storage import Storage
 
 
 def convert_datetime(start: str, end: str, step: str):
@@ -230,3 +235,96 @@ def convert_str_float(string):
         parameter = None
 
     return parameter
+
+
+def update_component_df(data: pd.DataFrame, tab: QWidget):
+    """
+    Update dispatch component df
+    :param tab: QWidget
+    :param data: pd.DataFrame
+        Component data
+    :return: None
+    """
+    tab.component_df = pd.concat([tab.component_df, data], ignore_index=True)
+
+
+def collect_component_data(component):
+    """
+    Collect parameters for overview
+    :param component: object
+    :return: dict
+        component data
+    """
+    if isinstance(component, Storage):
+        c = component.c / 1000
+    else:
+        c = None
+    c_type = component.name.split('_')[0]
+    data = {'Component': [c_type],
+            'Name': [component.name],
+            'Power [kW]': [component.p_n / 1000],
+            'Capacity [kWh]': [c],
+            'Investment cost [US$]': [component.c_invest],
+            'Operation maintenance cost [US$/a]': [component.c_op_main],
+            'Initial CO2 emissions [kg]': [component.co2_init]}
+
+    component_data = pd.DataFrame(data)
+
+    return component_data
+
+
+def update_listview(tab: QWidget):
+    """
+
+    :return: None
+    """
+    tab.table = Table(data=tab.component_df)
+    tab.overview.setModel(tab.table)
+
+def create_wind_plot(name: str, data_1: pd.Series, data_2: pd.Series):
+    """
+    Create monthly wind data plot
+    :param name: str
+        Image name
+    :param data_1: pd.Series
+        Wind speed data array
+    :param data_2: pd.Series
+        Wind direction data array
+    :return:
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('Month')
+    fig.legend(['wind speed', 'wind direction'])
+    ax2 = ax.twinx()
+    data_1.plot(kind='bar', color='lightgreen', ax=ax, width=0.2, position=1, label='Wind speed')
+    data_2.plot(kind='bar', color='steelblue', ax=ax2, width=0.2, position=0, label='Wind direction')
+    ax.set_ylabel(ylabel='wind speed [m/s]')
+    ax2.set_ylabel(ylabel='wind direction [°]')
+    ax.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+    fig.tight_layout()
+    plt.savefig(f'{sys.path[1]}/gui/images/{name}.png')
+
+
+def create_solar_plot(name: str, data: pd.DataFrame):
+    """
+    Create monthly solar data plot
+    :param name: str
+        image name
+    :param data: pd:DataFrame
+        Data source
+    :return: None
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('Month')
+    data['ghi'].plot(kind='bar', color='yellow', ax=ax, width=0.2, position=1,
+                     label='Global horizontal irradiation')
+    data['dhi'].plot(kind='bar', color='gold', ax=ax, width=0.2, position=0, label='Direct horizontal irradiation')
+    data['dni'].plot(kind='bar', color='darkorange', ax=ax, width=0.2, position=2,
+                     label='Direct normal irradiation')
+    ax.set_ylabel(ylabel='Solar irradiation [W/m²]')
+    plt.legend(loc='upper left')
+    fig.tight_layout()
+    plt.savefig(f'{sys.path[1]}/gui/images/{name}.png')

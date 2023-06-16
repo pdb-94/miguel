@@ -18,9 +18,9 @@ class WeatherData(QWidget):
         super().__init__()
 
         self.root = sys.path[1]
-        self.setFont(QFont('Calibri', 11))
+        self.setFont(QFont('Calibri', 12))
 
-        description = """The weather data presented is from the PHOTOVOLTAIC GEOGRAPHICAL INFORMATION SYSTEM (PVGIS). PVGIS is hosted by the European Commission."""
+        description = "The weather data presented is retrieved from the PHOTOVOLTAIC GEOGRAPHICAL INFORMATION SYSTEM (PVGIS) hosted by the European Commission."
         self.description = QLabel(description)
         self.description.setAlignment(Qt.AlignJustify)
         self.description.setWordWrap(True)
@@ -38,7 +38,7 @@ class WeatherData(QWidget):
         self.wind_plot.adjustSize()
         # EU
         self.eu = QLabel()
-        gui_func.create_pixmap(self.root + '/gui/images/European_Commission.png', widget=self.eu, w=100, h=100)
+        gui_func.create_pixmap(self.root + '/gui/images/European_Commission.png', widget=self.eu, w=200, h=200)
 
         # Set up Layout
         self.layout = QGridLayout()

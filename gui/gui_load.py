@@ -26,8 +26,10 @@ class LoadProfile(QWidget):
         super().__init__()
 
         # Header
-        self.setFont(QFont('Calibri', 11))
-        description = """Add a load profile to the energy system. Enter the file path with the csv file for this. If no load profile is available, a reference load profile can be chosen. To scale the energy consumption for the reference load profile, the annual demand of electrical energy in kWh is needed."""
+        self.setFont(QFont('Calibri', 12))
+        description = 'Add a load profile to the energy system\n' \
+                      'Method 1 - Reference load profile: choose reference load profile from list. Enter annual electricity consumption [kWh/a] to scale load profile.\n' \
+                      'Method 2 - Individual load profile: provide individual load profile as a csv-file. Enter load profile file path.\n\n'
         self.description = QLabel(description)
         self.description.setAlignment(Qt.AlignJustify)
         self.description.setWordWrap(True)
@@ -60,15 +62,15 @@ class LoadProfile(QWidget):
 
         # Set up Layout
         self.layout = QGridLayout()
-        self.layout.addWidget(self.description, 0, 0, 1, 2)
-        self.layout.addWidget(self.consumption_l, 1, 0)
-        self.layout.addWidget(self.consumption, 1, 1)
-        self.layout.addWidget(self.ref_profile_l, 2, 0)
-        self.layout.addWidget(self.ref_profile, 2, 1)
-        self.layout.addWidget(self.load_profile_l, 3, 0)
-        self.layout.addWidget(self.load_profile, 3, 1)
-        self.layout.addWidget(self.toolbar, 5, 0, 1, 2)
-        self.layout.addWidget(self.plot, 5, 0, 1, 2)
+        self.layout.addWidget(self.description, 0, 0, 1, 2, Qt.AlignTop)
+        self.layout.addWidget(self.consumption_l, 1, 0, Qt.AlignTop)
+        self.layout.addWidget(self.consumption, 1, 1, Qt.AlignTop)
+        self.layout.addWidget(self.ref_profile_l, 2, 0, Qt.AlignTop)
+        self.layout.addWidget(self.ref_profile, 2, 1, Qt.AlignTop)
+        self.layout.addWidget(self.load_profile_l, 3, 0, Qt.AlignTop)
+        self.layout.addWidget(self.load_profile, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.toolbar, 5, 0, 1, 2, Qt.AlignTop)
+        self.layout.addWidget(self.plot, 5, 0, 1, 2, Qt.AlignTop)
         self.setLayout(self.layout)
 
     def adjust_plot(self, df: pd.Series, time_series: pd.Series):
@@ -83,7 +85,7 @@ class LoadProfile(QWidget):
         # Create Widgets
         self.plot = Plot(df=df,
                          time_series=time_series,
-                         width=5, height=8, dpi=100)
+                         width=5, height=12, dpi=150)
         self.toolbar = NavigationToolbar(self.plot, self)
         # Add Widgets to Layout
         self.layout.addWidget(self.toolbar, 4, 0, 1, 2)
