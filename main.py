@@ -20,11 +20,11 @@ def demonstration(grid_connection=True):
         name = 'Off grid system'
     # Add parameters to create environment
     environment = Environment(name=name,
-                              location={'longitude': -0.7983,
-                                        'latitude': 6.0442,
-                                        'altitude': 20,
-                                        'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter high hedges '
-                                                   'at a distance of approx. 250 meters'},
+                              location={'latitude': -0.699,
+                                        'longitude': -90.370,
+                                        'altitude': 0,
+                                        'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter '
+                                                   'high hedges at a distance of approx. 250 meters'},
                               time={'start': dt.datetime(year=2022,
                                                          month=1,
                                                          day=1,
@@ -54,7 +54,7 @@ def demonstration(grid_connection=True):
                               csv_decimal=',',
                               csv_sep=';')
     # Add load profile from csv-file
-    environment.add_load(annual_consumption=150000, ref_profile='H0')  # kWh
+    environment.add_load(annual_consumption=150000, ref_profile='hospital_ghana')  # kWh
     # environment.add_load(load_profile=f'{sys.path[1]}/data/St. Dominics Hospital.csv')
     # Add PV system
     environment.add_pv(p_n=60000,
@@ -62,6 +62,9 @@ def demonstration(grid_connection=True):
                                 'max_module_power': 350, 'inverter_power_range': 2500})
     # environment.add_wind_turbine(selection_parameters=[3000000, 4000000])
     if grid_connection is False:
+        environment.add_diesel_generator(p_n=30000,
+                                         fuel_consumption=12,
+                                         fuel_price=1.385)
         environment.add_diesel_generator(p_n=30000,
                                          fuel_consumption=12,
                                          fuel_price=1.385)
@@ -79,10 +82,11 @@ env = demonstration(grid_connection=False)
 # On Grid system
 # env = demonstration(grid_connection=True)
 # Run Dispatch
-# print('Run Dispatch', dt.datetime.today() - start)
-# operator = Operator(env=env)
-# evaluation = Evaluation(env=env, operator=operator)
+print(f'Run Dispatch {dt.datetime.today() - start}')
+operator = Operator(env=env)
+print(f'Dispatch completed {dt.datetime.today() - start}')
+evaluation = Evaluation(env=env, operator=operator)
 # Create pdf-Report
-# print('Create report', dt.datetime.today() - start)
-# report = Report(env=env, operator=operator, evaluation=evaluation)
-# print('Finished simulation and evaluation.', dt.datetime.today() - start)
+print(f'Create report {dt.datetime.today() - start}')
+report = Report(env=env, operator=operator, evaluation=evaluation)
+print(f'Finished simulation and evaluation {dt.datetime.today() - start}')

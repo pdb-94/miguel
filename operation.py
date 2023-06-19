@@ -33,6 +33,7 @@ class Operator:
         self.power_sink = self.power_sink.set_index('Time')
         self.power_sink_max = None
         self.df = self.build_df()
+        self.dispatch_finished = False
         self.dispatch()
         self.export_data()
 
@@ -118,6 +119,7 @@ class Operator:
         else:
             self.power_sink_max = float(self.power_sink.max().iloc[0])
             self.system_covered = False
+        self.dispatch_finished = True
 
     def check_dispatch(self):
         """

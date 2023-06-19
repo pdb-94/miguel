@@ -6,4 +6,5 @@ The report is divided into the following parts:
     3) Energy consumption
     4) System configuration
     5) Dispatch
+    6) Evaluation
 

@@ -125,11 +125,11 @@ class Report:
             cost_difference = self.gird_lifetime_cost - self.system_lifetime_cost
             sys_comparison = 'the power grid'
         if cost_difference < 0:
-            cost_paragraph = f" Additional costs of {int(cost_difference):,} {self.env.currency} occur over the system " \
+            cost_paragraph = f" Additional costs of {abs(int(cost_difference)):,} {self.env.currency} occur over the system " \
                              f"lifetime of {self.env.lifetime} years, compared to an energy supply provided through " \
                              f"{sys_comparison}."
         else:
-            cost_paragraph = f" Cost savings of {int(cost_difference):,} {self.env.currency} occur over the system " \
+            cost_paragraph = f" Cost savings of {abs(int(cost_difference)):,} {self.env.currency} occur over the system " \
                              f"lifetime of {self.env.lifetime} years due to the implementation of the energy system, " \
                              f"compared to an energy supply provided through {sys_comparison}."
         # Write chapter depending on if energy consumption is met
@@ -278,8 +278,8 @@ class Report:
         wind_speed_average = round(self.env.monthly_weather_data['wind_speed'].mean(), 3)
         wind_direction_average = round(self.env.monthly_weather_data['wind_direction'].mean(), 3)
         wind_table_text = f'The main wind direction is {wind_direction_average}°. The annual average wind speed is ' \
-                          f'{wind_speed_average} m/s. The highest monthly wind speed occurs in {month_max} and is ' \
-                          f'{wind_speed_max} m/s.'
+                          f'{wind_speed_average:,} m/s. The highest monthly wind speed occurs in {month_max} and is ' \
+                          f'{wind_speed_max:,} m/s.'
         self.create_txt(file_name='2_2_table_description',
                         text=wind_table_text)
         self.pdf_file.chapter_body(name=self.txt_file_path + '2_2_table_description.txt', size=10)
@@ -348,9 +348,9 @@ class Report:
                          x_label='Time',
                          y_label='P [kW]',
                          factor=1000)
-        re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start} to ' \
-                        f'{self.env.t_end} in a {self.env.t_step} resolution: \nPhotovoltaic total: ' \
-                        f'{int(pv_energy / 1000)} kWh \nWind turbine total: {int(wt_energy / 1000)} kWh.'
+        re_production = f'The plot shows the total wind power and PV output during the period from {self.env.t_start}' \
+                        f' to {self.env.t_end} in a {self.env.t_step} resolution: \nPhotovoltaic total: ' \
+                        f'{int(pv_energy / 1000):,} kWh \nWind turbine total: {int(wt_energy / 1000):,} kWh.'
         self.create_txt(file_name='4_2_re_energy_supply',
                         text=re_production)
         self.pdf_file.print_chapter(chapter_type=[True],

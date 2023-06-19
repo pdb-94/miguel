@@ -225,7 +225,7 @@ class Environment:
         """
         data, months_selected, inputs, metadata = pvlib.iotools.get_pvgis_tmy(latitude=self.latitude,
                                                                               longitude=self.longitude,
-                                                                              startyear=2005, endyear=2016,
+                                                                              startyear=2005,
                                                                               outputformat='json', usehorizon=True,
                                                                               userhorizon=None, map_variables=True,
                                                                               timeout=30,

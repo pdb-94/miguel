@@ -31,7 +31,7 @@ class Evaluation:
                                                                       annual_value=self.grid_cost_comparison_annual)
         self.dg_cost_comparison_annual = self.calc_dg_energy_annual_cost()
         self.dg_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
-                                                                        annual_value=self.dg_cost_comparison_annual)
+                                                                    annual_value=self.dg_cost_comparison_annual)
         # Components evaluation parameters
         self.pv_energy_supply = {}
         self.wt_energy_supply = {}

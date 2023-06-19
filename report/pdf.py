@@ -34,7 +34,7 @@ class PDF(FPDF):
         self.set_font('Arial', 'B', 10)
         self.multi_cell(w=0,
                         h=5,
-                        txt='Author: Paul Bohn (Technische Hochschule Köln) \nContributors: Silvan Rummeny',
+                        txt='Author: Paul Bohn (Technische Hochschule Köln)',
                         align='LB')
         self.image(name=sys.path[1] + '/documentation/th-koeln.png',
                    y=160,

@@ -52,6 +52,8 @@ class EnergySystem(QWidget):
         self.blackout_data_l.setText('Blackout data')
         self.electricity_price_l = QLabel()
         self.electricity_price_l.setText('Electricity price [US$/kWh]')
+        self.diesel_price_l = QLabel()
+        self.diesel_price_l.setText('Diesel price [US$/l]')
         self.co2_price_l = QLabel()
         self.co2_price_l.setText('Average CO2 price [US$/t]')
         self.feed_in_l = QLabel()
@@ -66,7 +68,7 @@ class EnergySystem(QWidget):
                                        self.d_rate_l, self.wt_feed_l, self.longitude_l, self.altitude_l, self.feed_in_l,
                                        self.blackout_l, self.blackout_data_l, self.grid_l, self.electricity_price_l,
                                        self.co2_grid_l, self.co2_price_l, self.pv_feed_l,  self.latitude_l,
-                                       self.terrain_l, self.lifetime_l],
+                                       self.terrain_l, self.lifetime_l, self.diesel_price_l],
                                alignment=Qt.AlignRight | Qt.AlignVCenter)
         # Edits
         self.project_name = QLineEdit()
@@ -82,8 +84,8 @@ class EnergySystem(QWidget):
         self.end_time = QDateTimeEdit(end_time)
         self.end_time.setCalendarPopup(True)
         self.time_step = QComboBox()
-        gui_func.add_combo(widget=self.time_step, name=['00:01', '00:15', '01:00'])
-        gui_func.change_combo_index(combo=[self.time_step], index=[1])
+        gui_func.add_combo(widget=self.time_step, name=['00:15', '01:00'])
+        gui_func.change_combo_index(combo=[self.time_step], index=[0])
         self.longitude = QLineEdit()
         self.latitude = QLineEdit()
         self.altitude = QLineEdit()
@@ -108,6 +110,7 @@ class EnergySystem(QWidget):
         self.blackout_data = QLineEdit()
         self.blackout_data.setDisabled(True)
         self.electricity_price = QLineEdit()
+        self.diesel_price = QLineEdit()
         self.co2_price = QLineEdit()
         self.feed_in = QCheckBox()
         self.feed_in.setChecked(False)
@@ -160,7 +163,9 @@ class EnergySystem(QWidget):
         self.layout.addWidget(self.blackout_data_l, 10, 2)
         self.layout.addWidget(self.blackout_data, 10, 3, 1, 3)
         self.layout.addWidget(self.electricity_price_l, 11, 0)
-        self.layout.addWidget(self.electricity_price, 11, 1, 1, 5)
+        self.layout.addWidget(self.electricity_price, 11, 1)
+        self.layout.addWidget(self.diesel_price_l, 11, 2)
+        self.layout.addWidget(self.diesel_price, 11, 3, 1, 3)
         self.layout.addWidget(self.co2_price_l, 12, 0)
         self.layout.addWidget(self.co2_price, 12, 1, 1, 5)
         self.layout.addWidget(self.feed_in_l, 13, 0)
@@ -249,9 +254,6 @@ class EnergySystem(QWidget):
         start_time = dt.datetime.strptime(self.start_time.text(), '%d.%m.%Y %H:%M')
         start_year = start_time.date().year
         if self.time_step.currentIndex() == 0:
-            end_time = dt.datetime.combine(dt.date(year=start_year, month=12, day=31), dt.time(hour=23, minute=59))
-            self.end_time.setDateTime(end_time)
-        elif self.time_step.currentIndex() == 1:
             end_time = dt.datetime.combine(dt.date(year=start_year, month=12, day=31), dt.time(hour=23, minute=45))
             self.end_time.setDateTime(end_time)
         else:

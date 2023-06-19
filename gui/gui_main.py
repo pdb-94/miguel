@@ -1,5 +1,6 @@
 import sys
 import os
+import threading
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -10,6 +11,7 @@ from PyQt5.QtGui import *
 from tzfpy import get_tz
 from environment import Environment
 from operation import Operator
+from evaluation import Evaluation
 from report.report import Report
 import gui_func as gui_func
 from gui.gui_projectsetup import ProjectSetup
@@ -21,8 +23,9 @@ from gui.gui_wt import WT
 from gui.gui_dg import DG
 from gui.gui_storage import EnergyStorage
 from gui.gui_dispatch import Dispatch
-from gui.gui_evaluation import Evaluation
+from gui.gui_evaluation import EvaluateSystem
 from gui_table import Table
+from gui_dialog import DispatchMsgBox
 
 
 class TabWidget(QWidget):
@@ -64,7 +67,7 @@ class TabWidget(QWidget):
                             DG,
                             EnergyStorage,
                             Dispatch,
-                            Evaluation]
+                            EvaluateSystem]
         # Add tabs to TabWidget and disable widgets
         enabled = [True, True, False, False, False, False, False, False, False, False]
         for count, tab in enumerate(self.tab_classes, start=0):
@@ -151,8 +154,11 @@ class TabWidget(QWidget):
         elif index == 3:
             # Tab load profile
             gui_func.enable_widget(widget=[self.delete_btn],
-
                                    enable=False)
+            gui_func.enable_widget(widget=[self.save_btn, self.next_btn, self.return_btn],
+                                   enable=True)
+            gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
+                                        text=['Save', 'Delete', 'Next', 'Return'])
         elif index == 8:
             # Tab dispatch
             gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
@@ -161,11 +167,12 @@ class TabWidget(QWidget):
                                    enable=True)
             gui_func.enable_widget(widget=[self.delete_btn],
                                    enable=False)
-            gui_func.update_listview(tab=self.tabs.widget(8))
+            gui_func.update_listview(tab=self.tabs.widget(8),
+                                     df=self.tabs.widget(8).component_df)
         elif index == 9:
             # Tab evaluation
             gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
-                                        text=['Evaluate system', 'Delete', 'Export', 'Return'])
+                                        text=['Export', 'Delete', 'Next', 'Return'])
             gui_func.enable_widget(widget=[self.return_btn],
                                    enable=True)
             # Enable tab if dispatch has been finished
@@ -212,11 +219,13 @@ class TabWidget(QWidget):
                 del (component[row])
                 # Remove item from QListView
                 tab.component_df = tab.component_df.drop(row, axis=0)
-                gui_func.update_listview(tab=tab)
+                gui_func.update_listview(tab=tab,
+                                         df=tab.component_df)
                 # Remove item from dispatch listview
                 dispatch_row = tabs(8).component_df.index[tabs(8).component_df['Name'] == name].to_list()[0]
-                tabs(8).component_df = tabs(8).component_df.drop(dispatch_row, axis=0)
-                gui_func.update_listview(tab=tabs(8))
+                tabs(8).component_df = tabs(8).component_df.drop(dispatch_row,
+                                                                 axis=0)
+                gui_func.update_listview(tab=tabs(8), df=tabs(8).component_df)
             else:
                 # No component selected
                 print('Select item to delete from list.')
@@ -264,7 +273,8 @@ class TabWidget(QWidget):
             # Update QListWidget
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(index))
-            gui_func.update_listview(tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index),
+                                     df=self.tabs.widget(index).component_df)
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
@@ -275,7 +285,8 @@ class TabWidget(QWidget):
             # Update QListWidget
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(index))
-            gui_func.update_listview(tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index),
+                                     df=self.tabs.widget(index).component_df)
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
@@ -289,13 +300,14 @@ class TabWidget(QWidget):
             # Update QListWidget
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(index))
-            gui_func.update_listview(tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index),
+                                     df=self.tabs.widget(index).component_df)
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
         elif index == 7:
             # Energy Storage
-            self.gui_add_storage(tab)
+            self.gui_add_storage(tab=tab)
             gui_func.clear_widget(widget=[tab.p, tab.c])
             gui_func.change_widget_text(
                 widget=[tab.soc, tab.soc_min, tab.soc_max, tab.n_charge, tab.n_discharge, tab.lifetime],
@@ -304,19 +316,29 @@ class TabWidget(QWidget):
             # Update QListWidget
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(index))
-            gui_func.update_listview(tab=self.tabs.widget(index))
+            gui_func.update_listview(tab=self.tabs.widget(index),
+                                     df=self.tabs.widget(index).component_df)
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
         elif index == 8:
             # Tab dispatch
-            print('Dispatch running')
-            self.create_operator()
-            print('Dispatch finished')
+            # TODO: Threading with message
+            if self.env.load is not None:
+                print('Dispatch in progress.')
+                self.create_operator()
+                gui_func.enable_widget(widget=[self.tabs.widget(9)], enable=True)
+                print('Dispatch completed.')
+                print('Evaluating system.')
+                self.evaluate_system(tab=self.tabs.widget(9))
+                print('System evaluation completed.')
+            else:
+                print('Add load to energy system.')
+                self.pop_up_dialotabg(message='No load profile was added to energy system',
+                                      box_type='warning')
         elif index == 9:
             # Tab evaluation
-            self.evaluation = Evaluation()
-            print(self.evaluation.evaluation_df)
+            self.create_report()
 
     def create_env(self, tab: QWidget):
         """
@@ -337,6 +359,7 @@ class TabWidget(QWidget):
         d_rate = gui_func.convert_str_float(string=tab.d_rate.text())
         lifetime = int(gui_func.convert_str_float(string=tab.lifetime.text()))
         co2_price = gui_func.convert_str_float(string=tab.co2_price.text())
+        diesel_price = gui_func.convert_str_float(string=tab.diesel_price.text())
         grid_connection = tab.grid.isChecked()
         if grid_connection:
             electricity_price = gui_func.convert_str_float(string=tab.electricity_price.text())
@@ -375,6 +398,7 @@ class TabWidget(QWidget):
         economy = {'d_rate': d_rate,
                    'lifetime': lifetime,
                    'electricity_price': electricity_price,
+                   'diesel_price': diesel_price,
                    'co2_price': co2_price,
                    'pv_feed_in': pv_feed_in,
                    'wt_feed_in': wt_feed_in,
@@ -424,7 +448,7 @@ class TabWidget(QWidget):
                               ref_profile=ref_profile,
                               load_profile=load_profile_path)
             tab.adjust_plot(time_series=self.env.time_series,
-                            df=self.env.df['P_Res [W]'])
+                            df=self.env.load.df)
 
     def gui_add_pv(self, tab: QWidget):
         """
@@ -580,6 +604,31 @@ class TabWidget(QWidget):
         """
         self.operator = Operator(env=self.env)
 
+    def evaluate_system(self, tab: Qt.Widget):
+        """
+        Evaluate system and update listview in tab System evaluation
+        :param tab: QWidget
+        :return: None
+        """
+        self.evaluation = Evaluation(env=self.env,
+                                     operator=self.operator)
+        tab.evaluation_df = self.evaluation.evaluation_df
+        components = self.evaluation.evaluation_df.index.tolist()
+        tab.evaluation_df.insert(0, column='Component', value=components)
+        gui_func.update_listview(tab=tab,
+                                 df=tab.evaluation_df)
+
+    def create_report(self):
+        """
+        Generate and export report
+        :return: None
+        """
+        print('Generating report.')
+        self.report = Report(env=self.env,
+                             operator=self.operator,
+                             evaluation=self.evaluation)
+        print('Report completed.')
+
     def pvlib_database(self):
         """
         Retrieve pvlib database
@@ -647,6 +696,23 @@ class TabWidget(QWidget):
                                widget=self.tabs.widget(2).solar_plot,
                                w=int(self.screen_width / 3),
                                h=int(self.screen_height / 3))
+
+    def pop_up_dialog(self, title: str = None,
+                      message: str = None,
+                      box_type: str = None,
+                      button: bool = False):
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle(title)
+        dlg.setText(message)
+        if box_type == 'information':
+            dlg.setIcon(QMessageBox.Information)
+        elif box_type == 'warning':
+            dlg.setIcon(QMessageBox.Warning)
+        elif box_type == 'question':
+            dlg.setIcon(QMessageBox.Question)
+        if button:
+            dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        dlg.exec()
 
 
 if __name__ == '__main__':

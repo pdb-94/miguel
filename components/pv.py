@@ -275,7 +275,7 @@ class PV:
         :return: pd.Series
             PV Yield with interpolated values
         """
-        if self.env.t_step == dt.timedelta(minutes=60):
+        if self.env.i_step == 60:
             pass
         else:
             # Create index with environment time resolution

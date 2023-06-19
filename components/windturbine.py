@@ -211,16 +211,17 @@ class WindTurbine:
             wt_yield = pd.DataFrame(index=self.env.time_series,
                                     columns=df.columns)
             # Fill simulated values
-            for index in df.index:
-                wt_yield.loc[index, 'temp_air'] = df.loc[index, 'temp_air']
-                wt_yield.loc[index, 'relative_humidity'] = df.loc[index, 'relative_humidity']
-                wt_yield.loc[index, 'wind_speed'] = df.loc[index, 'wind_speed']
-                wt_yield.loc[index, 'wind_direction'] = df.loc[index, 'wind_direction']
-                wt_yield.loc[index, 'pressure'] = df.loc[index, 'pressure']
+            wt_yield = pd.DataFrame(index=self.env.time_series, columns=df.columns)
+
+            # Fill simulated values
+            wt_yield['temp_air'] = df['temp_air'].values
+            wt_yield['relative_humidity'] = df['relative_humidity'].values
+            wt_yield['wind_speed'] = df['wind_speed'].values
+            wt_yield['wind_direction'] = df['wind_direction'].values
+            wt_yield['pressure'] = df['pressure'].values
+
             # Interpolate values
-            for col in wt_yield.columns:
-                wt_yield[col] = wt_yield[col].astype(float)
-                wt_yield[col] = wt_yield[col].interpolate(method='time')
+            wt_yield = wt_yield.astype(float).interpolate(method='time')
 
             return wt_yield
 
@@ -331,7 +332,3 @@ class WindTurbine:
         height = df.loc[windturbine, 'hub_height']
 
         return windturbine, height
-
-
-
-

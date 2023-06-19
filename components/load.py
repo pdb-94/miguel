@@ -11,7 +11,7 @@ class Load:
     def __init__(self,
                  env,
                  name: str = None,
-                 annual_consumption: float = 150000,
+                 annual_consumption: float = None,
                  ref_profile: str = None,
                  load_profile: str = None):
         self.env = env
@@ -96,9 +96,9 @@ class Load:
         p_index = profile.index
         factor = int(len(df_index) / len(p_index))
         # Repeat load profile according to factor
-        repeated_profile = np.repeat(profile['P [W]'].values, factor)
+        repeated_profile = np.tile(profile['P [W]'].values, factor)
         # Assign values to df
-        self.df.loc[:, 'P [W]'] = repeated_profile
+        self.df['P [W]'] = repeated_profile[:len(self.df)]
 
     def standard_load_profile(self):
         """

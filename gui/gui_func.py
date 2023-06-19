@@ -273,13 +273,14 @@ def collect_component_data(component):
     return component_data
 
 
-def update_listview(tab: QWidget):
+def update_listview(tab: QWidget, df: pd.DataFrame):
     """
 
     :return: None
     """
-    tab.table = Table(data=tab.component_df)
+    tab.table = Table(data=df)
     tab.overview.setModel(tab.table)
+
 
 def create_wind_plot(name: str, data_1: pd.Series, data_2: pd.Series):
     """
