@@ -26,9 +26,13 @@ class Evaluation:
         # System  parameters
         self.energy_consumption_annual = self.calc_energy_consumption_annual()  # kWh
         self.peak_load = self.calc_peak_load()  # kW
-        self.grid_cost_comparison_annual = self.calc_grid_energy_annual_cost()
-        self.grid_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
-                                                                      annual_value=self.grid_cost_comparison_annual)
+        if self.env.grid_connection:
+            self.grid_cost_comparison_annual = self.calc_grid_energy_annual_cost()
+            self.grid_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
+                                                                          annual_value=self.grid_cost_comparison_annual)
+        else:
+            self.grid_cost_comparison_annual = None
+            self.grid_cost_comparison_lifetime = None
         self.dg_cost_comparison_annual = self.calc_dg_energy_annual_cost()
         self.dg_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
                                                                     annual_value=self.dg_cost_comparison_annual)

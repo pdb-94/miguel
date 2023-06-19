@@ -53,7 +53,10 @@ class Report:
         self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
         self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
         self.system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [{self.env.currency}]'])
-        self.gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
+        if self.env.grid_connection:
+            self.gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
+        else:
+            self.gird_lifetime_cost = None
         self.dg_lifetime_cost = int(self.eval.dg_cost_comparison_lifetime)
         # PDF
         self.pdf_file = PDF(title=self.name)
@@ -94,6 +97,7 @@ class Report:
         self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
 
     '''Functions to create chapters'''
+
     def introduction_summary(self):
         """
         Create Introduction and Summary
@@ -125,9 +129,9 @@ class Report:
             cost_difference = self.gird_lifetime_cost - self.system_lifetime_cost
             sys_comparison = 'the power grid'
         if cost_difference < 0:
-            cost_paragraph = f" Additional costs of {abs(int(cost_difference)):,} {self.env.currency} occur over the system " \
-                             f"lifetime of {self.env.lifetime} years, compared to an energy supply provided through " \
-                             f"{sys_comparison}."
+            cost_paragraph = f" Additional costs of {abs(int(cost_difference)):,} {self.env.currency} occur over the " \
+                             f"system lifetime of {self.env.lifetime} years, compared to an energy supply provided " \
+                             f"through {sys_comparison}."
         else:
             cost_paragraph = f" Cost savings of {abs(int(cost_difference)):,} {self.env.currency} occur over the system " \
                              f"lifetime of {self.env.lifetime} years due to the implementation of the energy system, " \
@@ -140,10 +144,9 @@ class Report:
         else:
             energy_demand = int(self.operator.power_sink['P [W]'].sum() * self.env.i_step / 60 / 1000)
             system_status = f"The selected system is considered an '{self.env.system}'. With the selected system " \
-                            f"configuration, THE ANNUAL ENERGY DEMAND OF {annual_energy_consumption:,} kWh IS NOT COVERED. " \
-                            f"The remaining energy to be covered equals {energy_demand:,} kWh. " \
-                            f"The highest load peak to be covered equals {self.operator.power_sink_max/1000:,} kW. " \
-                            f"The table shows the time stamps and the power to be covered."
+                            f"configuration, THE ANNUAL ENERGY DEMAND OF {annual_energy_consumption:,} " \
+                            f"kWh IS NOT COVERED. The remaining energy to be covered equals {energy_demand:,} kWh. " \
+                            f"The highest load peak to be covered equals {self.operator.power_sink_max / 1000:,} kW."
         summary = system_status + \
                   f" The PV system(s) account for {pv_percentage}% ({pv_energy:,} kWh); The wind turbine(s) account for " \
                   f"{wt_percentage}% ({wt_energy:,} kWh); The grid accounts {grid_percentage}% ({grid_energy: ,} kWh); " \
@@ -312,13 +315,21 @@ class Report:
         peak_load = ['Peak load [kW]',
                      round(self.operator.peak_load / 1000, 3),
                      round(self.operator.peak_load / 1000, 3)]
+        if self.env.grid_connection:
+            cost = [f'Energy cost [{self.env.currency}]',
+                    int(self.eval.grid_cost_comparison_annual),
+                    int(self.eval.dg_cost_comparison_annual)]
+            co2_emission = ['CO2 emissions [t]',
+                            round(self.operator.energy_consumption / 1000 * self.env.co2_grid, 3),
+                            round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
+        else:
+            cost = [f'Energy cost [{self.env.currency}]',
+                    'No grid connection',
+                    int(self.eval.dg_cost_comparison_annual)]
 
-        cost = [f'Energy cost [{self.env.currency}]',
-                int(self.eval.grid_cost_comparison_annual),
-                int(self.eval.dg_cost_comparison_annual)]
-        co2_emission = ['CO2 emissions [t]',
-                        round(self.operator.energy_consumption / 1000 * self.env.co2_grid, 3),
-                        round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
+            co2_emission = ['CO2 emissions [t]',
+                            'No grid connection',
+                            round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
         energy_con_values = [energy_con_header, total_energy_con, peak_load, cost, co2_emission]
         energy_con_data = [[''], energy_con_values]
         self.pdf_file.create_table(file=self.pdf_file,
@@ -528,7 +539,6 @@ class Report:
         self.pdf_file.chapter_body(name=self.txt_file_path + 'default/6_2_table_description.txt', size=10)
 
     '''Functions to support chapter content'''
-
     def create_input_parameter(self):
         """
         Create DataFrame with input Parameters
