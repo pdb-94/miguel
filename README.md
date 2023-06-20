@@ -21,6 +21,7 @@ The results are provided in the form of csv files for each simulation step and i
   - [Operator](#operator)
   - [Evaluation](#evaluation)
   - [Output](#output)
+- [Graphical user interface](#graphical-user-interface)
 - [Database](#database)
 - [Project partners](#project-partners)
 - [Dependencies](#dependencies)
@@ -91,12 +92,13 @@ MiGUEL features the following system components. Each component can be added to 
 
 ##### Load
 The system component load represents the load profile of the subject under review. The load profile can be generated in two different ways. 
-1) Standard load profile for African hospitals: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. To create a load profile from the standard load profile, the annual electricity consumption needs to be returned to the function (annual_consumption). The standard load profile has a 15min-time resolution.
+1) Reference load profiles: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. Since May 2023 the reference load profiles from the Bundesverband der Energie- und Wasserwirtschaft (BDEW) have been included. The reference load profiles are used in the german dispatch to simulate certain inistitutions. To create a load profile from the reference load profiles, the annual electricity consumption needs to be returned to the function (annual_consumption). The reference load profiles have a 15min-time resolution. 
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-----------|-------------|-------|---------|-|-|
 |annual_consumption|Annual electricity consumption|float|-|kWh|Only for method 1|
+|profile|Reference load profile|str|-|-|Only for method 1|
 |load_profile|File path to load profile data|str|-|-|csv-file with load profile, Only for method 2|
 
 The accuracy of the simulation results increases with the quality of the input data. Using the adjusted standard load profile will provide less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on the electric inventory of the subject.
@@ -135,8 +137,11 @@ The class WindTurbine is based on the library [windpowerlib](https://windpowerli
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-|-|-|-|-|-|
 |**turbine_data**|**Turbine data**|**dict**|-|-||
-|turbin_type|Turbine type|str|-|-|Turbine name and manufacturer from windpowerlib register|
-|tubine_height|Hub height|float|-|m||
+|turbin_type|Turbine type|str|-|-|Turbine name and manufacturer from windpowerlib register (Methd 2)|
+|tubine_height|Hub height|float|-|m|Method 2|
+|**selection_parameters**||**list**|-|-|**Select random turbine iwthin power range**|
+|p_min|Minimal power|float|-|kW|Method 1|
+|p_max|Maximal power|float|-|kW|Method 1|
 
 The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
@@ -245,6 +250,9 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
+## Graphical user interface
+End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. 
+
 
 ## Database
 MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
@@ -265,6 +273,7 @@ MiGUEL features a SQLite database in the directory /data/miguel.db. The followin
 </p>
 
 ## Dependencies
+All dependencies are listet in the requirements.txt. This file will ask the user to install the dependencies automtically.
 
 [pandas](https://pandas.pydata.org/)
 
