@@ -92,7 +92,7 @@ MiGUEL features the following system components. Each component can be added to 
 
 ##### Load
 The system component load represents the load profile of the subject under review. The load profile can be generated in two different ways. 
-1) Reference load profiles: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. Since May 2023 the reference load profiles from the Bundesverband der Energie- und Wasserwirtschaft (BDEW) have been included. The reference load profiles are used in the german dispatch to simulate certain inistitutions. To create a load profile from the reference load profiles, the annual electricity consumption needs to be returned to the function (annual_consumption). The reference load profiles have a 15min-time resolution. 
+1) Reference load profiles: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. Since May 2023 the reference load profiles from the Bundesverband der Energie- und Wasserwirtschaft (BDEW) have been included. The reference load profiles are used in the german dispatch to simulate certain inistitutions. [17] To create a load profile from the reference load profiles, the annual electricity consumption needs to be returned to the function (annual_consumption). The reference load profiles have a 15min-time resolution. 
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
 
 | Parameter | Description | dtype | Default | Unit| Comment |
@@ -260,12 +260,13 @@ End of June 2023 a graphical user interface (GUI) has been implemented into MiGU
 
 ## Database
 MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
-| Name | Data sets |
-|-|-|
-|pvlib_cec_module|pvlib cec module parameters|
-|pvlib_cec_inverter|pvlib cec inverter parameters|
-|windpowerlib_turbine|windpowerlib wind turbine parameters|
-|standard_load_profile|standard load profile for Ghanaian hospitals|
+| Name | Data sets | Source |
+|-|-||
+|pvlib_cec_module|pvlib cec module parameters||
+|pvlib_cec_inverter|pvlib cec inverter parameters||
+|windpowerlib_turbine|windpowerlib wind turbine parameters||
+|standard_load_profile|standard load profile for Ghanaian hospitals||
+|bdew_standard_load_profile|standard load profile of BDEW|[17]|
 
 ## Project partners
 <p align="center">
@@ -337,6 +338,8 @@ All dependencies are listet in the requirements.txt. This file will ask the user
 [15] Friso Klemann, University Utrecht, The environmental impact of cycling 1,600 MWh electricity - A Life Cycle Assessment of a lithium-ion battery from Greener Power Solutions (P. 35)
 
 [16] Hao, H.; Mu, Z.; Jiang, S.; Liu, Z.; Zhao, F. GHG Emissions from the Production of Lithium-Ion Batteries for Electric Vehicles in China. Sustainability 2017, 9, 504. [https://doi.org/10.3390/su9040504](https://doi.org/10.3390/su9040504)
+
+[17] BBDEW Bundesverband der Energie- und Wasserwirtschaft e.V.; Standardlastprofile Strom; [https://www.bdew.de/energie/standardlastprofile-strom/](https://www.bdew.de/energie/standardlastprofile-strom/); 01.01.2017
 
 ## Appendix
 
