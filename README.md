@@ -146,7 +146,7 @@ The class WindTurbine is based on the library [windpowerlib](https://windpowerli
 The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
 
 ##### Grid
-The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data, a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. To add a power grid to the Environment, no specific parameters are needed.
+The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data, a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. The grid is automatically added to the Environment if the parameter grid_connection is set to True. 
 
 ##### Diesel Generator
 The class DieselGenerator is based on a simplified, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therefore reduce CO2-emissions [3]. The input parameters for diesel generators are displayed in the table below.
@@ -203,7 +203,7 @@ The figure displays the dispatch strategies for all system components. If a syst
 
 ### Evaluation
 
-The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. 
+The two key parameters for the system evaluation are the Levelized Cost of Energy (LCOE) in US$/kWh and the CO2-emissions [t] over the system lifetime. The class Evaluation takes the Envrionemnet and the Operator as input parameters.
 
 Note: The specific values for investment, operating and maintenance costs have been partially converted from euros to US$ (27.03.2023). The costs may differ depending on the exchange rate.
 
@@ -251,7 +251,11 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
 ## Graphical user interface
-End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. 
+End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. The GUI follows the logical process as described above. 
+1) Create Environemnt
+2) Add system components
+3) Run dispatch and evaluate system
+4) Export outputs
 
 
 ## Database
