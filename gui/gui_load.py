@@ -62,15 +62,15 @@ class LoadProfile(QWidget):
 
         # Set up Layout
         self.layout = QGridLayout()
-        self.layout.addWidget(self.description, 0, 0, 1, 2, Qt.AlignTop)
-        self.layout.addWidget(self.consumption_l, 1, 0, Qt.AlignTop)
-        self.layout.addWidget(self.consumption, 1, 1, Qt.AlignTop)
-        self.layout.addWidget(self.ref_profile_l, 2, 0, Qt.AlignTop)
-        self.layout.addWidget(self.ref_profile, 2, 1, Qt.AlignTop)
-        self.layout.addWidget(self.load_profile_l, 3, 0, Qt.AlignTop)
-        self.layout.addWidget(self.load_profile, 3, 1, Qt.AlignTop)
-        self.layout.addWidget(self.toolbar, 5, 0, 1, 2, Qt.AlignTop)
-        self.layout.addWidget(self.plot, 5, 0, 1, 2, Qt.AlignTop)
+        self.layout.addWidget(self.description, 0, 0, 1, 2, Qt.AlignVCenter)
+        self.layout.addWidget(self.consumption_l, 1, 0, Qt.AlignRight | Qt.AlignVCenter)
+        self.layout.addWidget(self.consumption, 1, 1, Qt.AlignVCenter)
+        self.layout.addWidget(self.ref_profile_l, 2, 0, Qt.AlignRight | Qt.AlignVCenter)
+        self.layout.addWidget(self.ref_profile, 2, 1, Qt.AlignVCenter)
+        self.layout.addWidget(self.load_profile_l, 3, 0, Qt.AlignRight | Qt.AlignVCenter)
+        self.layout.addWidget(self.load_profile, 3, 1, Qt.AlignVCenter)
+        self.layout.addWidget(self.toolbar, 5, 0, 1, 2, Qt.AlignVCenter)
+        self.layout.addWidget(self.plot, 5, 0, 1, 2, Qt.AlignVCenter)
         self.setLayout(self.layout)
 
     def adjust_plot(self, df: pd.Series, time_series: pd.Series):

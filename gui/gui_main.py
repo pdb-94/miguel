@@ -1,10 +1,5 @@
 import sys
-import os
-import threading
-import numpy as np
 import pandas as pd
-import datetime as dt
-import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -24,8 +19,6 @@ from gui.gui_dg import DG
 from gui.gui_storage import EnergyStorage
 from gui.gui_dispatch import Dispatch
 from gui.gui_evaluation import EvaluateSystem
-from gui_table import Table
-from gui_dialog import DispatchMsgBox
 
 
 class TabWidget(QWidget):
@@ -137,6 +130,7 @@ class TabWidget(QWidget):
         if index == 0:
             # Tab Start
             gui_func.enable_widget(widget=[self.save_btn, self.return_btn, self.delete_btn], enable=False)
+            gui_func.enable_widget(widget=[self.next_btn], enable=True)
             gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
                                         text=['Save', 'Delete', 'Start', 'Return'])
         elif index == 1:
@@ -209,6 +203,8 @@ class TabWidget(QWidget):
             component = self.env.diesel_generator
         elif index == 7:
             component = self.env.storage
+        else:
+            return
         # Check if component has been created
         if len(component) > 0:
             row = tab.overview.currentIndex().row()
@@ -252,7 +248,8 @@ class TabWidget(QWidget):
             # Reset widgets
             gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude, tab.altitude,
                                           tab.electricity_price, tab.co2_price, tab.wt_feed, tab.pv_feed,
-                                          tab.co2_grid])
+                                          tab.co2_grid, tab.diesel_price, tab.tz])
+            gui_func.change_combo_index(combo=[tab.terrain, tab.time_step], index=[0, 0])
             tab.blackout.setChecked(False)
             tab.feed_in.setChecked(False)
             tab.grid.setChecked(True)
@@ -332,6 +329,7 @@ class TabWidget(QWidget):
                 print('Evaluating system.')
                 self.evaluate_system(tab=self.tabs.widget(9))
                 print('System evaluation completed.')
+                self.tabs.setCurrentIndex(9)
             else:
                 print('Add load to energy system.')
                 self.pop_up_dialotabg(message='No load profile was added to energy system',
@@ -391,7 +389,7 @@ class TabWidget(QWidget):
                     'altitude': altitude,
                     'terrain': terrain}
         # Time
-        timezone = get_tz(location['latitude'], location['longitude'])
+        timezone = tab.tz.currentText()
         time_data = gui_func.convert_datetime(start=start_time, end=end_time, step=time_step)
         time = {'start': time_data[0], 'end': time_data[1], 'step': time_data[2], 'timezone': timezone}
         # Economy

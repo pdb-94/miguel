@@ -32,6 +32,8 @@ class EnergySystem(QWidget):
         self.end_time_l.setText('End time')
         self.time_step_l = QLabel()
         self.time_step_l.setText('Time resolution [hh:mm]')
+        self.tz_l = QLabel()
+        self.tz_l.setText('Time zone')
         self.longitude_l = QLabel()
         self.longitude_l.setText('Longitude')
         self.latitude_l = QLabel()
@@ -68,7 +70,7 @@ class EnergySystem(QWidget):
                                        self.d_rate_l, self.wt_feed_l, self.longitude_l, self.altitude_l, self.feed_in_l,
                                        self.blackout_l, self.blackout_data_l, self.grid_l, self.electricity_price_l,
                                        self.co2_grid_l, self.co2_price_l, self.pv_feed_l,  self.latitude_l,
-                                       self.terrain_l, self.lifetime_l, self.diesel_price_l],
+                                       self.terrain_l, self.lifetime_l, self.diesel_price_l, self.tz_l],
                                alignment=Qt.AlignRight | Qt.AlignVCenter)
         # Edits
         self.project_name = QLineEdit()
@@ -84,6 +86,13 @@ class EnergySystem(QWidget):
         self.end_time = QDateTimeEdit(end_time)
         self.end_time.setCalendarPopup(True)
         self.time_step = QComboBox()
+        self.tz = QComboBox()
+        tz = ['Etc/GMT+12', 'Etc/GMT+11', 'Etc/GMT+10', 'Etc/GMT+9', 'Etc/GMT+8', 'Etc/GMT+7', 'Etc/GMT+6', 'Etc/GMT+5',
+              'Etc/GMT+4', 'Etc/GMT+3', 'Etc/GMT+2', 'Etc/GMT+1', 'Etc/GMT+0', 'Etc/GMT-1', 'Etc/GMT-2', 'Etc/GMT-3',
+              'Etc/GMT-4', 'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9', 'Etc/GMT-10', 'Etc/GMT-11',
+              'Etc/GMT-12']
+        self.tz.addItems(tz)
+        self.tz.setCurrentIndex(12)
         gui_func.add_combo(widget=self.time_step, name=['00:15', '01:00'])
         gui_func.change_combo_index(combo=[self.time_step], index=[0])
         self.longitude = QLineEdit()
@@ -143,7 +152,9 @@ class EnergySystem(QWidget):
         self.layout.addWidget(self.end_time_l, 3, 0)
         self.layout.addWidget(self.end_time, 3, 1, 1, 5)
         self.layout.addWidget(self.time_step_l, 4, 0)
-        self.layout.addWidget(self.time_step, 4, 1, 1, 5)
+        self.layout.addWidget(self.time_step, 4, 1)
+        self.layout.addWidget(self.tz_l, 4, 2)
+        self.layout.addWidget(self.tz, 4, 3, 1, 3)
         self.layout.addWidget(self.latitude_l, 5, 0)
         self.layout.addWidget(self.latitude, 5, 1)
         self.layout.addWidget(self.longitude_l, 5, 2)
