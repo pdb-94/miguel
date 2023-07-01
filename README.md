@@ -261,7 +261,7 @@ End of June 2023 a graphical user interface (GUI) has been implemented into MiGU
 ## Database
 MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
 | Name | Data sets | Source |
-|-|-||
+|-|-|-|
 |pvlib_cec_module|pvlib cec module parameters||
 |pvlib_cec_inverter|pvlib cec inverter parameters||
 |windpowerlib_turbine|windpowerlib wind turbine parameters||
