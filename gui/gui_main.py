@@ -8,6 +8,8 @@ from environment import Environment
 from operation import Operator
 from evaluation import Evaluation
 from report.report import Report
+from components.pv import PV
+from components.windturbine import WindTurbine
 import gui_func as gui_func
 from gui.gui_projectsetup import ProjectSetup
 from gui.gui_environment import EnergySystem
@@ -195,6 +197,10 @@ class TabWidget(QWidget):
         index = self.tabs.currentIndex()
         tabs = self.tabs.widget
         tab = tabs(index)
+        if index == 3:
+            if self.env.load is not None:
+                self.env.load = None
+                self.env.df = self.env.df.drop(columns=['P_Res [W]'])
         if index == 4:
             component = self.env.pv
         elif index == 5:
@@ -212,6 +218,13 @@ class TabWidget(QWidget):
             if row != -1:
                 name = component[row].name
                 # Delete item from environment
+                if isinstance(component, PV):
+                    self.env.df['PV total power [W]'] \
+                        = self.env.df['PV total power [W]'] - self.env.df[f'{name}: P [W]']
+                elif isinstance(component, WindTurbine):
+                    self.env.df['WT total power [W]'] \
+                        = self.env.df['WT total power [W]'] - self.env.df[f'{name}: P [W]']
+                self.env.df = self.env.df.drop(columns=[f'{name}: P [W]'])
                 del (component[row])
                 # Remove item from QListView
                 tab.component_df = tab.component_df.drop(row, axis=0)
@@ -222,6 +235,8 @@ class TabWidget(QWidget):
                 tabs(8).component_df = tabs(8).component_df.drop(dispatch_row,
                                                                  axis=0)
                 gui_func.update_listview(tab=tabs(8), df=tabs(8).component_df)
+                print(self.env.df)
+                print(self.env.df.columns)
             else:
                 # No component selected
                 print('Select item to delete from list.')
@@ -240,16 +255,12 @@ class TabWidget(QWidget):
         if index == 1:
             # Environment
             self.create_env(tab)
-            # Plot weather data
-            self.plot_monthly_weather_data()
-            # Change system type widget
-            system_type = self.env.system
-            gui_func.change_widget_text(widget=[tabs(8).system_type], text=[system_type])
             # Reset widgets
             gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude, tab.altitude,
                                           tab.electricity_price, tab.co2_price, tab.wt_feed, tab.pv_feed,
-                                          tab.co2_grid, tab.diesel_price, tab.tz])
-            gui_func.change_combo_index(combo=[tab.terrain, tab.time_step], index=[0, 0])
+                                          tab.co2_grid, tab.diesel_price])
+            gui_func.change_combo_index(combo=[tab.terrain, tab.time_step, tab.tz],
+                                        index=[0, 0, 12])
             tab.blackout.setChecked(False)
             tab.feed_in.setChecked(False)
             tab.grid.setChecked(True)
@@ -402,26 +413,36 @@ class TabWidget(QWidget):
                    'wt_feed_in': wt_feed_in,
                    'currency': 'US$'}
         # Ecological
-
         ecology = {'co2_diesel': 0.2665, 'co2_grid': co2_grid}
-        # Create Environment
-        self.env = Environment(name=name,
-                               time=time,
-                               location=location,
-                               economy=economy,
-                               ecology=ecology,
-                               grid_connection=grid_connection,
-                               blackout=blackout,
-                               blackout_data=blackout_data,
-                               feed_in=feed_in,
-                               csv_decimal=',',
-                               csv_sep=';')
-        # Update folium map
-        tab.update_map(latitude=location['latitude'],
-                       longitude=location['longitude'],
-                       name=name)
-        self.pvlib_database()
-        self.windpowerlib_database()
+        try:
+            # Create Environment
+            self.env = Environment(name=name,
+                                   time=time,
+                                   location=location,
+                                   economy=economy,
+                                   ecology=ecology,
+                                   grid_connection=grid_connection,
+                                   blackout=blackout,
+                                   blackout_data=blackout_data,
+                                   feed_in=feed_in,
+                                   csv_decimal=',',
+                                   csv_sep=';')
+            # Update folium map
+            tab.update_map(latitude=location['latitude'],
+                           longitude=location['longitude'],
+                           name=name)
+            self.pvlib_database()
+            self.windpowerlib_database()
+            # Plot weather data
+            self.plot_monthly_weather_data()
+            # Change system type widget
+            system_type = self.env.system
+            gui_func.change_widget_text(widget=[self.tabs.widget(8).system_type], text=[system_type])
+        except Exception:
+            self.pop_up_dialog(title='',
+                               message='Please enter valid parameters to create energy system.',
+                               box_type='warning',
+                               button=False)
 
     def gui_add_load_profile(self, tab: QWidget):
         """
@@ -441,12 +462,25 @@ class TabWidget(QWidget):
             ref_profile = None
         else:
             load_profile_path = None
-        if isinstance(self.env, Environment):
-            self.env.add_load(annual_consumption=annual_consumption,
-                              ref_profile=ref_profile,
-                              load_profile=load_profile_path)
-            tab.adjust_plot(time_series=self.env.time_series,
-                            df=self.env.load.df)
+            if not annual_consumption:
+                self.pop_up_dialog(title='',
+                                   message='Please enter valid parameters to add load profile to energy system.',
+                                   box_type='warning',
+                                   button=False)
+                return
+        try:
+            if isinstance(self.env, Environment):
+                self.env.add_load(annual_consumption=annual_consumption,
+                                  ref_profile=ref_profile,
+                                  load_profile=load_profile_path)
+                tab.adjust_plot(time_series=self.env.time_series,
+                                df=self.env.load.df)
+                gui_func.enable_widget(widget=[self.delete_btn], enable=True)
+        except Exception:
+            self.pop_up_dialog(title='',
+                               message='Please enter valid parameters to add load profile to energy system.',
+                               box_type='warning',
+                               button=False)
 
     def gui_add_pv(self, tab: QWidget):
         """
