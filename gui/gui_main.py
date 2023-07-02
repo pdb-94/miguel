@@ -1,5 +1,7 @@
 import sys
 import pandas as pd
+import threading
+from global_land_mask import globe
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -112,7 +114,10 @@ class TabWidget(QWidget):
         :return: None
         """
         index = self.tabs.currentIndex()
-        self.tabs.setCurrentIndex(index + 1)
+        if index == 9:
+            self.close()
+        else:
+            self.tabs.setCurrentIndex(index + 1)
 
     def previous_tab(self):
         """
@@ -168,7 +173,7 @@ class TabWidget(QWidget):
         elif index == 9:
             # Tab evaluation
             gui_func.change_widget_text(widget=[self.save_btn, self.delete_btn, self.next_btn, self.return_btn],
-                                        text=['Export', 'Delete', 'Next', 'Return'])
+                                        text=['Export', 'Delete', 'Close', 'Return'])
             gui_func.enable_widget(widget=[self.return_btn],
                                    enable=True)
             # Enable tab if dispatch has been finished
@@ -198,6 +203,7 @@ class TabWidget(QWidget):
         tabs = self.tabs.widget
         tab = tabs(index)
         if index == 3:
+            # TODO: clear plot
             if self.env.load is not None:
                 self.env.load = None
                 self.env.df = self.env.df.drop(columns=['P_Res [W]'])
@@ -222,6 +228,7 @@ class TabWidget(QWidget):
                     self.env.df['PV total power [W]'] \
                         = self.env.df['PV total power [W]'] - self.env.df[f'{name}: P [W]']
                 elif isinstance(component, WindTurbine):
+                    # TODO: subtract WT from total WT power
                     self.env.df['WT total power [W]'] \
                         = self.env.df['WT total power [W]'] - self.env.df[f'{name}: P [W]']
                 self.env.df = self.env.df.drop(columns=[f'{name}: P [W]'])
@@ -235,14 +242,16 @@ class TabWidget(QWidget):
                 tabs(8).component_df = tabs(8).component_df.drop(dispatch_row,
                                                                  axis=0)
                 gui_func.update_listview(tab=tabs(8), df=tabs(8).component_df)
-                print(self.env.df)
-                print(self.env.df.columns)
             else:
                 # No component selected
-                print('Select item to delete from list.')
+                pop_up = self.pop_up_dialog(title='Warning: Select component',
+                                            message='Please select component from list.',
+                                            box_type='warning')
         else:
             # No component existing
-            print('No component existing.')
+            pop_up = self.pop_up_dialog(title='Warning: No component',
+                                        message='No component has been created.',
+                                        box_type='warning')
 
     def save(self):
         """
@@ -333,21 +342,33 @@ class TabWidget(QWidget):
             # Tab dispatch
             # TODO: Threading with message
             if self.env.load is not None:
-                print('Dispatch in progress.')
-                self.create_operator()
+                pop_up = self.pop_up_dialog(title='Information: Dispatch in progress',
+                                            message='This window will close automatically once dispatch is finished.',
+                                            box_type='information',
+                                            dialog=False)
+                operator_thread = threading.Thread(target=self.create_operator)
+                operator_thread.start()
+                operator_thread.join()
+                pop_up.close()
                 gui_func.enable_widget(widget=[self.tabs.widget(9)], enable=True)
-                print('Dispatch completed.')
-                print('Evaluating system.')
                 self.evaluate_system(tab=self.tabs.widget(9))
-                print('System evaluation completed.')
                 self.tabs.setCurrentIndex(9)
             else:
                 print('Add load to energy system.')
-                self.pop_up_dialotabg(message='No load profile was added to energy system',
-                                      box_type='warning')
+                pop_up = self.pop_up_dialog(title='Warning: Dispatch not possible',
+                                            message='No load profile was added to energy system',
+                                            box_type='warning')
         elif index == 9:
             # Tab evaluation
             self.create_report()
+            # pop_up = self.pop_up_dialog(title='Information: Creating report',
+            #                             message='This window will close automatically once report is finished.',
+            #                             box_type='information',
+            #                             dialog=False)
+            # report_thread = threading.Thread(target=self.create_report)
+            # report_thread.start()
+            # report_thread.join()
+            # pop_up.close()
 
     def create_env(self, tab: QWidget):
         """
@@ -393,7 +414,6 @@ class TabWidget(QWidget):
             pv_feed_in = None
             wt_feed_in = None
             co2_grid = None
-
         # Location
         location = {'longitude': longitude,
                     'latitude': latitude,
@@ -422,35 +442,42 @@ class TabWidget(QWidget):
         else:
             sep = ','
             decimal = '.'
-        try:
-            # Create Environment
-            self.env = Environment(name=name,
-                                   time=time,
-                                   location=location,
-                                   economy=economy,
-                                   ecology=ecology,
-                                   grid_connection=grid_connection,
-                                   blackout=blackout,
-                                   blackout_data=blackout_data,
-                                   feed_in=feed_in,
-                                   csv_decimal=decimal,
-                                   csv_sep=sep)
-            # Update folium map
-            tab.update_map(latitude=location['latitude'],
-                           longitude=location['longitude'],
-                           name=name)
-            self.pvlib_database()
-            self.windpowerlib_database()
-            # Plot weather data
-            self.plot_monthly_weather_data()
-            # Change system type widget
-            system_type = self.env.system
-            gui_func.change_widget_text(widget=[self.tabs.widget(8).system_type], text=[system_type])
-        except Exception:
-            self.pop_up_dialog(title='',
-                               message='Please enter valid parameters to create energy system.',
-                               box_type='warning',
-                               button=False)
+        land = globe.is_land(lat=latitude,
+                             lon=longitude)
+        if not land:
+            pop_up = self.pop_up_dialog(title='Warning: Location not on land.',
+                                        message='Please select location on land.',
+                                        box_type='warning')
+        else:
+            try:
+                # Create Environment
+                self.env = Environment(name=name,
+                                       time=time,
+                                       location=location,
+                                       economy=economy,
+                                       ecology=ecology,
+                                       grid_connection=grid_connection,
+                                       blackout=blackout,
+                                       blackout_data=blackout_data,
+                                       feed_in=feed_in,
+                                       csv_decimal=decimal,
+                                       csv_sep=sep)
+                # Update folium map
+                tab.update_map(latitude=location['latitude'],
+                               longitude=location['longitude'],
+                               name=name)
+                self.pvlib_database()
+                self.windpowerlib_database()
+                # Plot weather data
+                self.plot_monthly_weather_data()
+                # Change system type widget
+                system_type = self.env.system
+                gui_func.change_widget_text(widget=[self.tabs.widget(8).system_type], text=[system_type])
+            except Exception:
+                pop_up = self.pop_up_dialog(title='Warning: Invalid input parameters.',
+                                            message='Please enter valid parameters to create energy system.',
+                                            box_type='warning',
+                                            button=False)
 
     def gui_add_load_profile(self, tab: QWidget):
         """
@@ -471,10 +498,10 @@ class TabWidget(QWidget):
         else:
             load_profile_path = None
             if not annual_consumption:
-                self.pop_up_dialog(title='',
-                                   message='Please enter valid parameters to add load profile to energy system.',
-                                   box_type='warning',
-                                   button=False)
+                pop_up = self.pop_up_dialog(title='',
+                                            message='Please enter valid parameters to add load profile to energy system.',
+                                            box_type='warning',
+                                            button=False)
                 return
         try:
             if isinstance(self.env, Environment):
@@ -485,10 +512,10 @@ class TabWidget(QWidget):
                                 df=self.env.load.df)
                 gui_func.enable_widget(widget=[self.delete_btn], enable=True)
         except Exception:
-            self.pop_up_dialog(title='',
-                               message='Please enter valid parameters to add load profile to energy system.',
-                               box_type='warning',
-                               button=False)
+            pop_up = self.pop_up_dialog(title='Warning: Invalid input parameter',
+                                        message='Please enter valid parameters to add load profile to energy system.',
+                                        box_type='warning',
+                                        button=False)
 
     def gui_add_pv(self, tab: QWidget):
         """
@@ -663,11 +690,11 @@ class TabWidget(QWidget):
         Generate and export report
         :return: None
         """
-        print('Generating report.')
+        print('Creating report. This may take couple minutes.')
         self.report = Report(env=self.env,
                              operator=self.operator,
                              evaluation=self.evaluation)
-        print('Report completed.')
+        print('Report finished.')
 
     def pvlib_database(self):
         """
@@ -737,10 +764,12 @@ class TabWidget(QWidget):
                                w=int(self.screen_width / 3),
                                h=int(self.screen_height / 3))
 
-    def pop_up_dialog(self, title: str = None,
+    def pop_up_dialog(self,
+                      title: str = None,
                       message: str = None,
                       box_type: str = None,
-                      button: bool = False):
+                      button: bool = False,
+                      dialog: bool = False):
         dlg = QMessageBox(self)
         dlg.setWindowTitle(title)
         dlg.setText(message)
@@ -752,7 +781,12 @@ class TabWidget(QWidget):
             dlg.setIcon(QMessageBox.Question)
         if button:
             dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        dlg.exec()
+        if dialog:
+            dlg.exec()
+        else:
+            dlg.show()
+
+        return dlg
 
 
 if __name__ == '__main__':
