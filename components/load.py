@@ -71,8 +71,13 @@ class Load:
         :return: list
             mean values
         """
+        lp_time_step = (self.load_profile.index[1] - self.load_profile.index[0]) / dt.timedelta(minutes=1)
+        if lp_time_step == 1:
+            factor = 1
+        else:
+            factor = 15
         lp_index = self.load_profile.index
-        values = self.load_profile.groupby(np.arange(len(lp_index)) // int(self.env.i_step / 15))['P [W]'].mean().tolist()
+        values = self.load_profile.groupby(np.arange(len(lp_index)) // int(self.env.i_step / factor))['P [W]'].mean().tolist()
 
         return values
 
