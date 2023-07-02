@@ -252,7 +252,7 @@ The report focuses not only on the energetic results of the system evaluation bu
 
 ## Graphical user interface
 End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
-1) **Get started**: Welcome Screen including a brief overview of MiGUEL and EnerSHelF.
+1) **Get started**: Welcome Screen including a brief overview of MiGUEL and EnerSHelF. Select csv file format
 2) **Energy system**: Input mask to  create Environment class.
 3) **Weather data**: Displays weather data from PVGIS at selected location.
 4) **Load profile**: Input mask to add load profile to Environment.
