@@ -5,7 +5,7 @@
 </p>
 
 ## Disclaimer 
-MiGUEL is continously optimized in terms of handling and outputs.
+MiGUEL is continously optimized in terms of handling and outputs. 
 
 
 ## Introduction
