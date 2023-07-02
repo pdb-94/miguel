@@ -284,7 +284,7 @@ MiGUEL features a SQLite database in the directory /data/miguel.db. The followin
 </p>
 
 ## Dependencies
-All dependencies are listet in the requirements.txt. This file will ask the user to install the dependencies automtically.
+For a full list of all dependencies see requirements.txt. This file will ask the user to install the dependencies automtically. 
 
 [pandas](https://pandas.pydata.org/)
 
@@ -308,6 +308,17 @@ All dependencies are listet in the requirements.txt. This file will ask the user
 
 [lcoe](https://pypi.org/project/lcoe/)
 
+[global-land-mask](https://github.com/toddkarin/global-land-mask)
+
+[PyQT5](https://pypi.org/project/PyQt5/)
+
+[geonames](https://pypi.org/project/geonames/)
+
+[geopandas](https://geopandas.org/en/stable/)
+
+[lcoe](https://pypi.org/project/lcoe/)
+
+[plotly](https://pypi.org/project/plotly/)
 
 ## References
 
