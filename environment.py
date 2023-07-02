@@ -34,14 +34,18 @@ class Environment:
                  csv_sep: str = ',',
                  csv_decimal: str = '.'):
         """
-        :type location: dict
+        :param location: dict
             Parameter to create location
+            {latitude: float,
+             longitude: float,
+             altitude: float,
+             terrain: str}
         :param time: dict:
             Parameter for time series
             {start: dt.datetime,
              end: dt.datetime,
              step: dt.timedelta,
-             timezone: str)
+             timezone: str}
         :param economy: dict
             Parameter for economical calculation
             {d_rate: float,
@@ -55,8 +59,18 @@ class Environment:
             Parameter for ecological calculations
             {co2_diesel: float,
              co2_grid: float}
+        :param grid_connection: bool
+            System grid connected
+        :param feed_in: bool
+            feed-in possible
+        :param blackout: bool
+            Blackout occur
+        :param blackout_data: str
+            File path blackout data
+        :param weather_data: str
+            File path weather data
         """
-        # Container
+        # Component Container
         self.grid = None
         self.load = None
         self.pv = []
@@ -429,6 +443,7 @@ class Environment:
                                                      c_invest=c_invest,
                                                      c_op_main=c_op_main,
                                                      c_var_n=c_var_n))
+        self.df[f'{name}: P [W]'] = self.diesel_generator[-1].df['P [W]']
         self.supply_components.append(self.diesel_generator[-1])
         self.add_component_data(component=self.diesel_generator[-1],
                                 supply=True)
