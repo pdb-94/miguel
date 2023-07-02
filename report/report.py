@@ -149,7 +149,7 @@ class Report:
                             f"The highest load peak to be covered equals {self.operator.power_sink_max / 1000:,} kW."
         summary = system_status + \
                   f" The PV system(s) account for {pv_percentage}% ({pv_energy:,} kWh); The wind turbine(s) account for " \
-                  f"{wt_percentage}% ({wt_energy:,} kWh); The grid accounts {grid_percentage}% ({grid_energy: ,} kWh); " \
+                  f"{wt_percentage}% ({wt_energy:,} kWh); The grid accounts for {grid_percentage}% ({grid_energy:,} kWh); " \
                   f"The diesel generator(s) account for {dg_percentage}% ({dg_energy:,} kWh) of the total energy " \
                   f"consumption. The energy storage(s) provide {abs(es_discharge):,} kWh and are charged with " \
                   f"{abs(es_charge):,} kWh. The table below shows the energy systems key parameters. The parameters will " \
