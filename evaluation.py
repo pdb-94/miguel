@@ -1,3 +1,4 @@
+import math
 import sys
 import numpy as np
 import pandas as pd
@@ -33,8 +34,10 @@ class Evaluation:
         else:
             self.grid_cost_comparison_annual = None
             self.grid_cost_comparison_lifetime = None
-        self.dg_cost_comparison_annual = self.calc_dg_energy_annual_cost()
-        self.dg_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=0,
+        self.dg_cost_comparison_annual_parameters = self.calc_dg_energy_annual_cost()
+        self.dg_cost_comparison_invest = self.dg_cost_comparison_annual_parameters[0]
+        self.dg_cost_comparison_annual = self.dg_cost_comparison_annual_parameters[1]
+        self.dg_cost_comparison_lifetime = self.calc_lifetime_value(initial_value=self.dg_cost_comparison_invest,
                                                                     annual_value=self.dg_cost_comparison_annual)
         # Components evaluation parameters
         self.pv_energy_supply = {}
@@ -94,7 +97,7 @@ class Evaluation:
         Calculate grid cost to meet annual consumption
         :return: float
         """
-        cost = self.energy_consumption_annual * self.env.electricity_price  # US
+        cost = self.energy_consumption_annual * self.env.electricity_price  # US$
 
         return cost
 
@@ -104,10 +107,13 @@ class Evaluation:
         :return: float
 
         """
+        p = int(math.ceil(self.peak_load / 10)) * 10 / 1000
+        invest = p * 468
+        opm = invest * 0.03
         # Conversion factor kWh/l 1l/9.8 kWh/l = 0.102 l/kWh
-        cost = self.energy_consumption_annual * self.env.diesel_price * 0.102
+        annual_cost = self.energy_consumption_annual * self.env.diesel_price * (0.102 + 0.021) + opm
 
-        return cost
+        return invest, annual_cost
 
     def calc_lifetime_energy_supply(self):
         """
@@ -291,8 +297,11 @@ class Evaluation:
             additional_variable_cost = annual_output * component.c_var_n
             annual_cost = component.c_op_main + co2_cost + additional_variable_cost
         else:
-            if self.env.feed_in:
-                annual_revenues = self.op.df[component.name + f' Feed in [{self.env.currency}]'].sum()
+            if self.env.grid_connection:
+                if self.env.feed_in:
+                    annual_revenues = self.op.df[f'{component.name} Feed in [{self.env.currency}]'].sum()
+                else:
+                    annual_revenues = 0
             else:
                 annual_revenues = 0
             additional_variable_cost = annual_output * component.c_var_n
@@ -343,5 +352,6 @@ class Evaluation:
                 lifetime_lifetime_value += (initial_value + annual_value) / ((1 + self.env.d_rate) ** i)
             else:
                 lifetime_lifetime_value += annual_value / ((1 + self.env.d_rate) ** i)
+        lifetime_lifetime_value = int(lifetime_lifetime_value)
 
         return lifetime_lifetime_value
