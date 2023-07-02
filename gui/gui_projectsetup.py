@@ -21,32 +21,39 @@ class ProjectSetup(QWidget):
         self.miguel_logo.adjustSize()
         gui_func.create_pixmap(path=root + '/documentation/MiGUEL_logo.png',
                                widget=self.miguel_logo,
-                               w=int(self.screen_width/3),
-                               h=int(self.screen_height/3))
+                               w=int(self.screen_width / 3),
+                               h=int(self.screen_height / 3))
         self.th_logo = QLabel()
         self.th_logo.adjustSize()
         gui_func.create_pixmap(path=root + '/documentation/th-koeln.png',
                                widget=self.th_logo,
-                               w=int(self.screen_width/10),
-                               h=int(self.screen_width/10))
+                               w=int(self.screen_width / 10),
+                               h=int(self.screen_width / 10))
         self.enershelf_logo = QLabel()
         self.enershelf_logo.adjustSize()
         gui_func.create_pixmap(path=root + '/documentation/EnerSHelF_logo.png',
                                widget=self.enershelf_logo,
-                               w=int(self.screen_width/10),
-                               h=int(self.screen_width/10))
+                               w=int(self.screen_width / 10),
+                               h=int(self.screen_width / 10))
         # Description
-        description = "The Micro Grid User Energy Planning Tool Library (MiGUEL) was developed in the course of the project Energy-Self-Sufficiency for Health Facilities in Ghana (EnerSHelF). EnerSHelF was funded by the German Federal Ministry for Education and Research from June 2019 until March 2023. The main author of MiGUEL is Paul Bohn (Technische Hochschule Köln) other contributors were Moritz End and Silvan Rummeny. The development was supervised by Prof. Dr. Thorsten Schneiders (Cologne Institute for Renewable Energies, Technische Hochschule Köln). MiGUEL is a python-based, open source tool to model, simulate and analyse PV-diesel hybrid systems. MiGUEL aims to have a low entry barrier and understandable results. Neither is the user required to deliver datasets to the program nor are programming skills required. Only basic parameters are needed to carry out the simulation in the basic form. As results MiGUEL delivers both csv-files with every simulation time step as well as a pdf-report with an overview of the most important results as well as the system evaluation."
+        description = "The Micro Grid User Energy Planning Tool Library (MiGUEL) was developed in the course of the project Energy-Self-Sufficiency for Health Facilities in Ghana (EnerSHelF). EnerSHelF was funded by the German Federal Ministry for Education and Research from June 2019 until March 2023. The main author of MiGUEL is Paul Bohn (Technische Hochschule Köln) other contributors were Moritz End and Silvan Rummeny. The development was supervised by Prof. Dr. Thorsten Schneiders (Cologne Institute for Renewable Energies, Technische Hochschule Köln). MiGUEL is a python-based, open source tool to model, simulate and analyse PV-diesel hybrid systems. MiGUEL aims to have a low entry barrier and understandable results. Neither is the user required to deliver datasets to the program nor are programming skills required. Only basic parameters are needed to carry out the simulation in the basic form. As results MiGUEL delivers both csv-files with every simulation time step as well as a pdf-report with an overview of the most important results as well as the system evaluation.\n\n"
         font = QFont('Calibri', 13)
         self.description = QLabel(description)
         self.description.setAlignment(Qt.AlignJustify)
         self.description.setFont(font)
         self.description.setWordWrap(True)
-
+        self.csv_format_l = QLabel()
+        self.csv_format_l.setText('csv file format')
+        self.csv_format = QComboBox()
+        csv_format = ["comma separated values (seperator=',', decimal='.')",
+                      "semicolon separated values (seperator=';', decimal=',')"]
+        self.csv_format.addItems(csv_format)
         # Set up Layout
         self.layout = QGridLayout()
-        self.layout.addWidget(self.miguel_logo, 0, 0, 1, 1, Qt.AlignLeft)
-        self.layout.addWidget(self.description, 1, 0, 1, 2)
-        self.layout.addWidget(self.th_logo, 2, 0, Qt.AlignLeft)
-        self.layout.addWidget(self.enershelf_logo, 2, 1, Qt.AlignLeft)
+        self.layout.addWidget(self.miguel_logo, 0, 0, 1, 2, Qt.AlignLeft)
+        self.layout.addWidget(self.description, 1, 0, 1, 4)
+        self.layout.addWidget(self.th_logo, 2, 0, 1, 2, Qt.AlignLeft)
+        self.layout.addWidget(self.enershelf_logo, 2, 3, 1, 2, Qt.AlignLeft)
+        self.layout.addWidget(self.csv_format_l, 3, 0, Qt.AlignRight)
+        self.layout.addWidget(self.csv_format, 3, 1)
         self.setLayout(self.layout)

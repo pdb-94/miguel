@@ -414,6 +414,14 @@ class TabWidget(QWidget):
                    'currency': 'US$'}
         # Ecological
         ecology = {'co2_diesel': 0.2665, 'co2_grid': co2_grid}
+        # csv-format:
+        csv_format = self.tabs.widget(0).csv_format.currentIndex()
+        if csv_format == 1:
+            sep = ';'
+            decimal = ','
+        else:
+            sep = ','
+            decimal = '.'
         try:
             # Create Environment
             self.env = Environment(name=name,
@@ -425,8 +433,8 @@ class TabWidget(QWidget):
                                    blackout=blackout,
                                    blackout_data=blackout_data,
                                    feed_in=feed_in,
-                                   csv_decimal=',',
-                                   csv_sep=';')
+                                   csv_decimal=decimal,
+                                   csv_sep=sep)
             # Update folium map
             tab.update_map(latitude=location['latitude'],
                            longitude=location['longitude'],
