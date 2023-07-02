@@ -93,7 +93,7 @@ MiGUEL features the following system components. Each component can be added to 
 ##### Load
 The system component load represents the load profile of the subject under review. The load profile can be generated in two different ways. 
 1) Reference load profiles: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. Since May 2023 the reference load profiles from the Bundesverband der Energie- und Wasserwirtschaft (BDEW) have been included. The reference load profiles are used in the german dispatch to simulate certain inistitutions. [17] To create a load profile from the reference load profiles, the annual electricity consumption needs to be returned to the function (annual_consumption). The reference load profiles have a 15min-time resolution. 
-2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile).
+2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile). The csv file must contain two columns with the titles 'time' & 'P [W]'. ',' or ';' are used as separators; for decimal separation '.' or ',' are used depending on the setting. 
 
 | Parameter | Description | dtype | Default | Unit| Comment |
 |-----------|-------------|-------|---------|-|-|
@@ -251,17 +251,23 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
 ## Graphical user interface
-End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. The GUI follows the logical process as described above. 
-1) Create Environemnt
-2) Add system components
-3) Run dispatch and evaluate system
-4) Export outputs
+End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
+1) **Get started**: Welcome Screen including a brief overview of MiGUEL and EnerSHelF.
+2) **Energy system**: Input mask to  create Environment class.
+3) **Weather data**: Displays weather data from PVGIS at selected location.
+4) **Load profile**: Input mask to add load profile to Environment.
+5) **PV system**: Input mask to add PV systems to Environment.
+6) **Wind turbine**: Input mask to add wind turbines to Environment.
+7) **Diesel Generator**: Input mask to addd diesel generator to Environment.
+8) **Energy sotrage**: Input maskk to add energy torage to Environment.
+9) **Dispatch**: Overview of system components. Runs dispatch and system evaluation.
+10) **Evaluation**: Overview of system evaluation parameters. Creates outputs.
 
 
 ## Database
 MiGUEL features a SQLite database in the directory /data/miguel.db. The following tables are included in the database:
 | Name | Data sets | Source |
-|-|-||
+|-|-|-|
 |pvlib_cec_module|pvlib cec module parameters||
 |pvlib_cec_inverter|pvlib cec inverter parameters||
 |windpowerlib_turbine|windpowerlib wind turbine parameters||
