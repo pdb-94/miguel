@@ -108,7 +108,7 @@ class Operator:
         for pv in self.env.pv:
             col = pv.name + ' [W]'
             self.df[col] = np.where(self.df[col] < 0, 0, self.df[col])
-        if self.env.feed_in is True:
+        if self.env.feed_in:
             for component in env.re_supply:
                 self.feed_in(component=component)
         power_sink = self.check_dispatch()
