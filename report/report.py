@@ -49,6 +49,8 @@ class Report:
         self.root = sys.path[1]
         self.report_path = self.root + '/report/'
         self.txt_file_path = self.root + '/report/txt_files/'
+        if not os.path.exists(f'{self.report_path}pictures/'):
+            os.makedirs(f'{self.report_path}pictures/')
         # Evaluation parameters
         self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
         self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
