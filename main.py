@@ -21,7 +21,6 @@ def demonstration(grid_connection=True):
     environment = Environment(name=name,
                               location={'latitude': -6.045612,
                                         'longitude': -45.31375,
-                                        'altitude': 100,
                                         'terrain': 'Villages, small towns, agricultural buildings with many or high '
                                                    'hedges, woods and very rough and uneven terrain'},
                               time={'start': dt.datetime(year=2022,
@@ -45,7 +44,7 @@ def demonstration(grid_connection=True):
                                        'co2_price': 0,
                                        'currency': 'US$'},
                               ecology={'co2_diesel': 0.2665,
-                                       'co2_grid': 0.1350},
+                                       'co2_grid': 0.098},
                               grid_connection=grid_connection,
                               feed_in=False,
                               blackout=False,
@@ -66,7 +65,7 @@ def demonstration(grid_connection=True):
     # environment.add_wind_turbine(turbine_data={'turbine_type': 'E-115/3200', 'hub_height': 92.0, 'p_n': 3200000})
     if not grid_connection:
         environment.add_diesel_generator(p_n=35000,
-                                         fuel_consumption=12)
+                                         fuel_consumption=13.5)
     environment.add_storage(p_n=10000,
                             c=30000,
                             soc=0.25)
@@ -81,11 +80,11 @@ env = demonstration(grid_connection=False)
 # On Grid system
 # env = demonstration(grid_connection=True)
 # Run Dispatch
-print(f'Run Dispatch {dt.datetime.today() - start}')
-operator = Operator(env=env)
-print(f'Dispatch completed {dt.datetime.today() - start}')
-evaluation = Evaluation(env=env, operator=operator)
-# Create pdf-Report
-print(f'Create report {dt.datetime.today() - start}')
-report = Report(env=env, operator=operator, evaluation=evaluation)
-print(f'Finished simulation and evaluation {dt.datetime.today() - start}')
+# print(f'Run Dispatch {dt.datetime.today() - start}')
+# operator = Operator(env=env)
+# print(f'Dispatch completed {dt.datetime.today() - start}')
+# evaluation = Evaluation(env=env, operator=operator)
+# # Create pdf-Report
+# print(f'Create report {dt.datetime.today() - start}')
+# report = Report(env=env, operator=operator, evaluation=evaluation)
+# print(f'Finished simulation and evaluation {dt.datetime.today() - start}')

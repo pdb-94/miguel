@@ -38,8 +38,6 @@ class EnergySystem(QWidget):
         self.longitude_l.setText('Longitude')
         self.latitude_l = QLabel()
         self.latitude_l.setText('Latitude')
-        self.altitude_l = QLabel()
-        self.altitude_l.setText('Altitude [m]')
         self.terrain_l = QLabel()
         self.terrain_l.setText('Terrain')
         self.d_rate_l = QLabel()
@@ -67,7 +65,7 @@ class EnergySystem(QWidget):
         self.co2_grid_l = QLabel()
         self.co2_grid_l.setText('Grid CO2 emissions [kg/kWh]')
         gui_func.set_alignment(widget=[self.project_name_l, self.time_step_l, self.end_time_l, self.start_time_l,
-                                       self.d_rate_l, self.wt_feed_l, self.longitude_l, self.altitude_l, self.feed_in_l,
+                                       self.d_rate_l, self.wt_feed_l, self.longitude_l, self.feed_in_l,
                                        self.blackout_l, self.blackout_data_l, self.grid_l, self.electricity_price_l,
                                        self.co2_grid_l, self.co2_price_l, self.pv_feed_l,  self.latitude_l,
                                        self.terrain_l, self.lifetime_l, self.diesel_price_l, self.tz_l],
@@ -97,7 +95,6 @@ class EnergySystem(QWidget):
         gui_func.change_combo_index(combo=[self.time_step], index=[0])
         self.longitude = QLineEdit()
         self.latitude = QLineEdit()
-        self.altitude = QLineEdit()
         self.terrain = QComboBox()
         terrain = ['Water surfaces',
                    'Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass',
@@ -159,8 +156,6 @@ class EnergySystem(QWidget):
         self.layout.addWidget(self.latitude, 5, 1)
         self.layout.addWidget(self.longitude_l, 5, 2)
         self.layout.addWidget(self.longitude, 5, 3)
-        self.layout.addWidget(self.altitude_l, 5, 4)
-        self.layout.addWidget(self.altitude, 5, 5)
         self.layout.addWidget(self.terrain_l, 6, 0)
         self.layout.addWidget(self.terrain, 6, 1, 1, 5)
         self.layout.addWidget(self.d_rate_l, 7, 0)

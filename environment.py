@@ -3,6 +3,8 @@ import os
 import datetime as dt
 import pandas as pd
 import pvlib
+import requests
+import urllib
 from configparser import ConfigParser
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
@@ -99,7 +101,7 @@ class Environment:
         self.location = location
         self.longitude = self.location.get('longitude')
         self.latitude = self.location.get('latitude')
-        self.altitude = self.location.get('altitude')
+        self.altitude = self.get_altitude()
         self.terrain = self.location.get('terrain')
         self.address = self.find_location()
         self.hemisphere = self.address[-1]
@@ -120,12 +122,12 @@ class Environment:
             self.lifetime = economy.get('lifetime')  # a
             self.electricity_price = economy.get('electricity_price')  # US$//kWh
             self.diesel_price = economy.get('diesel_price')  # US$/l
-            self.avg_co2_price = economy.get('co2_price')  # US$//kg
+            self.avg_co2_price = economy.get('co2_price')  # US$/t
             self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # US$//kWh
             self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # US$//kWh
         if ecology is None:
             self.co2_diesel = 0.2665  # kg CO2/kWh
-            self.co2_grid = 0
+            self.co2_grid = 0  # kg CO2/kWh
         else:
             self.co2_diesel = ecology.get('co2_diesel')
             self.co2_grid = ecology.get('co2_grid')
@@ -206,6 +208,20 @@ class Environment:
             hemisphere = 'north'
 
         return city, zipcode, state, country, code, hemisphere
+
+    def get_altitude(self):
+        """
+        Get elevation from coordinates
+        :return:
+        """
+        url = f'https://api.opentopodata.org/v1/aster30m?locations={self.latitude},{self.longitude}'
+        result = requests.get(url)
+
+        elevation = result.json()['results'][0]['elevation']
+
+        return elevation
+
+
 
     def find_season(self):
         if self.hemisphere == 'south':

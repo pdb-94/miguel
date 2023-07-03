@@ -55,9 +55,9 @@ class PV:
         self.df = pd.DataFrame(columns=['P [W]'],
                                index=self.env.time)
         # Location
-        self.longitude = self.env.location.get('longitude')
-        self.latitude = self.env.location.get('latitude')
-        self.altitude = self.env.location.get('altitude')
+        self.longitude = self.env.longitude
+        self.latitude = self.env.latitude
+        self.altitude = self.env.altitude
         # Weather data
         self.weather_data = self.env.weather_data[0]
         self.weather_data['precipitable_water'] = 0.1

@@ -265,7 +265,7 @@ class TabWidget(QWidget):
             # Environment
             self.create_env(tab)
             # Reset widgets
-            gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude, tab.altitude,
+            gui_func.clear_widget(widget=[tab.project_name, tab.latitude, tab.longitude,
                                           tab.electricity_price, tab.co2_price, tab.wt_feed, tab.pv_feed,
                                           tab.co2_grid, tab.diesel_price])
             gui_func.change_combo_index(combo=[tab.terrain, tab.time_step, tab.tz],
@@ -381,7 +381,6 @@ class TabWidget(QWidget):
         name = tab.project_name.text()
         longitude = gui_func.convert_str_float(string=tab.longitude.text())
         latitude = gui_func.convert_str_float(string=tab.latitude.text())
-        altitude = gui_func.convert_str_float(string=tab.altitude.text())
         terrain = tab.terrain.currentText()
         start_time = tab.start_time.text()
         end_time = tab.end_time.text()
@@ -417,7 +416,6 @@ class TabWidget(QWidget):
         # Location
         location = {'longitude': longitude,
                     'latitude': latitude,
-                    'altitude': altitude,
                     'terrain': terrain}
         # Time
         timezone = tab.tz.currentText()
@@ -637,7 +635,6 @@ class TabWidget(QWidget):
         c_var = gui_func.convert_str_float(string=tab.c_var.text())
         self.env.add_diesel_generator(p_n=p,
                                       fuel_consumption=fuel_consumption,
-                                      fuel_price=self.env.diesel_price,
                                       c_invest=invest,
                                       c_op_main=opm,
                                       c_var_n=c_var)
