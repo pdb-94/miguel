@@ -74,6 +74,7 @@ class WindTurbine:
         if turbine_data is not None:
             self.turbine_data = turbine_data
             self.hub_height = self.turbine_data.get('hub_height')
+            self.p_n = self.turbine_data.get('p_n')
         if c_invest is None:
             self.c_invest = self.c_invest_n * self.p_n / 1000
         else:

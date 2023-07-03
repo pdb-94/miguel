@@ -123,7 +123,7 @@ class PV:
             # Create Profile and dispatch pvlib
             self.annual_pv_yield = self.run(weather_data=self.weather_data)
             self.annual_pv_yield.index = self.convert_index_time()
-            self.pv_yield = self.annual_pv_yield.at[self.env.time_series[0]:self.env.time_series[-1]]
+            self.pv_yield = self.annual_pv_yield.loc[self.env.time_series[0]:self.env.time_series[-1]]
             self.pv_yield = self.interpolate_values()
             self.df['P [W]'] = np.where(self.pv_yield < 0, 0, self.pv_yield)
 

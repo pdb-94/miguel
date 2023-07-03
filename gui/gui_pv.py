@@ -89,8 +89,8 @@ class PV(QWidget):
         self.module.addItems(self.module_lib)
         self.inverter = QComboBox()
         self.inverter.addItems(self.inverter_lib)
-        self.modules_string = QLineEdit()
-        self.string = QLineEdit()
+        self.modules_per_string = QLineEdit()
+        self.strings_per_inverter = QLineEdit()
         # Method 3
         self.profile_l = QLabel()
         self.profile_l.setText('PV profile path')
@@ -99,7 +99,7 @@ class PV(QWidget):
         self.method_1 = [self.p_l, self.p_min_l, self.p_max_l, self.inverter_range_l, self.azimuth_l, self.tilt_l,
                          self.p, self.p_min, self.p_max, self.inverter_range, self.azimuth, self.tilt]
         self.method_2 = [self.module_l, self.inverter_l, self.modules_string_l, self.string_l, self.azimuth_l, self.tilt_l,
-                         self.module, self.inverter, self.modules_string, self.string, self.azimuth, self.tilt]
+                         self.module, self.inverter, self.modules_per_string, self.strings_per_inverter, self.azimuth, self.tilt]
         self.method_3 = [self.p_l, self.p, self.profile_l, self.profile]
 
         # Connect function to ComboBox
@@ -123,11 +123,11 @@ class PV(QWidget):
         self.layout.addWidget(self.p_max_l, 4, 0, Qt.AlignRight)
         self.layout.addWidget(self.p_max, 4, 1, Qt.AlignTop)
         self.layout.addWidget(self.modules_string_l, 4, 0, Qt.AlignRight)
-        self.layout.addWidget(self.modules_string, 4, 1, Qt.AlignTop)
+        self.layout.addWidget(self.modules_per_string, 4, 1, Qt.AlignTop)
         self.layout.addWidget(self.inverter_range_l, 5, 0, Qt.AlignRight)
         self.layout.addWidget(self.inverter_range, 5, 1, Qt.AlignTop)
         self.layout.addWidget(self.string_l, 5, 0, Qt.AlignRight)
-        self.layout.addWidget(self.string, 5, 1, Qt.AlignTop)
+        self.layout.addWidget(self.strings_per_inverter, 5, 1, Qt.AlignTop)
         self.layout.addWidget(self.azimuth_l, 6, 0, Qt.AlignRight)
         self.layout.addWidget(self.azimuth, 6, 1, Qt.AlignTop)
         self.layout.addWidget(self.tilt_l, 7, 0, Qt.AlignRight)

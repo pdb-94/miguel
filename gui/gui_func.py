@@ -237,6 +237,7 @@ def convert_str_float(string):
             parameter = False
     else:
         parameter = None
+
     return parameter
 
 

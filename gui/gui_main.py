@@ -547,21 +547,20 @@ class TabWidget(QWidget):
         elif method == 1:
             # Advanced method
             # Collect parameters
-            # TODO: Check functionality
-            module = tab.module.text()
-            inverter = tab.inverter.text()
-            modules_string = int(gui_func.convert_str_float(tab.module_string.text()))
-            string = int(gui_func.convert_str_float(tab.string.text()))
+            module = tab.module.currentText()
+            inverter = tab.inverter.currentText()
+            modules_per_string = int(gui_func.convert_str_float(string=tab.modules_per_string.text()))
+            strings_per_inverter = int(gui_func.convert_str_float(string=tab.strings_per_inverter.text()))
             azimuth = int(gui_func.convert_str_float(string=tab.azimuth.text()))
             tilt = int(gui_func.convert_str_float(string=tab.tilt.text()))
             invest = gui_func.convert_str_float(string=tab.invest.text())
             opm = gui_func.convert_str_float(string=tab.opm.text())
             pv_data = {'pv_module': module, 'inverter': inverter, 'surface_tilt': tilt, 'surface_azimuth': azimuth,
-                       'modules_per_string': modules_string, 'strings_per_inverter': string}
+                       'modules_per_string': modules_per_string, 'strings_per_inverter': strings_per_inverter}
             self.env.add_pv(pv_data=pv_data,
                             c_invest=invest,
                             c_op_main=opm)
-            gui_func.clear_widget(widget=[tab.module, tab.inverter, tab.modules_string, tab.string, tab.azimuth,
+            gui_func.clear_widget(widget=[tab.modules_per_string, tab.strings_per_inverter, tab.azimuth,
                                           tab.tilt, tab.invest, tab.opm])
             gui_func.change_combo_index(combo=[tab.module, tab.inverter], index=[0, 0])
         elif method == 2:
@@ -601,7 +600,7 @@ class TabWidget(QWidget):
             p = gui_func.convert_str_float(string=tab.p.text()) * 1000
             turbine = tab.turbine.currentText()
             hub_height = gui_func.convert_str_float(string=tab.height.text())
-            turbine_data = {'turbine_type': turbine, 'hub_height': hub_height}
+            turbine_data = {'turbine_type': turbine, 'hub_height': hub_height, 'p_n': p}
             invest = gui_func.convert_str_float(string=tab.invest.text())
             opm = gui_func.convert_str_float(string=tab.opm.text())
             self.env.add_wind_turbine(p_n=p,
