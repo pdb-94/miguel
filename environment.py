@@ -1,7 +1,9 @@
 import sys
+import os
 import datetime as dt
 import pandas as pd
 import pvlib
+from configparser import ConfigParser
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
 from data.data import DB
@@ -107,10 +109,10 @@ class Environment:
             self.currency = 'US$'
             self.d_rate = 0.03
             self.lifetime = 20  # a
-            self.pv_feed_in_tariff = 0.05  # US$/kWh
-            self.wt_feed_in_tariff = 0.05  # US$/kWh
-            self.electricity_price = 0.40  # US$/kWh
-            self.diesel_price = 1.20  # US$/l
+            self.pv_feed_in_tariff = 0.00  # US$/kWh
+            self.wt_feed_in_tariff = 0.00  # US$/kWh
+            self.electricity_price = 0.0  # US$/kWh
+            self.diesel_price = 0  # US$/l
             self.avg_co2_price = 0  # US$//t
         else:
             self.currency = economy.get('currency')
@@ -147,13 +149,16 @@ class Environment:
             self.add_grid()
             self.blackout = blackout
             if self.blackout:
-                blackout_df = pd.read_csv(blackout_data, sep=self.csv_sep)
+                self.blackout_data = blackout_data
+                blackout_df = pd.read_csv(self.blackout_data, sep=self.csv_sep)
                 self.df['Blackout'] = blackout_df['Blackout'].values
                 self.system = system[2]
             else:
                 self.system = system[1]
         else:
             self.system = system[0]
+            self.blackout = None
+            self.blackout_data = None
         self.feed_in = feed_in
 
         # DataBase
@@ -174,6 +179,9 @@ class Environment:
                                                   f'Investment cost [US$]',
                                                   f'Specific operation maintenance cost [US$/kWh]',
                                                   f'Operation maintenance cost [US$/a]'])
+
+        self.config = ConfigParser()
+        self.create_config()
 
     def find_location(self):
         """
@@ -503,3 +511,38 @@ class Environment:
         peak_load = self.df['P_Res [W]'].max()
 
         return energy_consumption, peak_load
+
+    def create_config(self):
+        """
+         Create and write config file for system configuration
+         :return: None
+         """
+        self.config[self.name] = {'latitude': str(self.latitude),
+                                  'longitude': str(self.longitude),
+                                  'altitude': str(self.altitude),
+                                  'terrain': str(self.terrain),
+                                  't_start': str(self.t_start),
+                                  't_end': str(self.t_end),
+                                  't_step': str(self.t_step),
+                                  'tz': str(self.timezone),
+                                  'grid_connection': str(self.grid_connection),
+                                  'blackout': str(self.blackout),
+                                  'blackout_data': str(self.blackout_data),
+                                  'feed_in': str(self.feed_in),
+                                  'currency': str(self.currency),
+                                  'lifetime': str(self.lifetime),
+                                  'd_rate': str(self.d_rate),
+                                  'electricity_price': str(self.electricity_price),
+                                  'diesel_price': str(self.diesel_price),
+                                  'wt_feed_in_tariff': str(self.wt_feed_in_tariff),
+                                  'pv_feed_in_tariff': str(self.pv_feed_in_tariff),
+                                  'co2_grid': str(self.co2_grid),
+                                  'co2_diesel': str(self.co2_diesel)}
+
+        path = f'{sys.path[1]}/export/config/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(f'{path}system_config.ini', 'w') as file:
+            self.config.write(file)
+
