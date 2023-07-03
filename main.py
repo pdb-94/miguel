@@ -1,5 +1,4 @@
 import datetime as dt
-import sys
 from environment import Environment
 from operation import Operator
 from evaluation import Evaluation
@@ -20,9 +19,9 @@ def demonstration(grid_connection=True):
         name = 'Off grid system'
     # Add parameters to create environment
     environment = Environment(name=name,
-                              location={'latitude': -0.699,
-                                        'longitude': -90.370,
-                                        'altitude': 0,
+                              location={'latitude': 6.0442,
+                                        'longitude': -0.7983,
+                                        'altitude': 100,
                                         'terrain': 'Agricultural terrain with many houses, bushes, plants or 8 meter '
                                                    'high hedges at a distance of approx. 250 meters'},
                               time={'start': dt.datetime(year=2022,
@@ -36,13 +35,13 @@ def demonstration(grid_connection=True):
                                                        hour=23,
                                                        minute=59),
                                     'step': dt.timedelta(minutes=15),
-                                    'timezone': 'GMT'},
+                                    'timezone': 'Etc/GMT'},
                               economy={'d_rate': 0.03,
                                        'lifetime': 20,
-                                       'electricity_price': 0.14,
-                                       'diesel_price': 1.385,
-                                       'pv_feed_in_tariff': 0,
-                                       'wt_feed_in_tariff': 0,
+                                       'electricity_price': 0.375,
+                                       'diesel_price': 1.56,
+                                       'pv_feed_in_tariff': 0.07,
+                                       'wt_feed_in_tariff': 0.07,
                                        'co2_price': 0,
                                        'currency': 'US$'},
                               ecology={'co2_diesel': 0.2665,
@@ -54,17 +53,16 @@ def demonstration(grid_connection=True):
                               csv_decimal=',',
                               csv_sep=';')
     # Add load profile from csv-file
-    environment.add_load(annual_consumption=150000, ref_profile='hospital_ghana')  # kWh
-    # environment.add_load(load_profile=f'{sys.path[1]}/data/St. Dominics Hospital.csv')
+    environment.add_load(annual_consumption=150000, ref_profile='L0')  # kWh
     # Add PV system
     environment.add_pv(p_n=60000,
-                       pv_data={'surface_tilt': 20, 'surface_azimuth': 180, 'min_module_power': 250,
-                                'max_module_power': 350, 'inverter_power_range': 2500})
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 0, 'min_module_power': 300,
+                                'max_module_power': 400, 'inverter_power_range': 2500})
+    environment.add_pv(p_n=30000,
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 270, 'min_module_power': 300,
+                                'max_module_power': 400, 'inverter_power_range': 2500})
     # environment.add_wind_turbine(selection_parameters=[3000000, 4000000])
-    if grid_connection is False:
-        environment.add_diesel_generator(p_n=30000,
-                                         fuel_consumption=12,
-                                         fuel_price=1.385)
+    if not grid_connection:
         environment.add_diesel_generator(p_n=30000,
                                          fuel_consumption=12,
                                          fuel_price=1.385)
@@ -78,9 +76,9 @@ def demonstration(grid_connection=True):
 start = dt.datetime.today()
 print('Create environment')
 # Off Grid system
-env = demonstration(grid_connection=False)
+# env = demonstration(grid_connection=False)
 # On Grid system
-# env = demonstration(grid_connection=True)
+env = demonstration(grid_connection=True)
 # Run Dispatch
 print(f'Run Dispatch {dt.datetime.today() - start}')
 operator = Operator(env=env)
