@@ -48,35 +48,35 @@ The class Environment represents the energy system.
 #### Input parameters
 To create an instance of the class, the following parameters have to be provided. The list displays all input parameters, a brief description and the data type.
 
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-----------|-------------|-------|---------|-|-|
-| **name** | **Project name** | **str** |**MiGUEL Project**|-||
-| **time** | **Project time data** | **dict** |-|-||
-| start | Start time | datetime.datetime |-|-||
-| end | End time | datetime.datetime |-|-||
-| step | Time resolution | datetime.timedelta |15|min|Possible resolutions: 15min, 60min|
-| timezone | Time zone | str |-|-||
-| **location** | **Project location** | **dict** |-|-||
-| longitude | Longitude | float |-|°||
-| latitude | Latitude | float |-| °||
-| altitude | Altitude | float |-|m||
-| terrain | Terrain type | str |-|-| see [Appendix](#appendix)|
-| **economy** | **Economical parameters** | **dict** |-|-||
-| d_rate | Discount rate | float |-|-||
-|lifetime | Project lifetime | int |20| a|
-|currency| Currency| str| US$|-|If other currencies are used conversion rate needs to be applied|
-|electricity_price |Electricity price|float|-|US$/kWh||
-|diesel_price| Diesel price|float|-|US$/l|
-|co2_price| Average CO2-price over system lifetime|float|-|US$/t||
-|pv_feed_in_tariff| PV feed-in tariff | float |-|US$/kWh||
-|wt_feed_in_tariff| Wind turbine feed-in tariff | float |-|US$/kWh||
-|**ecology**| **Ecological parameters** | **dict** |-|-|
-|co2_grid| Specific CO2-emissions power grid |float|-|kg/kWh||
-|co2_diesel| Specific CO2-emissions diesel |float |0.2665|kg/kWh||
-| **blackout** | **Stable or unstable power grid** | **bool** | **False** |-|**True: Unstable power grid; False: Stable power grid**|
-|**blackout_data**|**csv-file path with blackout data**|**str**|-|-|**csv-file with bool-values for every timestep**|
-|**feed_in**| **Feed-in possible** |**bool**|**False**|-|**True: Feed-in possible, False: Feed-in not possible**|
-|**weather_data**|**csv-file path with weather data set**|**str**|-|-|**Enables off-line usage**|
+| Parameter         | Description                             | dtype              | Default            | Unit    | Comment                                                          |
+|-------------------|-----------------------------------------|--------------------|--------------------|---------|------------------------------------------------------------------|
+| **name**          | **Project name**                        | **str**            | **MiGUEL Project** | -       |                                                                  |
+| **time**          | **Project time data**                   | **dict**           | -                  | -       |                                                                  |
+| start             | Start time                              | datetime.datetime  | -                  | -       |                                                                  |
+| end               | End time                                | datetime.datetime  | -                  | -       |                                                                  |
+| step              | Time resolution                         | datetime.timedelta | 15                 | min     | Possible resolutions: 15min, 60min                               |
+| timezone          | Time zone                               | str                | -                  | -       |                                                                  |
+| **location**      | **Project location**                    | **dict**           | -                  | -       |                                                                  |
+| longitude         | Longitude                               | float              | -                  | °       |                                                                  |
+| latitude          | Latitude                                | float              | -                  | °       |                                                                  |
+| altitude          | Altitude                                | float              | -                  | m       |                                                                  |
+| terrain           | Terrain type                            | str                | -                  | -       | see [Appendix](#appendix)                                        |
+| **economy**       | **Economical parameters**               | **dict**           | -                  | -       |                                                                  |
+| d_rate            | Discount rate                           | float              | -                  | -       |                                                                  |
+| lifetime          | Project lifetime                        | int                | 20                 | a       |
+| currency          | Currency                                | str                | US$                | -       | If other currencies are used conversion rate needs to be applied |
+| electricity_price | Electricity price                       | float              | -                  | US$/kWh |                                                                  |
+| diesel_price      | Diesel price                            | float              | -                  | US$/l   |
+| co2_price         | Average CO2-price over system lifetime  | float              | -                  | US$/t   |                                                                  |
+| pv_feed_in_tariff | PV feed-in tariff                       | float              | -                  | US$/kWh |                                                                  |
+| wt_feed_in_tariff | Wind turbine feed-in tariff             | float              | -                  | US$/kWh |                                                                  |
+| **ecology**       | **Ecological parameters**               | **dict**           | -                  | -       |
+| co2_grid          | Specific CO2-emissions power grid       | float              | -                  | kg/kWh  |                                                                  |
+| co2_diesel        | Specific CO2-emissions diesel           | float              | 0.2665             | kg/kWh  |                                                                  |
+| **blackout**      | **Stable or unstable power grid**       | **bool**           | **False**          | -       | **True: Unstable power grid; False: Stable power grid**          |
+| **blackout_data** | **csv-file path with blackout data**    | **str**            | -                  | -       | **csv-file with bool-values for every timestep**                 |
+| **feed_in**       | **Feed-in possible**                    | **bool**           | **False**          | -       | **True: Feed-in possible, False: Feed-in not possible**          |
+| **weather_data**  | **csv-file path with weather data set** | **str**            | -                  | -       | **Enables off-line usage**                                       |
 
 
 #### System components
@@ -95,11 +95,11 @@ The system component load represents the load profile of the subject under revie
 1) Reference load profiles: In the course of EnerSHelF standard load profiles for Ghanaian hospitals were created. This daily standard load profile is implemented in the program. Since May 2023 the reference load profiles from the Bundesverband der Energie- und Wasserwirtschaft (BDEW) have been included. The reference load profiles are used in the german dispatch to simulate certain inistitutions. [17] To create a load profile from the reference load profiles, the annual electricity consumption needs to be returned to the function (annual_consumption). The reference load profiles have a 15min-time resolution. 
 2) Input via csv-file: If actual measurement data from the subject is available, the data can be returned to the program as a csv-file (load_profile). The csv file must contain two columns with the titles 'time' & 'P [W]'. ',' or ';' are used as separators; for decimal separation '.' or ',' are used depending on the setting. 
 
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-----------|-------------|-------|---------|-|-|
-|annual_consumption|Annual electricity consumption|float|-|kWh|Only for method 1|
-|profile|Reference load profile|str|-|-|Only for method 1|
-|load_profile|File path to load profile data|str|-|-|csv-file with load profile, Only for method 2|
+| Parameter          | Description                    | dtype | Default | Unit | Comment                                       |
+|--------------------|--------------------------------|-------|---------|------|-----------------------------------------------|
+| annual_consumption | Annual electricity consumption | float | -       | kWh  | Only for method 1                             |
+| profile            | Reference load profile         | str   | -       | -    | Only for method 1                             |
+| load_profile       | File path to load profile data | str   | -       | -    | csv-file with load profile, Only for method 2 |
 
 The accuracy of the simulation results increases with the quality of the input data. Using the adjusted standard load profile will provide less accurate results compared to measured data. The library [Load Profile Creator](https://github.com/pdb-94/load_profile_creator) can be used to create load profiles based on the electric inventory of the subject.
 
@@ -112,20 +112,20 @@ The class Photovoltaic is based on the library [pvlib](https://pvlib-python.read
 2) Selecting your modules and inverter: All system parameters such as module, number of modules, inverter, strings per inverter, modules per string, surface tilt and azimuth, ... need to be returned to the function. The modules and inverters featured in pvlib are stored in the [MiGUEL database](#database). 
 3) Provide measured PV data: Input of measured PV as a csv-file
 
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-----------|-------------|-------|---------|-|-|
-|p_n|Nominal power|float|-|W||
-|pv_profile|File path to pv porduction data|str|-|-|Measured pv data in csv file, Only for method 3|
-|**pv_data**|**PV system parameters**|**dict**|-|-||
-|pv_module|PV module|str|-|-|PV module from pvlib database, Only for method 2|
-|inverter|Inverter|str|-|-|Inverter from pvlib database, Only for method 2|
-|modules_per_string|Modules per string|int|-|-|Only for method 2|
-|strings_per_inverter|Strings per inverster|int|-|-|Only for method 2|
-|surface_tilt|PV system tilt angle|float|-|-||
-|surface_azimuth|PV system orientation|float|-|-|North=0°, East=90°, South=180°, West=270°|
-|min_module_power|Minimum module power|float|-|W|Only for method 1|
-|max_module_power|Maximum module power|float|-|W|Only for method 1|
-|inverter_power_range|Inverter power range|float|-|W|Only for method 1|
+| Parameter            | Description                     | dtype    | Default | Unit | Comment                                          |
+|----------------------|---------------------------------|----------|---------|------|--------------------------------------------------|
+| p_n                  | Nominal power                   | float    | -       | W    |                                                  |
+| pv_profile           | File path to pv porduction data | str      | -       | -    | Measured pv data in csv file, Only for method 3  |
+| **pv_data**          | **PV system parameters**        | **dict** | -       | -    |                                                  |
+| pv_module            | PV module                       | str      | -       | -    | PV module from pvlib database, Only for method 2 |
+| inverter             | Inverter                        | str      | -       | -    | Inverter from pvlib database, Only for method 2  |
+| modules_per_string   | Modules per string              | int      | -       | -    | Only for method 2                                |
+| strings_per_inverter | Strings per inverster           | int      | -       | -    | Only for method 2                                |
+| surface_tilt         | PV system tilt angle            | float    | -       | -    |                                                  |
+| surface_azimuth      | PV system orientation           | float    | -       | -    | North=0°, East=90°, South=180°, West=270°        |
+| min_module_power     | Minimum module power            | float    | -       | W    | Only for method 1                                |
+| max_module_power     | Maximum module power            | float    | -       | W    | Only for method 1                                |
+| inverter_power_range | Inverter power range            | float    | -       | W    | Only for method 1                                |
 
 
 pvlib will run the PV simulation based on the selected system parameters. The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission.
@@ -134,16 +134,16 @@ pvlib will run the PV simulation based on the selected system parameters. The we
 ##### Wind turbine
 The class WindTurbine is based on the library [windpowerlib](https://windpowerlib.readthedocs.io/en/stable/index.html) [2]. To add wind turbines to the Environment the [turbine type](https://github.com/wind-python/windpowerlib/blob/master/windpowerlib/oedb/turbine_data.csv) and the turbine height [m] need to be returned. The wind turbines featured in windpowerlib are stored in the [MiGUELdatabase](#database).
 
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-|-|-|-|-|-|
-|**turbine_data**|**Turbine data**|**dict**|-|-||
-|turbin_type|Turbine type|str|-|-|Turbine name and manufacturer from windpowerlib register (Methd 2)|
-|tubine_height|Hub height|float|-|m|Method 2|
-|**selection_parameters**||**list**|-|-|**Select random turbine iwthin power range**|
-|p_min|Minimal power|float|-|kW|Method 1|
-|p_max|Maximal power|float|-|kW|Method 1|
+| Parameter                | Description      | dtype    | Default | Unit | Comment                                                            |
+|--------------------------|------------------|----------|---------|------|--------------------------------------------------------------------|
+| **turbine_data**         | **Turbine data** | **dict** | -       | -    |                                                                    |
+| turbin_type              | Turbine type     | str      | -       | -    | Turbine name and manufacturer from windpowerlib register (Methd 2) |
+| tubine_height            | Hub height       | float    | -       | m    | Method 2                                                           |
+| **selection_parameters** |                  | **list** | -       | -    | **Select random turbine iwthin power range**                       |
+| p_min                    | Minimal power    | float    | -       | kW   | Method 1                                                           |
+| p_max                    | Maximal power    | float    | -       | kW   | Method 1                                                           |
 
-The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission. Inside the class WindTurbine the weather data is processed so it can be used for the simulation. 
+The weather data for the project location is retrieved by the Environment. The data source is [PVGIS](https://re.jrc.ec.europa.eu/pvg_tools/en/) hosted by the European Commission. Inside the class WindTurbine the weather data is processed, so it can be used for the simulation. 
 
 ##### Grid
 The class grid represents the power grid. The power grid provides electricity to the energy system. Depending on the input of blackout data, a stable or unstable power grid is simulated. The possibility of feed-in is determined in the Environment. The grid is automatically added to the Environment if the parameter grid_connection is set to True. 
@@ -151,11 +151,11 @@ The class grid represents the power grid. The power grid provides electricity to
 ##### Diesel Generator
 The class DieselGenerator is based on a simplified, self created generator model. The model assumes that in the future generators with low-load capability are used in PV-diesel hybrid systems. In comparison to conventional diesel generators, low-load diesel generators are more fuel efficient and therefore reduce CO2-emissions [3]. The input parameters for diesel generators are displayed in the table below.
 
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-|-|-|-|-|-|
-|p_n| Nominal power|float|-|W||
-|fuel_consumption|Fuel consumption at nominal power|float|-|l||
-|fuel_price|Fuel price|float|-|US$/l||
+| Parameter        | Description                       | dtype | Default | Unit  | Comment |
+|------------------|-----------------------------------|-------|---------|-------|---------|
+| p_n              | Nominal power                     | float | -       | W     |         |
+| fuel_consumption | Fuel consumption at nominal power | float | -       | l     |         |
+| fuel_price       | Fuel price                        | float | -       | US$/l |         |
 
 
 The fuel consumption for the generator is calculated every time step using the following equation. The equation was derived using characteristic values of a 150 kW diesel generator at loads of 0%, 25%, 50%, 75% and 100% [4]. 
@@ -168,15 +168,16 @@ The fuel consumption for the generator is calculated every time step using the f
 
 ##### Energy storage
 The class Storage represents energy storage systems. The energy storage is represented by a basic model. The input parameters for storage systems are displayed in the table below:
-| Parameter | Description | dtype | Default | Unit| Comment |
-|-|-|-|-|-|-|
-|p_n|Nominal power|float|-|W||
-|c|capacity|float|-|Wh||
-|soc|Initial state of charge|float|0.5|-||
-|soc_max| Maximum state of charge|float|0.95|-||
-|soc_min|Minimum state of charge|float|0.05|-||
-|n_discharge|Discharge efficiency|float|0.8|-||
-|n_charge|Charge efficiency|float|0.8|-||
+
+| Parameter   | Description             | dtype | Default | Unit | Comment |
+|-------------|-------------------------|-------|---------|------|---------|
+| p_n         | Nominal power           | float | -       | W    |         |
+| c           | capacity                | float | -       | Wh   |         |
+| soc         | Initial state of charge | float | 0.5     | -    |         |
+| soc_max     | Maximum state of charge | float | 0.95    | -    |         |
+| soc_min     | Minimum state of charge | float | 0.05    | -    |         |
+| n_discharge | Discharge efficiency    | float | 0.8     | -    |         |
+| n_charge    | Charge efficiency       | float | 0.8     | -    |         |
 
 
 The energy storage can be either charged or discharged at any time step. The following boundary conditions apply to loading and unloading. The memory can only be discharged to the minimum state of charge and charged to the maximum state of charge. The maximum charging or discharging power corresponds to the nominal power multiplied by the respective efficiency.
@@ -208,26 +209,27 @@ The two key parameters for the system evaluation are the Levelized Cost of Energ
 Note: The specific values for investment, operating and maintenance costs have been partially converted from euros to US$ (27.03.2023). The costs may differ depending on the exchange rate.
 
 #### Levelized Cost of Energy
-The LCOE are calculated according to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole systems lifetime. The LCOE includes the initial investment costs and the operation and maintenance costs. Costs for recycling are neglected in this evaluation. The investment and operation and maintenance cost are based on specific costs from literature values. The specific costs are scaled by the power (energy supply components) or capacity (energy storage).
+The LCOE are calculated according to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance costs. Costs for recycling are neglected in this evaluation. The investment and operation and maintenance cost are based on specific costs from literature values. The specific costs are scaled by the power (energy supply components) or capacity (energy storage).
 
-| System component | Specific investment cost | Specific annual operation/maintenance cost | Unit | Source |
-|-|-|-|-|-|
-|PV|496|7.55|US$/kW|[6] [7]|
-|Wind turbine|1160|43|US$/kW|[8] [9]|
-|Diesel generator|468|Investment cost *0.03; 0.021 US$/kWh|US$/kW|[10] [11]|
-|Energy storage|1200|30|US$/kWh|[12]|
+| System component | Specific investment cost | Specific annual operation/maintenance cost | Unit    | Source    |
+|------------------|--------------------------|--------------------------------------------|---------|-----------|
+| PV               | 496                      | 7.55                                       | US$/kW  | [6] [7]   |
+| Wind turbine     | 1160                     | 43                                         | US$/kW  | [8] [9]   |
+| Diesel generator | 468                      | Investment cost *0.03; 0.021 US$/kWh       | US$/kW  | [10] [11] |
+| Energy storage   | 1200                     | 30                                         | US$/kWh | [12]      |
 
 #### CO2-emissions
-The CO2-emissions are evaluated over the systems lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
-| System component | Specific CO2 emissions production/installation | Unit | Source |
-|-|-|-|-|
-|PV|460|kg/kW|[13]|
-|Wind turbine|200|kg/kW|[14]|
-|Diesel generator|265|kg/kW|[15]|
-|Energy storage|103|kg/kWh|[16]|
+The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
+
+| System component | Specific CO2 emissions production/installation | Unit   | Source |
+|------------------|------------------------------------------------|--------|--------|
+| PV               | 460                                            | kg/kW  | [13]   |
+| Wind turbine     | 200                                            | kg/kW  | [14]   |
+| Diesel generator | 265                                            | kg/kW  | [15]   |
+| Energy storage   | 103                                            | kg/kWh | [16]   |
 
 ### Output
-MiGUEL provides two types of outputs. The first output is a csv-file with every every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displayed graphically and will be explained briefly. 
+MiGUEL provides two types of outputs. The first output is a csv-file with every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displayed graphically and will be explained briefly. 
 
 #### csv-files
 The csv-files display the raw data of the annual simulation. The file lists every time step of the simulation, the load and all system components, as well as their generation power.
@@ -237,7 +239,7 @@ The csv-files display the raw data of the annual simulation. The file lists ever
 </p>
 
 #### Report
-The pdf-Report is automatically creted by MiGUEL. It gives an overview of the simulation results and features the system evaluation based on the LCOE and CO2-emissions. The report is structured in the following chapters:
+The pdf-Report is automatically created by MiGUEL. It gives an overview of the simulation results and features the system evaluation based on the LCOE and CO2-emissions. The report is structured in the following chapters:
 
 1) Introduction: Brief description of MiGUEL and EnerSHelF
 2) Summary: Summary of the most important simulation results and system evaluation
@@ -251,7 +253,7 @@ The pdf-Report is automatically creted by MiGUEL. It gives an overview of the si
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
 ## Graphical user interface
-End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implentation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
+End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implemtation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
 1) **Get started**: Welcome Screen including a brief overview of MiGUEL and EnerSHelF. Select csv file format
 2) **Energy system**: Input mask to  create Environment class.
 3) **Weather data**: Displays weather data from PVGIS at selected location.
@@ -259,7 +261,7 @@ End of June 2023 a graphical user interface (GUI) has been implemented into MiGU
 5) **PV system**: Input mask to add PV systems to Environment.
 6) **Wind turbine**: Input mask to add wind turbines to Environment.
 7) **Diesel Generator**: Input mask to addd diesel generator to Environment.
-8) **Energy sotrage**: Input maskk to add energy torage to Environment.
+8) **Energy storage**: Input mask to add energy storage to Environment.
 9) **Dispatch**: Overview of system components. Runs dispatch and system evaluation.
 10) **Evaluation**: Overview of system evaluation parameters. Creates outputs.
 
@@ -362,14 +364,14 @@ For a full list of all dependencies see requirements.txt. This file will ask the
 
 ### Environment - terrain types
 
-| Terrain type | Roughness length [m] |
-|-|-|
-|Water surfaces|0.0002|
-|Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass| 0.0024|
-|Open agricultural terrain without fences or hedges, possibly with widely scattered houses, very rolling hills|0.03|
-|Agricultural terrain with some houses and 8 meter high hedges at a distance of approx. 1250 meters|0.055|
-|Agricultural terrain with many houses, bushes, plants or 8 meter high hedges at a distance of approx. 250 meters|0.2|
-|Villages, small towns, agricultural buildings with many or high hedges, woods and very rough and uneven terrain|0.4|
-|Larger cities with tall buildings|0.8|
-|Large cities, tall buildings, skyscrapers|1.6|
+| Terrain type                                                                                                     | Roughness length [m] |
+|------------------------------------------------------------------------------------------------------------------|----------------------|
+| Water surfaces                                                                                                   | 0.0002               |
+| Open terrain with smooth surface, e.g., concrete, airport runways, mowed grass                                   | 0.0024               |
+| Open agricultural terrain without fences or hedges, possibly with widely scattered houses, very rolling hills    | 0.03                 |
+| Agricultural terrain with some houses and 8 meter high hedges at a distance of approx. 1250 meters               | 0.055                |
+| Agricultural terrain with many houses, bushes, plants or 8 meter high hedges at a distance of approx. 250 meters | 0.2                  |
+| Villages, small towns, agricultural buildings with many or high hedges, woods and very rough and uneven terrain  | 0.4                  |
+| Larger cities with tall buildings                                                                                | 0.8                  |
+| Large cities, tall buildings, skyscrapers                                                                        | 1.6                  |
 
