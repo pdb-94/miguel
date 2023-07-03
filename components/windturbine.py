@@ -1,9 +1,11 @@
 import random
 import sys
+import os
 import numpy as np
 import datetime as dt
 import pandas as pd
 import windpowerlib
+from configparser import ConfigParser
 
 
 class WindTurbine:
@@ -102,6 +104,12 @@ class WindTurbine:
                                f'Specific operation maintenance cost [{self.env.currency}/kW]': int(self.c_op_main_n),
                                f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
+
+        if wt_profile is not None:
+            pass
+        else:
+            self.config = ConfigParser()
+            self.create_config()
 
     def get_turbine_data(self):
         """
@@ -332,3 +340,18 @@ class WindTurbine:
         height = df.loc[windturbine, 'hub_height']
 
         return windturbine, height
+
+    def create_config(self):
+        """
+        Create and write config file for system configuration
+        :return: None
+        """
+        self.config[self.name] = {'turbine_data': self.turbine_data,
+                                  'hub_height': self.hub_height}
+
+        path = f'{sys.path[1]}/export/config/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(f'{sys.path[1]}/export/config/{self.name}_config.ini', 'w') as file:
+            self.config.write(file)

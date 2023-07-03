@@ -1,8 +1,11 @@
 import random
+import sys
+import os
 import pandas as pd
 import numpy as np
 import datetime as dt
 import pvlib
+from configparser import ConfigParser
 
 
 class PV:
@@ -80,9 +83,11 @@ class PV:
                                                     max_module_power=pv_data.get('max_module_power'),
                                                     inverter_power_range=pv_data.get('inverter_power_range'))
             self.pv_module_parameters = system_parameters[0]
-            self.inverter_parameters = system_parameters[1]
-            self.modules_per_string = system_parameters[2]
-            self.strings_per_inverter = system_parameters[3]
+            self.pv_module = system_parameters[1]
+            self.inverter_parameters = system_parameters[2]
+            self.inverter = system_parameters[3]
+            self.modules_per_string = system_parameters[4]
+            self.strings_per_inverter = system_parameters[5]
             # Create Location, PVSystem and ModelChain
             pvlib_parameters = self.create_pvlib_parameters()
             self.location = pvlib_parameters[0]
@@ -145,6 +150,11 @@ class PV:
                                    self.c_op_main_n),
                                f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
+        if pv_profile is not None:
+            pass
+        else:
+            self.config = ConfigParser()
+            self.create_config()
 
     def create_pvlib_parameters(self):
         """
@@ -342,7 +352,7 @@ class PV:
         inverter_name = inverters[random.randint(0, (len(inverters) - 1))]
         inverter = self.inverter_lib[inverter_name]
 
-        return module, inverter, modules_per_string, strings_per_inverter
+        return module, module_name, inverter, inverter_name, modules_per_string, strings_per_inverter
 
     def retrieve_pvlib_library(self, component):
         """
@@ -364,3 +374,21 @@ class PV:
         df.columns = col
 
         return df
+
+    def create_config(self):
+        """
+        Create and write config file for system configuration
+        :return: None
+        """
+        self.config[self.name] = {'module': self.pv_module,
+                                  'inverter': self.inverter,
+                                  'modules_per_string': self.modules_per_string,
+                                  'strings_per_inverter': self.strings_per_inverter}
+
+        path = f'{sys.path[1]}/export/config/'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(f'{path}{self.name}_config.ini', 'w') as file:
+            self.config.write(file)
+
