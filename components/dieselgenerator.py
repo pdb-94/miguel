@@ -7,13 +7,11 @@ class DieselGenerator:
     """
     Class to represent Diesel Generators
     """
-
     def __init__(self,
                  env,
                  name: str = None,
                  p_n: float = None,
                  fuel_consumption: float = None,
-                 fuel_price: float = None,
                  fuel_ticks: dict = None,
                  c_invest_n: float = 468,
                  c_op_main_n: float = None,
@@ -29,8 +27,6 @@ class DieselGenerator:
             nominal power [W]
         :param fuel_consumption: float
             fuel consumption at nominal power
-        :param fuel_price: float
-            fuel price per liter
         :param fuel_ticks: dict
             fuel consumption depending on load in percentage
         :param c_invest_n: float
@@ -52,7 +48,7 @@ class DieselGenerator:
             self.c_op_main_n = self.c_invest_n * 0.03  # USD/kW
         self.c_var_n = c_var_n  # USD/kWh
         self.fuel_consumption = fuel_consumption  # [l/p_n]
-        self.fuel_price = fuel_price  # [US$/l]
+        self.fuel_price = self.env.diesel_price  # [US$/l]
         self.co2_init = co2_init * self.p_n / 1000  # kg
         if c_invest is None:
             self.c_invest = self.c_invest_n * self.p_n / 1000
@@ -65,7 +61,7 @@ class DieselGenerator:
         self.df = pd.DataFrame(columns=['P [W]',
                                         'P [%]',
                                         'Fuel Consumption [l/h]',
-                                        f'Fuel cost [{self.env.currency}]'],
+                                        f'Fuel cost [US$]'],
                                index=self.env.time)
 
         if fuel_ticks is None:
@@ -78,11 +74,10 @@ class DieselGenerator:
         self.technical_data = {'Component': 'Diesel Generator',
                                'Name': self.name,
                                'Nominal Power [kW]': round(self.p_n / 1000, 3),
-                               f'Specific investment cost [{self.env.currency}/kW]': int(self.c_invest_n),
-                               f'Investment cost [{self.env.currency}]': int(self.c_invest_n * self.p_n / 1000),
-                               f'Specific operation maintenance cost [{self.env.currency}/kW]': int(self.c_op_main_n),
-                               f'Operation maintenance cost [{self.env.currency}/a]':
-                                   int(self.c_op_main_n * self.p_n / 1000)}
+                               f'Specific investment cost [US$/kW]': int(self.c_invest_n),
+                               f'Investment cost [US$]': int(self.c_invest_n * self.p_n / 1000),
+                               f'Specific operation maintenance cost [US$/kW]': int(self.c_op_main_n),
+                               f'Operation maintenance cost [US$/a]': int(self.c_op_main_n * self.p_n / 1000)}
 
     def run(self, clock: dt.datetime, power: float):
         """

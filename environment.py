@@ -19,7 +19,6 @@ class Environment:
     Negative power values are power consumption (load, storage)
     Positive power values are power production (PV, DieselGenerator, WindTurbine, Grid, Storage)
     """
-
     def __init__(self,
                  name: str = None,
                  time: dict = None,
@@ -50,10 +49,11 @@ class Environment:
             Parameter for economical calculation
             {d_rate: float,
              lifetime: int,
-             electricity_price: float
-             co2_price: float
-             pv_feed_in_tariff: float,
-             wt_feed_in_tariff: float,
+             electricity_price: float [US$/kWh]
+             co2_price: float [US$/t]
+             diesel_price: float [US$/l]
+             pv_feed_in_tariff: float [US$/kWh]
+             wt_feed_in_tariff: float [US$/kWh]
              currency: str}
         :param ecology: dict
             Parameter for ecological calculations
@@ -162,26 +162,26 @@ class Environment:
         self.supply_data = pd.DataFrame(columns=['Component',
                                                  'Name',
                                                  'Nominal Power [kW]',
-                                                 f'Specific investment cost [{self.currency}/kW]',
-                                                 f'Investment cost [{self.currency}]',
-                                                 f'Specific operation maintenance cost [{self.currency}/kW]',
-                                                 f'Operation maintenance cost [{self.currency}/a]'])
+                                                 f'Specific investment cost [US$/kW]',
+                                                 f'Investment cost [US$]',
+                                                 f'Specific operation maintenance cost [US$/kW]',
+                                                 f'Operation maintenance cost [US$/a]'])
         self.storage_data = pd.DataFrame(columns=['Component',
                                                   'Name',
                                                   'Nominal Power [kW]',
                                                   'Capacity [kWh]',
-                                                  f'Specific investment cost [{self.currency}/kWh]',
-                                                  f'Investment cost [{self.currency}]',
-                                                  f'Specific operation maintenance cost [{self.currency}/kWh]',
-                                                  f'Operation maintenance cost [{self.currency}/a]'])
+                                                  f'Specific investment cost [US$/kWh]',
+                                                  f'Investment cost [US$]',
+                                                  f'Specific operation maintenance cost [US$/kWh]',
+                                                  f'Operation maintenance cost [US$/a]'])
 
     def find_location(self):
         """
         Find address based on coordinates
         :return: list
         """
-        geolocator = Nominatim(user_agent="geoapiExercises")
-        location = geolocator.reverse(str(self.latitude) + ',' + str(self.longitude))
+        geolocator = Nominatim(user_agent='geoapiExercises')
+        location = geolocator.reverse(f'{self.latitude},{self.longitude}')
         if location is None:
             sys.exit('Coordinates not on land.')
         address = location.raw['address']
@@ -425,7 +425,6 @@ class Environment:
                              p_n: float = None,
                              fuel_consumption: float = None,
                              fuel_ticks: dict = None,
-                             fuel_price: float = None,
                              c_invest: float = None,
                              c_op_main: float = None,
                              c_var_n: float = 0):
@@ -439,7 +438,6 @@ class Environment:
                                                      p_n=p_n,
                                                      fuel_consumption=fuel_consumption,
                                                      fuel_ticks=fuel_ticks,
-                                                     fuel_price=fuel_price,
                                                      c_invest=c_invest,
                                                      c_op_main=c_op_main,
                                                      c_var_n=c_var_n))

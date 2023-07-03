@@ -47,14 +47,14 @@ class Report:
         self.evaluation_df = self.eval.evaluation_df
         # Root path
         self.root = sys.path[1]
-        self.report_path = self.root + '/report/'
-        self.txt_file_path = self.root + '/report/txt_files/'
+        self.report_path = f'{self.root}/report/'
+        self.txt_file_path = f'{self.root}/report/txt_files/'
         if not os.path.exists(f'{self.report_path}pictures/'):
             os.makedirs(f'{self.report_path}pictures/')
         # Evaluation parameters
-        self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [{self.env.currency}/kWh]'], 2)
-        self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [{self.env.currency}/a]']
-        self.system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [{self.env.currency}]'])
+        self.system_LCOE = round(self.evaluation_df.loc['System', f'LCOE [US$/kWh]'], 2)
+        self.system_annual_energy_cost = self.evaluation_df.loc['System', f'Annual cost [US$/a]']
+        self.system_lifetime_cost = int(self.evaluation_df.loc['System', f'Lifetime cost [US$]'])
         if self.env.grid_connection:
             self.gird_lifetime_cost = int(self.eval.grid_cost_comparison_lifetime)
         else:
@@ -96,7 +96,7 @@ class Report:
         self.dispatch()
         self.evaluation()
         # Create report
-        self.pdf_file.output(self.root + '/export/' + self.name + '.pdf')
+        self.pdf_file.output(f'{self.root}/export/{self.name}.pdf')
 
     '''Functions to create chapters'''
 
@@ -131,11 +131,11 @@ class Report:
             cost_difference = self.gird_lifetime_cost - self.system_lifetime_cost
             sys_comparison = 'the power grid'
         if cost_difference < 0:
-            cost_paragraph = f" Additional costs of {abs(int(cost_difference)):,} {self.env.currency} occur over the " \
+            cost_paragraph = f" Additional costs of {abs(int(cost_difference)):,} US$ occur over the " \
                              f"system lifetime of {self.env.lifetime} years, compared to an energy supply provided " \
                              f"through {sys_comparison}."
         else:
-            cost_paragraph = f" Cost savings of {abs(int(cost_difference)):,} {self.env.currency} occur over the system " \
+            cost_paragraph = f" Cost savings of {abs(int(cost_difference)):,} US$ occur over the system " \
                              f"lifetime of {self.env.lifetime} years due to the implementation of the energy system, " \
                              f"compared to an energy supply provided through {sys_comparison}."
         # Write chapter depending on if energy consumption is met
@@ -161,23 +161,23 @@ class Report:
                         text=summary)
         self.pdf_file.print_chapter(chapter_type=[False, False],
                                     title=['Introduction', 'Summary'],
-                                    file=[self.txt_file_path + 'default/introduction.txt',
-                                          self.txt_file_path + 'summary.txt'])
+                                    file=[f'{self.txt_file_path}default/introduction.txt',
+                                          f'{self.txt_file_path}summary.txt'])
         # Create evaluation table
         evaluation_header = ['Component',
                              'Lifetime energy [kWh]',
-                             f'Invest. Cost [{self.env.currency}]',
-                             f'LCOE [{self.env.currency}/kWh]',
+                             f'Invest. Cost [US$]',
+                             f'LCOE [US$/kWh]',
                              'Lifetime CO2 emissions [t]']
         evaluation_values = [evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
             data.append(round(self.evaluation_df.loc[row, 'Lifetime energy supply [kWh]'], 0))
-            data.append(round(self.evaluation_df.loc[row, f'Investment cost [{self.env.currency}]'], 0))
-            if self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'] is None:
+            data.append(round(self.evaluation_df.loc[row, f'Investment cost [US$]'], 0))
+            if self.evaluation_df.loc[row, f'LCOE [US$/kWh]'] is None:
                 data.append(None)
             else:
-                data.append(round(self.evaluation_df.loc[row, f'LCOE [{self.env.currency}/kWh]'], 2))
+                data.append(round(self.evaluation_df.loc[row, f'LCOE [US$/kWh]'], 2))
             data.append(round(self.evaluation_df.loc[row, 'Lifetime CO2 emissions [t]'], 3))
             evaluation_values.append(data)
         evaluation_data = [[''], evaluation_values]
@@ -195,7 +195,7 @@ class Report:
         # Create chapter
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['1 Base data'],
-                                    file=[self.txt_file_path + 'default/1_base_data.txt'])
+                                    file=[f'{self.txt_file_path}default/1_base_data.txt'])
         input_header = ['Parameter', 'Value']
         input_values = [input_header]
         for row in self.input_parameter.index:
@@ -206,7 +206,7 @@ class Report:
                                    padding=2)
         self.pdf_file.ln(h=10)
         # Include location map
-        self.pdf_file.image(name=self.report_path + 'pictures/' + '/location.png', w=160)
+        self.pdf_file.image(name=f'{self.report_path}pictures/location.png', w=160)
 
     def climate_data(self):
         """
@@ -226,7 +226,7 @@ class Report:
         # Print chapter 2
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['2 Climate data'],
-                                    file=[self.txt_file_path + 'default/2_weather_data.txt'])
+                                    file=[f'{self.txt_file_path}default/2_weather_data.txt'])
         tmy_header = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                       'November', 'December']
         tmy_values = [tmy_header]
@@ -243,9 +243,9 @@ class Report:
         # 2.1 Solar irradiation
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['2.1 Solar irradiation'],
-                                    file=[self.txt_file_path + 'default/2_1_solar_radiation.txt'])
+                                    file=[f'{self.txt_file_path}default/2_1_solar_radiation.txt'])
         # Plot solar irradiation
-        self.pdf_file.image(name=self.report_path + 'pictures/' + '/solar_data.png', w=140, x=35)
+        self.pdf_file.image(name=f'{self.report_path}pictures/solar_data.png', w=140, x=35)
         # Monthly solar data Table
         solar_data_header = ['Month', 'Avg. GHI [W/m²]', 'Avg. DNI [W/m²]', 'Avg. DHI [W/m²]']
         solar_values = [solar_data_header]
@@ -263,8 +263,8 @@ class Report:
         # 2.2 Wind speed
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['2.2 Wind speed'],
-                                    file=[self.txt_file_path + 'default/2_2_wind_speed.txt'])
-        self.pdf_file.image(name=self.report_path + 'pictures/' + '/wind_data.png', w=140, x=35)
+                                    file=[f'{self.txt_file_path}default/2_2_wind_speed.txt'])
+        self.pdf_file.image(name=f'{self.report_path}pictures/wind_data.png', w=140, x=35)
         # Monthly weather data Table
         wind_data_header = ['Month', 'Avg. Wind Speed [m/s]', 'Avg. Wind direction [°]']
         wind_values = [wind_data_header]
@@ -287,7 +287,7 @@ class Report:
                           f'{wind_speed_max:,} m/s.'
         self.create_txt(file_name='2_2_table_description',
                         text=wind_table_text)
-        self.pdf_file.chapter_body(name=self.txt_file_path + '2_2_table_description.txt', size=10)
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}2_2_table_description.txt', size=10)
 
     def energy_consumption(self):
         """
@@ -304,7 +304,7 @@ class Report:
         # Print Chapters
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['3 Energy consumption'],
-                                    file=[self.txt_file_path + 'default/3_energy_consumption.txt'])
+                                    file=[f'{self.txt_file_path}default/3_energy_consumption.txt'])
         self.pdf_file.image(name=self.report_path + 'pictures/' + 'load_profile.png',
                             w=150,
                             x=30)
@@ -318,14 +318,14 @@ class Report:
                      round(self.operator.peak_load / 1000, 3),
                      round(self.operator.peak_load / 1000, 3)]
         if self.env.grid_connection:
-            cost = [f'Energy cost [{self.env.currency}]',
+            cost = [f'Energy cost [US$]',
                     int(self.eval.grid_cost_comparison_annual),
                     int(self.eval.dg_cost_comparison_annual)]
             co2_emission = ['CO2 emissions [t]',
                             round(self.operator.energy_consumption / 1000 * self.env.co2_grid, 3),
                             round(self.operator.energy_consumption / 1000 * self.env.co2_diesel, 3)]
         else:
-            cost = [f'Energy cost [{self.env.currency}]',
+            cost = [f'Energy cost [US$]',
                     'No grid connection',
                     int(self.eval.dg_cost_comparison_annual)]
 
@@ -350,10 +350,10 @@ class Report:
         wt_energy = 0
         pv_energy = 0
         for i in range(len(self.env.wind_turbine)):
-            columns.append(self.env.wind_turbine[i].name + ': P [W]')
+            columns.append(f'{self.env.wind_turbine[i].name}: P [W]')
             wt_energy += self.env.df['WT_' + str(i + 1) + ': P [W]'].sum()
         for i in range(len(self.env.pv)):
-            columns.append(self.env.pv[i].name + ': P [W]')
+            columns.append(f'{self.env.pv[i].name}: P [W]')
             pv_energy += self.env.df['PV_' + str(i + 1) + ': P [W]'].sum()
         self.create_plot(df=self.env.df,
                          columns=columns,
@@ -368,14 +368,14 @@ class Report:
                         text=re_production)
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['4 System configuration'],
-                                    file=[self.txt_file_path + 'default/4_system_configuration.txt'])
+                                    file=[f'{self.txt_file_path}default/4_system_configuration.txt'])
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['4.1 System components'],
-                                    file=[self.txt_file_path + 'default/4_1_system_components.txt'],
+                                    file=[f'{self.txt_file_path}default/4_1_system_components.txt'],
                                     size=10)
         # Create Supply table
-        supply_header = ['Component', 'Name', 'P [kW]', f'i_c [{self.env.currency}/kW]', f'I_c [{self.env.currency}]',
-                         f'om_c [{self.env.currency}/kW]', f'OM_c [{self.env.currency}/a]']
+        supply_header = ['Component', 'Name', 'P [kW]', f'i_c [US$/kW]', f'I_c [US$]',
+                         f'om_c [US$/kW]', f'OM_c [US$/a]']
         # Define table values
         supply_values = [supply_header]
         # Get technical data from env.supply_data
@@ -385,12 +385,12 @@ class Report:
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=supply_components,
                                    padding=2)
-        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_energy_storage.txt',
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}default/4_1_energy_storage.txt',
                                    size=10)
         # Get technical data from env.storage_data
-        storage_header = ['Component', 'Name', 'P [kW]', 'W [kWh]', f'i_c [{self.env.currency}/kWh]',
-                          f'I_c [{self.env.currency}]', f'om_c [{self.env.currency}/kWh]',
-                          f'OM_c [{self.env.currency}/a]']
+        storage_header = ['Component', 'Name', 'P [kW]', 'W [kWh]', f'i_c [US$/kWh]',
+                          f'I_c [US$]', f'om_c [US$/kWh]',
+                          f'OM_c [US$/a]']
         storage_values = [storage_header]
         for row in self.env.storage_data.index:
             storage_values.append(self.env.storage_data.loc[row, :].values.tolist())
@@ -398,14 +398,14 @@ class Report:
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=storage_components,
                                    padding=2)
-        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/4_1_system_configuration_description.txt',
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}default/4_1_system_configuration_description.txt',
                                    size=8)
         # Chapter 4 - Monthly data
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['4.2 Renewable energy supply'],
-                                    file=[self.txt_file_path + '4_2_re_energy_supply.txt'],
+                                    file=[f'{self.txt_file_path}4_2_re_energy_supply.txt'],
                                     size=10)
-        self.pdf_file.image(name=self.report_path + 'pictures/' + '/re_supply.png', w=150, x=30)
+        self.pdf_file.image(name=f'{self.report_path}pictures/re_supply.png', w=150, x=30)
 
     def dispatch(self):
         """
@@ -421,7 +421,7 @@ class Report:
                         text=dispatch_5)
         self.pdf_file.print_chapter(chapter_type=[True],
                                     title=['5 Dispatch'],
-                                    file=[self.txt_file_path + '5_dispatch.txt'],
+                                    file=[f'{self.txt_file_path}5_dispatch.txt'],
                                     size=10)
         # Create Dispatch plot
         columns = ['Load [W]']
@@ -439,14 +439,14 @@ class Report:
                          columns=columns,
                          file_name='dispatch',
                          y_label='P [W]')
-        self.pdf_file.image(name=self.report_path + 'pictures/dispatch.png',
+        self.pdf_file.image(name=f'{self.report_path}pictures/dispatch.png',
                             w=150,
                             x=30,
                             h=120)
-        self.pdf_file.chapter_body(name=self.txt_file_path + '/default/5_sankey.txt',
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}/default/5_sankey.txt',
                                    size=10)
         if self.sankey:
-            self.pdf_file.image(name=self.report_path + 'pictures/sankey.png',
+            self.pdf_file.image(name=f'{self.report_path}pictures/sankey.png',
                                 w=150,
                                 x=30)
 
@@ -459,62 +459,62 @@ class Report:
 
         self.pdf_file.print_chapter(chapter_type=[True, False],
                                     title=['6 Evaluation', '6.1 Economic evaluation'],
-                                    file=[self.txt_file_path + 'default/6_evaluation.txt',
-                                          self.txt_file_path + 'default/6_1_economic_evaluation.txt'],
+                                    file=[f'{self.txt_file_path}default/6_evaluation.txt',
+                                          f'{self.txt_file_path}default/6_1_economic_evaluation.txt'],
                                     size=10)
         # Create economic evaluation table
         economic_evaluation_header = ['Component',
                                       'Annual Energy [kWh]',
-                                      f'Lifetime cost [{env.currency}]',
-                                      f'Invest. Cost [{env.currency}]',
-                                      f'Annual Cost [{env.currency}/a]',
-                                      f'LCOE [{env.currency}/kWh]']
+                                      f'Lifetime cost [US$]',
+                                      f'Invest. Cost [US$]',
+                                      f'Annual Cost [US$/a]',
+                                      f'LCOE [US$/kWh]']
         economic_evaluation_values = [economic_evaluation_header]
         for row in self.evaluation_df.index:
             data = [row]
             data.append(self.evaluation_df.loc[row, 'Annual energy supply [kWh/a]'])
-            data.append(self.evaluation_df.loc[row, f'Lifetime cost [{env.currency}]'])
-            data.append(self.evaluation_df.loc[row, f'Investment cost [{env.currency}]'])
-            data.append(self.evaluation_df.loc[row, f'Annual cost [{env.currency}/a]'])
-            if self.evaluation_df.loc[row, f'LCOE [{env.currency}/kWh]'] is None:
+            data.append(self.evaluation_df.loc[row, f'Lifetime cost [US$]'])
+            data.append(self.evaluation_df.loc[row, f'Investment cost [US$]'])
+            data.append(self.evaluation_df.loc[row, f'Annual cost [US$/a]'])
+            if self.evaluation_df.loc[row, f'LCOE [US$/kWh]'] is None:
                 data.append(None)
             else:
-                data.append(round(self.evaluation_df.loc[row, f'LCOE [{env.currency}/kWh]'], 2))
+                data.append(round(self.evaluation_df.loc[row, f'LCOE [US$/kWh]'], 2))
             economic_evaluation_values.append(data)
         economic_evaluation_data = [[''], economic_evaluation_values]
         self.pdf_file.create_table(file=self.pdf_file,
                                    table=economic_evaluation_data,
                                    padding=2)
-        economic_table_description = f'The overall system LCOE is {self.system_LCOE} {env.currency}/kWh. The energy costs ' \
+        economic_table_description = f'The overall system LCOE is {self.system_LCOE} US$/kWh. The energy costs ' \
                                      f'incurred in the period under consideration amount to {self.system_lifetime_cost:,} ' \
-                                     f'{env.currency}. '
+                                     f'US$. '
         # Compare systems with energy supply only from grid or diesel generator
         if self.env.system == 'Off Grid System':
             comparison = f'In comparison, the energy costs from a complete supply from diesel generators amount to ' \
-                         f'{self.dg_lifetime_cost:,} {env.currency}. '
+                         f'{self.dg_lifetime_cost:,} US$. '
             if self.dg_lifetime_cost - self.system_lifetime_cost < 0:
                 cost = f'Additional cost of {int(abs(self.dg_lifetime_cost - self.system_lifetime_cost)):,} ' \
-                       f'{env.currency} occur to cover the lifetime energy demand.\n\n'
+                       f'US$ occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(self.dg_lifetime_cost - self.system_lifetime_cost):,} {env.currency} are ' \
+                cost = f'{int(self.dg_lifetime_cost - self.system_lifetime_cost):,} US$ are ' \
                        f'saved over the system lifetime with the simulated system configuration.\n\n'
         else:
             comparison = f'In comparison, the energy costs from a complete supply from the power grid amount to ' \
-                         f'{self.gird_lifetime_cost:,} {env.currency}. '
+                         f'{self.gird_lifetime_cost:,} US$. '
             if self.gird_lifetime_cost - self.system_lifetime_cost < 0:
                 cost = f'Additional cost of {int(abs(self.gird_lifetime_cost - self.system_lifetime_cost)):,} ' \
-                       f'{env.currency} occur to cover the lifetime energy demand.\n\n'
+                       f'US$ occur to cover the lifetime energy demand.\n\n'
             else:
-                cost = f'{int(self.gird_lifetime_cost - self.system_lifetime_cost):,} {env.currency} are ' \
+                cost = f'{int(self.gird_lifetime_cost - self.system_lifetime_cost):,} US$ are ' \
                        f'saved over the system lifetime with the simulated system configuration.\n\n'
         self.create_txt(file_name='6_1_table_description',
                         text=economic_table_description + comparison + cost)
         self.pdf_file.ln(h=10)
-        self.pdf_file.chapter_body(name=self.txt_file_path + '6_1_table_description.txt',
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}6_1_table_description.txt',
                                    size=10)
         self.pdf_file.print_chapter(chapter_type=[False],
                                     title=['6.2 Ecologic evaluation'],
-                                    file=[self.txt_file_path + 'default/6_2_ecologic_evaluation.txt'],
+                                    file=[f'{self.txt_file_path}default/6_2_ecologic_evaluation.txt'],
                                     size=10)
         # Ecologic evaluation
         ecologic_evaluation_header = ['Component',
@@ -537,8 +537,8 @@ class Report:
                              columns=['Initial CO2 emissions [t]', 'Annual CO2 emissions [t/a]'],
                              file_name='co2_emissions',
                              y_label='CO2 emissions [t]')
-        self.pdf_file.image(name=self.report_path + 'pictures/co2_emissions.png', w=150)
-        self.pdf_file.chapter_body(name=self.txt_file_path + 'default/6_2_table_description.txt', size=10)
+        self.pdf_file.image(name=f'{self.report_path}pictures/co2_emissions.png', w=150)
+        self.pdf_file.chapter_body(name=f'{self.txt_file_path}default/6_2_table_description.txt', size=10)
 
     '''Functions to support chapter content'''
     def create_input_parameter(self):
@@ -550,13 +550,13 @@ class Report:
         env = self.env
         data = {'Parameter': ['Project name', 'City', 'ZIP Code', 'State', 'Country', 'Country Code', 'Latitude [°]',
                               'Longitude [°]', 'Start time', 'End time', 'Time resolution', 'Currency',
-                              f'Electricity price [{env.currency}/kWh]', f'CO2 price [{env.currency}/t]',
-                              'Feed in possible', f'PV Feed-in tariff [{env.currency}/kWh]',
-                              f'Wind turbine Feed-in tariff [{env.currency}/kWh]', 'System lifetime [a]',
+                              f'Electricity price [US$/kWh]', 'Diesel price [US$/l]', f'CO2 price [US$/t]',
+                              'Feed in possible', f'PV Feed-in tariff [US$/kWh]',
+                              f'Wind turbine Feed-in tariff [US$/kWh]', 'System lifetime [a]',
                               'Discount rate', 'CO2 equivalent Diesel [kg/kWh]', 'CO2 equivalent Grid [kg/kWh]'],
                 'Value': [env.name, env.address[0], env.address[1], env.address[2], env.address[3], env.address[4],
                           env.latitude, env.longitude, env.t_start, env.t_end, env.t_step, env.currency,
-                          env.electricity_price, env.avg_co2_price, env.feed_in, env.pv_feed_in_tariff,
+                          env.electricity_price, env.diesel_price, env.avg_co2_price, env.feed_in, env.pv_feed_in_tariff,
                           env.wt_feed_in_tariff, env.lifetime, env.d_rate, env.co2_diesel, env.co2_grid]}
         df = pd.DataFrame.from_dict(data=data)
 
@@ -708,5 +708,5 @@ class Report:
             txt-file content
         :return: None
         """
-        file = open(self.txt_file_path + file_name + '.txt', 'w')
+        file = open(f'{self.txt_file_path}{file_name}.txt', 'w')
         file.write(text)
