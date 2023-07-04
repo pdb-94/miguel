@@ -150,6 +150,7 @@ class PV:
                                    self.c_op_main_n),
                                f'Operation maintenance cost [{self.env.currency}/a]': int(
                                    self.c_op_main_n * self.p_n / 1000)}
+
         if pv_profile is not None:
             pass
         else:
@@ -383,7 +384,9 @@ class PV:
         self.config[self.name] = {'module': self.pv_module,
                                   'inverter': self.inverter,
                                   'modules_per_string': self.modules_per_string,
-                                  'strings_per_inverter': self.strings_per_inverter}
+                                  'strings_per_inverter': self.strings_per_inverter,
+                                  'surface_azimuth': self.surface_azimuth,
+                                  'surface_tilt': self.surface_tilt}
 
         path = f'{sys.path[1]}/export/config/'
         if not os.path.exists(path):
