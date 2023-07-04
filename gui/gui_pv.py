@@ -11,7 +11,7 @@ import gui_func as gui_func
 from gui_table import Table
 
 
-class PV(QWidget):
+class Photovoltaic(QWidget):
     """
     Tab Welcome Screen
     """
