@@ -204,10 +204,11 @@ class TabWidget(QWidget):
         tabs = self.tabs.widget
         tab = tabs(index)
         if index == 3:
-            # TODO: clear plot
             if self.env.load is not None:
+                # Delete load, remove column from df, clear plot
                 self.env.load = None
                 self.env.df = self.env.df.drop(columns=['P_Res [W]'])
+                tab.clear_plot()
         if index == 4:
             component = self.env.pv
         elif index == 5:
