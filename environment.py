@@ -156,6 +156,7 @@ class Environment:
                 self.df['Blackout'] = blackout_df['Blackout'].values
                 self.system = system[2]
             else:
+                self.blackout_data = None
                 self.system = system[1]
         else:
             self.system = system[0]
