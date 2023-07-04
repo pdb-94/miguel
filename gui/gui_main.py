@@ -12,12 +12,13 @@ from evaluation import Evaluation
 from report.report import Report
 from components.pv import PV
 from components.windturbine import WindTurbine
+from components.dieselgenerator import DieselGenerator
 import gui_func as gui_func
 from gui.gui_projectsetup import ProjectSetup
 from gui.gui_environment import EnergySystem
 from gui.gui_weatherdata import WeatherData
 from gui.gui_load import LoadProfile
-from gui.gui_pv import PV
+from gui.gui_pv import Photovoltaic
 from gui.gui_wt import WT
 from gui.gui_dg import DG
 from gui.gui_storage import EnergyStorage
@@ -59,7 +60,7 @@ class TabWidget(QWidget):
                             EnergySystem,
                             WeatherData,
                             LoadProfile,
-                            PV,
+                            Photovoltaic,
                             WT,
                             DG,
                             EnergyStorage,
@@ -222,27 +223,21 @@ class TabWidget(QWidget):
             row = tab.overview.currentIndex().row()
             # Check if component has been selected
             if row != -1:
-
-                name = component.name
+                name = component[row].name
+                comp = component[row]
                 # Delete item from environment
-                if isinstance(component, PV):
-                    # TODO: subtract PV from total PV power
-                    re_supply_component = component[row]
-                    print(re_supply_component)
+                if isinstance(comp, PV):
                     self.env.df['PV total power [W]'] \
                         = self.env.df['PV total power [W]'] - self.env.df[f'{name}: P [W]']
-                    print(self.env.re_supply)
-                    self.env.re_supply.pop(re_supply_component)
-                    print(self.env.re_supply)
-                elif isinstance(component, WindTurbine):
-                    # TODO: subtract WT from total WT power
-                    re_supply_component = component[row]
-                    print(re_supply_component)
+                    self.env.re_supply.remove(comp)
+                    self.env.supply_components.remove(comp)
+                elif isinstance(comp, WindTurbine):
                     self.env.df['WT total power [W]'] \
                         = self.env.df['WT total power [W]'] - self.env.df[f'{name}: P [W]']
-                    print(self.env.re_supply)
-                    self.env.re_supply.pop(re_supply_component)
-                    print(self.env.re_supply)
+                    self.env.re_supply.remove(comp)
+                    self.env.supply_components.remove(comp)
+                elif isinstance(comp, DieselGenerator):
+                    self.env.supply_components.remove(comp)
                 self.env.df = self.env.df.drop(columns=[f'{name}: P [W]'])
                 del (component[row])
                 # Remove item from QListView
@@ -307,7 +302,6 @@ class TabWidget(QWidget):
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
-            print(self.env.re_supply)
         elif index == 5:
             # Wind turbine
             self.gui_add_wt(tab)
@@ -320,7 +314,6 @@ class TabWidget(QWidget):
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
-            print(self.env.re_supply)
         elif index == 6:
             # Diesel generator
             self.gui_add_dg(tab)
