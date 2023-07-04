@@ -222,15 +222,27 @@ class TabWidget(QWidget):
             row = tab.overview.currentIndex().row()
             # Check if component has been selected
             if row != -1:
-                name = component[row].name
+
+                name = component.name
                 # Delete item from environment
                 if isinstance(component, PV):
+                    # TODO: subtract PV from total PV power
+                    re_supply_component = component[row]
+                    print(re_supply_component)
                     self.env.df['PV total power [W]'] \
                         = self.env.df['PV total power [W]'] - self.env.df[f'{name}: P [W]']
+                    print(self.env.re_supply)
+                    self.env.re_supply.pop(re_supply_component)
+                    print(self.env.re_supply)
                 elif isinstance(component, WindTurbine):
                     # TODO: subtract WT from total WT power
+                    re_supply_component = component[row]
+                    print(re_supply_component)
                     self.env.df['WT total power [W]'] \
                         = self.env.df['WT total power [W]'] - self.env.df[f'{name}: P [W]']
+                    print(self.env.re_supply)
+                    self.env.re_supply.pop(re_supply_component)
+                    print(self.env.re_supply)
                 self.env.df = self.env.df.drop(columns=[f'{name}: P [W]'])
                 del (component[row])
                 # Remove item from QListView
@@ -295,6 +307,7 @@ class TabWidget(QWidget):
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
+            print(self.env.re_supply)
         elif index == 5:
             # Wind turbine
             self.gui_add_wt(tab)
@@ -307,6 +320,7 @@ class TabWidget(QWidget):
             # Update component df in tab dispatch
             gui_func.update_component_df(data=data,
                                          tab=self.tabs.widget(8))
+            print(self.env.re_supply)
         elif index == 6:
             # Diesel generator
             self.gui_add_dg(tab)

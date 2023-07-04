@@ -55,10 +55,10 @@ class WindTurbine:
         self.c_op_main_n = c_op_main_n  # USD/kW
         self.c_var_n = c_var_n  # USD/kWh
         # Location
-        self.longitude = self.env.location.get('longitude')
-        self.latitude = self.env.location.get('latitude')
-        self.altitude = self.env.location.get('altitude')
-        self.roughness_length = self.env.location.get('terrain')
+        self.longitude = self.env.longitude
+        self.latitude = self.env.latitude
+        self.altitude = self.env.altitude
+        self.roughness_length = self.env.terrain
         # DataFrame
         self.df = pd.DataFrame(columns=['P [W]'],
                                index=self.env.time)

@@ -71,9 +71,9 @@ class PV:
             self.p_n = p_n
         elif p_n is not None:
             self.p_n = p_n
-            self.longitude = self.env.location.get('longitude')
-            self.latitude = self.env.location.get('latitude')
-            self.altitude = self.env.location.get('altitude')
+            self.longitude = self.env.longitude
+            self.latitude = self.env.latitude
+            self.altitude = self.env.altitude
             if pv_data.get('surface_tilt') is None:
                 self.surface_tilt = 20
             else:
