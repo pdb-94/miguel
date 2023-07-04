@@ -54,12 +54,15 @@ def demonstration(grid_connection=True):
     # Add load profile from csv-file
     environment.add_load(annual_consumption=150000, ref_profile='L0')  # kWh
     # Add PV system
-    # environment.add_pv(p_n=60000,
-    #                    pv_data={'surface_tilt': 20, 'surface_azimuth': 0, 'min_module_power': 300,
-    #                             'max_module_power': 400, 'inverter_power_range': 2500})
-    environment.add_pv(pv_data={'surface_tilt': 20, 'surface_azimuth': 0, 'pv_module': 'ET_Solar_Industry_ET_M672320WW',
-                                'inverter': 'SMA_America__STP_62_US_41__480V_', 'modules_per_string': 94.0,
-                                'strings_per_inverter': 2})
+    environment.add_pv(p_n=30000,
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 90, 'min_module_power': 300,
+                                'max_module_power': 400, 'inverter_power_range': 2500})
+    environment.add_pv(p_n=30000,
+                       pv_data={'surface_tilt': 20, 'surface_azimuth': 270, 'min_module_power': 300,
+                                'max_module_power': 400, 'inverter_power_range': 2500})
+    # environment.add_pv(pv_data={'surface_tilt': 20, 'surface_azimuth': 0, 'pv_module': 'ET_Solar_Industry_ET_M672320WW',
+    #                             'inverter': 'SMA_America__STP_62_US_41__480V_', 'modules_per_string': 94.0,
+    #                             'strings_per_inverter': 2})
     # Add Windturbine
     # environment.add_wind_turbine(selection_parameters=[3000000, 4000000])
     # environment.add_wind_turbine(turbine_data={'turbine_type': 'E-115/3200', 'hub_height': 92.0, 'p_n': 3200000})
@@ -80,11 +83,11 @@ env = demonstration(grid_connection=False)
 # On Grid system
 # env = demonstration(grid_connection=True)
 # Run Dispatch
-# print(f'Run Dispatch {dt.datetime.today() - start}')
-# operator = Operator(env=env)
-# print(f'Dispatch completed {dt.datetime.today() - start}')
-# evaluation = Evaluation(env=env, operator=operator)
-# # Create pdf-Report
-# print(f'Create report {dt.datetime.today() - start}')
-# report = Report(env=env, operator=operator, evaluation=evaluation)
-# print(f'Finished simulation and evaluation {dt.datetime.today() - start}')
+print(f'Run Dispatch {dt.datetime.today() - start}')
+operator = Operator(env=env)
+print(f'Dispatch completed {dt.datetime.today() - start}')
+evaluation = Evaluation(env=env, operator=operator)
+# Create pdf-Report
+print(f'Create report {dt.datetime.today() - start}')
+report = Report(env=env, operator=operator, evaluation=evaluation)
+print(f'Finished simulation and evaluation {dt.datetime.today() - start}')
