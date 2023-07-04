@@ -65,8 +65,8 @@ class Evaluation:
         Create dataframe for system evaluation
         :return: pd.DataFrame
         """
-        col = ['Annual energy supply [kWh/a]', 'Lifetime energy supply [kWh]', f'Lifetime cost [{self.env.currency}]',
-               f'Investment cost [{self.env.currency}]', f'Annual cost [{self.env.currency}/a]',
+        col = ['Annual energy supply [kWh/a]', 'Lifetime energy supply [kWh]', f'Lifetime cost [US$]',
+               f'Investment cost [{self.env.currency}]', f'Annual cost [US$/a]',
                f'LCOE [{self.env.currency}/kWh]', 'Lifetime CO2 emissions [t]', 'Initial CO2 emissions [t]',
                'Annual CO2 emissions [t/a]']
         evaluation_df = pd.DataFrame(columns=col)
@@ -143,19 +143,19 @@ class Evaluation:
         :param component:
         :return: None
         """
-        col = component.name + ' [W]'
+        col = f'{component.name} [W]'
         energy_supply = self.op.df[col].sum() * self.env.i_step / 60 / 1000
         if isinstance(component, PV):
             if len(self.env.storage) == 0:
                 charge = 0
             else:
-                charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
+                charge = self.op.df[f'{component.name}_charge [W]'].sum() * self.env.i_step / 60 / 1000
             self.pv_energy_supply[component.name] = energy_supply + charge
         elif isinstance(component, WindTurbine):
             if len(self.env.storage) == 0:
                 charge = 0
             else:
-                charge = self.op.df[component.name + '_charge [W]'].sum() * self.env.i_step / 60 / 1000
+                charge = self.op.df[f'{component.name}_charge [W]'].sum() * self.env.i_step / 60 / 1000
             self.wt_energy_supply[component.name] = energy_supply + charge
         elif isinstance(component, Grid):
             charge = 0
@@ -181,10 +181,10 @@ class Evaluation:
                                             self.op.df[col],
                                             0).tolist()) * self.env.i_step / 60 / 1000)
             self.evaluation_df.loc[es.name, 'Annual energy supply [kWh/a]'] = -es_discharge
-            self.storage_energy_supply[es.name + '_charge'] = es_charge
-            self.storage_energy_supply[es.name + '_discharge'] = es_discharge
-            self.evaluation_df.loc[es.name + '_discharge', 'Annual energy supply [kWh/a]'] = -es_discharge
-            self.evaluation_df.loc[es.name + '_charge', 'Annual energy supply [kWh/a]'] = -es_charge
+            self.storage_energy_supply[f'{es.name}_charge'] = es_charge
+            self.storage_energy_supply[f'{es.name}_discharge'] = es_discharge
+            self.evaluation_df.loc[f'{es.name}_discharge', 'Annual energy supply [kWh/a]'] = -es_discharge
+            self.evaluation_df.loc[f'{es.name}_charge', 'Annual energy supply [kWh/a]'] = -es_charge
 
     def calc_co2_emissions(self, component):
         """
@@ -237,10 +237,10 @@ class Evaluation:
 
         return co2_annual
 
-    def calc_cost(self, component):
+    def calc_cost(self, component: object):
         """
         :param component:
-        :return:
+        :return: None
         """
         # Investment cost
         investment_cost = self.calc_investment_cost(component=component)
@@ -250,7 +250,7 @@ class Evaluation:
         lifetime_cost = self.calc_lifetime_value(initial_value=investment_cost,
                                                  annual_value=annual_cost)
 
-        self.evaluation_df.loc[component.name, f'Lifetime cost [{self.env.currency}]'] = int(lifetime_cost)
+        self.evaluation_df.loc[component.name, f'Lifetime cost [US$]'] = int(lifetime_cost)
 
     def calc_investment_cost(self,
                              component: object):
@@ -268,7 +268,7 @@ class Evaluation:
         else:
             investment_cost = component.c_invest
 
-        self.evaluation_df.loc[component.name, f'Investment cost [{self.env.currency}]'] = int(investment_cost)
+        self.evaluation_df.loc[component.name, f'Investment cost [US$]'] = int(investment_cost)
 
         return investment_cost
 
@@ -299,7 +299,7 @@ class Evaluation:
         else:
             if self.env.grid_connection:
                 if self.env.feed_in:
-                    annual_revenues = self.op.df[f'{component.name} Feed in [{self.env.currency}]'].sum()
+                    annual_revenues = self.op.df[f'{component.name} Feed in [US$]'].sum()
                 else:
                     annual_revenues = 0
             else:
@@ -307,13 +307,13 @@ class Evaluation:
             additional_variable_cost = annual_output * component.c_var_n
             annual_cost = component.c_op_main + co2_cost - annual_revenues + additional_variable_cost
 
-        self.evaluation_df.loc[component.name, f'Annual cost [{self.env.currency}/a]'] = int(annual_cost)
+        self.evaluation_df.loc[component.name, f'Annual cost [US$/a]'] = int(annual_cost)
 
         return annual_cost
 
     def calc_system_values(self):
-        columns = [f'Lifetime cost [{self.env.currency}]',
-                   f'Investment cost [{self.env.currency}]', f'Annual cost [{self.env.currency}/a]',
+        columns = [f'Lifetime cost [US$]',
+                   f'Investment cost [US$]', f'Annual cost [US$/a]',
                    'Lifetime CO2 emissions [t]', 'Initial CO2 emissions [t]', 'Annual CO2 emissions [t/a]']
         for col in columns:
             self.evaluation_df.loc['System', col] = self.evaluation_df[col].sum()
@@ -328,14 +328,14 @@ class Evaluation:
         rows = [x for x in df.index if "charge" not in x]
         for row in rows:
             annual_energy_supply = df.loc[row, 'Annual energy supply [kWh/a]']
-            annual_cost = df.loc[row, f'Annual cost [{self.env.currency}/a]']
-            investment_cost = df.loc[row, f'Investment cost [{self.env.currency}]']
+            annual_cost = df.loc[row, f'Annual cost [US$/a]']
+            investment_cost = df.loc[row, f'Investment cost [US$]']
             lcoe = py_lcoe(annual_output=annual_energy_supply,
                            annual_operating_cost=annual_cost,
                            capital_cost=investment_cost,
                            discount_rate=self.env.d_rate,
                            lifetime=self.env.lifetime)
-            df.loc[row, f'LCOE [{self.env.currency}/kWh]'] = round(lcoe, 2)
+            df.loc[row, f'LCOE [US$/kWh]'] = round(lcoe, 2)
 
     def calc_lifetime_value(self,
                             initial_value: float,
