@@ -95,15 +95,17 @@ class Photovoltaic(QWidget):
         self.profile_l = QLabel()
         self.profile_l.setText('PV profile path')
         self.profile = QLineEdit()
+        self.browse = QPushButton('Browse')
         # Widget container
         self.method_1 = [self.p_l, self.p_min_l, self.p_max_l, self.inverter_range_l, self.azimuth_l, self.tilt_l,
                          self.p, self.p_min, self.p_max, self.inverter_range, self.azimuth, self.tilt]
         self.method_2 = [self.module_l, self.inverter_l, self.modules_string_l, self.string_l, self.azimuth_l, self.tilt_l,
                          self.module, self.inverter, self.modules_per_string, self.strings_per_inverter, self.azimuth, self.tilt]
-        self.method_3 = [self.p_l, self.p, self.profile_l, self.profile]
+        self.method_3 = [self.p_l, self.p, self.profile_l, self.profile, self.browse]
 
         # Connect function to ComboBox
         self.method_combo.currentIndexChanged.connect(self.simulation_method)
+        self.browse.clicked.connect(self.get_profile)
 
         # Set up Layout
         self.layout = QGridLayout()
@@ -116,6 +118,7 @@ class Photovoltaic(QWidget):
         self.layout.addWidget(self.module, 2, 1, Qt.AlignTop)
         self.layout.addWidget(self.profile_l, 3, 0, Qt.AlignRight)
         self.layout.addWidget(self.profile, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.browse, 3, 2, Qt.AlignLeft)
         self.layout.addWidget(self.p_min_l, 3, 0, Qt.AlignRight)
         self.layout.addWidget(self.p_min, 3, 1, Qt.AlignTop)
         self.layout.addWidget(self.inverter_l, 3, 0, Qt.AlignRight)
@@ -136,12 +139,26 @@ class Photovoltaic(QWidget):
         self.layout.addWidget(self.invest, 8, 1, Qt.AlignTop)
         self.layout.addWidget(self.opm_l, 9, 0, Qt.AlignRight)
         self.layout.addWidget(self.opm, 9, 1, Qt.AlignTop)
-        self.layout.addWidget(self.overview, 10, 0, 1, 2)
+        self.layout.addWidget(self.overview, 10, 0, 1, 3)
         self.setLayout(self.layout)
 
         gui_func.show_widget(widget=self.method_2, show=False)
         gui_func.show_widget(widget=self.method_3, show=False)
         gui_func.show_widget(widget=self.method_1, show=True)
+
+    def get_profile(self):
+        """
+        Open QFileDialog to select PV profile
+        :return:
+        """
+        response = QFileDialog.getOpenFileName(parent=self,
+                                               caption='Select PV profile',
+                                               filter='Data file (*.csv)',
+                                               directory=sys.path[1])
+        pv_profile = response[0]
+        self.profile.setText(pv_profile)
+
+        return pv_profile
 
     def simulation_method(self):
         index = self.method_combo.currentIndex()

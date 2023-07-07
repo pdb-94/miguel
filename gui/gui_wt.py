@@ -78,12 +78,14 @@ class WT(QWidget):
         self.profile_l = QLabel()
         self.profile_l.setText('Wind turbine profile path')
         self.profile = QLineEdit()
+        self.browse = QPushButton('Browse')
         # Widget container
         self.method_1 = [self.p_min_l, self.p_max_l, self.p_min, self.p_max]
         self.method_2 = [self.p_l, self.turbine_l, self.p, self.turbine, self.height_l, self.height]
-        self.method_3 = [self.p_l, self.p, self.profile_l, self.profile]
+        self.method_3 = [self.p_l, self.p, self.profile_l, self.profile, self.browse]
 
         self.method_combo.currentIndexChanged.connect(self.simulation_method)
+        self.browse.clicked.connect(self.get_profile)
 
         # Set up Layout
         self.layout = QGridLayout()
@@ -96,6 +98,7 @@ class WT(QWidget):
         self.layout.addWidget(self.p, 2, 1, Qt.AlignTop)
         self.layout.addWidget(self.profile_l, 3, 0, Qt.AlignRight)
         self.layout.addWidget(self.profile, 3, 1, Qt.AlignTop)
+        self.layout.addWidget(self.browse, 3, 2, Qt.AlignLeft)
         self.layout.addWidget(self.p_max_l, 3, 0, Qt.AlignRight)
         self.layout.addWidget(self.p_max, 3, 1, Qt.AlignTop)
         self.layout.addWidget(self.turbine_l, 3, 0, Qt.AlignRight)
@@ -106,12 +109,26 @@ class WT(QWidget):
         self.layout.addWidget(self.invest, 5, 1, Qt.AlignTop)
         self.layout.addWidget(self.opm_l, 6, 0, Qt.AlignRight)
         self.layout.addWidget(self.opm, 6, 1, Qt.AlignTop)
-        self.layout.addWidget(self.overview, 7, 0, 1, 2)
+        self.layout.addWidget(self.overview, 7, 0, 1, 3)
         self.setLayout(self.layout)
 
         gui_func.show_widget(widget=self.method_2, show=False)
         gui_func.show_widget(widget=self.method_3, show=False)
         gui_func.show_widget(widget=self.method_1, show=True)
+
+    def get_profile(self):
+        """
+        Open QFileDialog to select Wt profile
+        :return:
+        """
+        response = QFileDialog.getOpenFileName(parent=self,
+                                               caption='Select wind turbine profile',
+                                               filter='Data file (*.csv)',
+                                               directory=sys.path[1])
+        wt_profile = response[0]
+        self.profile.setText(wt_profile)
+
+        return wt_profile
 
     def simulation_method(self):
         index = self.method_combo.currentIndex()

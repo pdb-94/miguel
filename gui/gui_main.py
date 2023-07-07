@@ -70,7 +70,7 @@ class TabWidget(QWidget):
         enabled = [True, True, False, False, False, False, False, False, False, False]
         for count, tab in enumerate(self.tab_classes, start=0):
             self.tabs.addTab(tab(), self.tab_title[count])
-            self.tabs.widget(count).setEnabled(enabled[count])
+            # self.tabs.widget(count).setEnabled(enabled[count])
 
         # Set up Pushbutton
         self.delete_btn = QPushButton('Delete')
@@ -492,23 +492,24 @@ class TabWidget(QWidget):
             current tab
         :return: None
         """
-        annual_consumption = gui_func.convert_str_float(string=tab.consumption.text())
-        ref_profile_index = tab.ref_profile.currentIndex()
-        profiles = ['hospital_ghana', 'H0', 'G0', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'L0', 'L1', 'L2']
-        ref_profile = profiles[ref_profile_index]
-        load_profile_path = tab.load_profile.text()
-        load_profile_path = load_profile_path.replace('\\', '/')
-        if load_profile_path != "":
-            annual_consumption = None
-            ref_profile = None
+        # Get method
+        method = tab.method_combo.currentIndex()
+        # Set all parameters to None
+        annual_consumption = None
+        ref_profile = None
+        load_profile_path = None
+        # Retrieve parameters depending on method
+        if method == 0:
+            # Method 1 - Reference load profile
+            annual_consumption = gui_func.convert_str_float(string=tab.consumption.text())
+            ref_profile_index = tab.ref_profile.currentIndex()
+            profiles = ['hospital_ghana', 'H0', 'G0', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'L0', 'L1', 'L2']
+            ref_profile = profiles[ref_profile_index]
         else:
-            load_profile_path = None
-            if not annual_consumption:
-                pop_up = self.pop_up_dialog(title='',
-                                            message='Please enter valid parameters to add load profile to energy system.',
-                                            box_type='warning',
-                                            button=False)
-                return
+            # Method 2 - Individual load profile
+            load_profile_path = tab.load_profile.text()
+            load_profile_path = load_profile_path.replace('\\', '/')
+        # Add load profile to Environment
         try:
             if isinstance(self.env, Environment):
                 self.env.add_load(annual_consumption=annual_consumption,
@@ -530,6 +531,7 @@ class TabWidget(QWidget):
             current tab
         :return: None
         """
+        # Get method
         method = tab.method_combo.currentIndex()
         if method == 0:
             # Standard method

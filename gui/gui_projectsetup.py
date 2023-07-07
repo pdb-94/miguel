@@ -9,6 +9,7 @@ class ProjectSetup(QWidget):
     """
     Tab Welcome Screen
     """
+
     def __init__(self):
         super().__init__()
         self.setFont(QFont('Calibri', 12))
@@ -48,12 +49,57 @@ class ProjectSetup(QWidget):
         csv_format = ["comma separated values (seperator=',', decimal='.')",
                       "semicolon separated values (seperator=';', decimal=',')"]
         self.csv_format.addItems(csv_format)
+        self.upload_l = QLabel()
+        self.upload_l.setText('Upload existing configuration')
+        self.upload = QLineEdit()
+        # Export dir
+        self.output_l = QLabel()
+        self.output_l.setText('Select Export directory')
+        self.output = QLineEdit()
+        self.browse_btn = QPushButton('Browse')
+        self.import_btn = QPushButton('Import')
+
+        self.browse_btn.clicked.connect(self.get_export_dir)
+        self.import_btn.clicked.connect(self.import_configuration)
+
         # Set up Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.miguel_logo, 0, 0, 1, 2, Qt.AlignLeft)
         self.layout.addWidget(self.description, 1, 0, 1, 4)
-        self.layout.addWidget(self.th_logo, 2, 0, 1, 2, Qt.AlignLeft)
-        self.layout.addWidget(self.enershelf_logo, 2, 3, 1, 2, Qt.AlignLeft)
+        self.layout.addWidget(self.th_logo, 2, 0, 1, 2, Qt.AlignHCenter)
+        self.layout.addWidget(self.enershelf_logo, 2, 2, 1, 2, Qt.AlignHCenter)
         self.layout.addWidget(self.csv_format_l, 3, 0, Qt.AlignRight)
         self.layout.addWidget(self.csv_format, 3, 1)
+        self.layout.addWidget(self.output_l, 4, 0, Qt.AlignRight)
+        self.layout.addWidget(self.output, 4, 1)
+        self.layout.addWidget(self.browse_btn, 4, 2, Qt.AlignRight)
+        self.layout.addWidget(self.upload_l, 5, 0, Qt.AlignLeft)
+        self.layout.addWidget(self.upload, 5, 1)
+        self.layout.addWidget(self.import_btn, 5, 2)
         self.setLayout(self.layout)
+
+    def get_export_dir(self):
+        """
+        Get Export directory
+        :return:
+        """
+        response = QFileDialog.getExistingDirectory(parent=self,
+                                                    caption='Select load profile',
+                                                    directory=sys.path[1])
+
+        self.output.setText(response)
+
+    def import_configuration(self):
+        """
+        Get Export directory
+        :return:
+        """
+        response = QFileDialog.getOpenFileName(parent=self,
+                                               caption='Select wind turbine profile',
+                                               filter='Config file (*.ini)',
+                                               directory=sys.path[1])
+        config = response[0]
+        self.upload.setText(config)
+
+        return config
+
