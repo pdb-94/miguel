@@ -12,6 +12,9 @@ from components.storage import Storage
 from components.grid import Grid
 
 
+# TODO: Off grid: RE charged by diesel generator
+
+
 class Operator:
     """
     Class to control environment, dispatch dispatch and parameter optimization
@@ -53,21 +56,26 @@ class Operator:
             if self.env.blackout:
                 df['Blackout'] = self.env.df['Blackout']
         for pv in self.env.pv:
-            pv_col = pv.name + ' [W]'
+            pv_col = f'{pv.name} [W]'
             df[pv_col] = 0
-            df[pv.name + ' production [W]'] = pv.df['P [W]']
+            df[f'{pv.name} production [W]'] = pv.df['P [W]']
         for wt in self.env.wind_turbine:
-            wt_col = wt.name + ' [W]'
+            wt_col = f'{wt.name} [W]'
             df[wt_col] = 0
-            df[wt.name + ' production [W]'] = wt.df['P [W]']
+            df[f'{wt.name} production [W]'] = wt.df['P [W]']
         for es in self.env.storage:
-            es_col = es.name + ' [W]'
+            es_col = f'{es.name} [W]'
             df[es_col] = 0
+            df[f'{es.name}_capacity [Wh]'] = np.nan
+            # es_charge = f'{es.name} charge available'
+            # es_discharge = f'{es.name} discharge available'
+            # df[es_charge] = np.nan
+            # df[es_discharge] = np.nan
         if self.env.grid is not None:
-            grid_col = self.env.grid.name + ' [W]'
+            grid_col = f'{self.env.grid.name} [W]'
             df[grid_col] = 0
         for dg in self.env.diesel_generator:
-            dg_col = dg.name + ' [W]'
+            dg_col = f'{dg.name} [W]'
             df[dg_col] = 0
 
         return df
@@ -137,7 +145,8 @@ class Operator:
 
         return power_sink_df
 
-    def stable_grid(self, clock: dt.datetime):
+    def stable_grid(self,
+                    clock: dt.datetime):
         """
         Dispatch strategy from stable grid connection
             Stable grid connection:
@@ -158,7 +167,8 @@ class Operator:
         # Priority 4: Cover load from grid
         self.grid_profile(clock=clock)
 
-    def unstable_grid(self, clock: dt.datetime):
+    def unstable_grid(self,
+                      clock: dt.datetime):
         """
         Dispatch strategy for unstable grid connection
             No Blackout:
@@ -185,7 +195,8 @@ class Operator:
                 self.dg_profile(clock=clock,
                                 dg=dg)
 
-    def off_grid(self, clock: dt.datetime):
+    def off_grid(self,
+                 clock: dt.datetime):
         """
         Dispatch strategy for Off-grid systems
             1) RE self consumption
@@ -199,18 +210,70 @@ class Operator:
         :return: None
         """
         env = self.env
+        p_res = self.df.at[clock, 'P_Res [W]']
+        # Check Energy storage parameters
+        storage_power = {}
+        storage_capacity = {}
         for es in env.storage:
-            if self.df.at[clock, 'P_Res [W]'] > 0:
+            storage_power[es.name] = es.p_n
+            storage_capacity[es.name] = (es.df.at[clock, 'Q [Wh]'] - es.soc_min * es.c) * env.i_step / 60
+
+            # Discharge available
+            # if storage_capacity[es.name] > es.soc_min * es.c:
+            #     self.df.at[clock, f'{es.name} discharge available'] = True
+            # else:
+            #     self.df.at[clock, f'{es.name} discharge available'] = False
+            # # Charge available
+            # if storage_capacity[es.name] < es.soc_max * es.c:
+            #     self.df.at[clock, f'{es.name} charge available'] = True
+            # else:
+            #     self.df.at[clock, f'{es.name} charge available'] = False
+        power_sum = sum(storage_power.values())
+        capacity_sum = sum(storage_capacity.values())
+        if p_res == 0:
+            return
+        if (p_res < power_sum) and (p_res < capacity_sum):
+            # Discharge storage
+            for es in env.storage:
                 power = self.df.at[clock, 'P_Res [W]']
                 discharge_power = es.discharge(clock=clock,
-                                               power=power)
+                                               power=power),
                 self.df.at[clock, f'{es.name} [W]'] += discharge_power
                 self.df.at[clock, 'P_Res [W]'] += discharge_power
-        for dg in env.diesel_generator:
-            self.dg_profile(clock=clock,
-                            dg=dg)
+        else:
+            for dg in env.diesel_generator:
+                # Run Diesel Generator to cover residual load
+                generator_power = self.dg_profile(clock=clock,
+                                                  dg=dg)
+                if generator_power > p_res:
+                    power = generator_power - p_res
+                    for es in env.storage:
+                        charge_power = es.charge(clock=clock,
+                                                 power=power)
+                        self.df.at[clock, f'{es.name} [W]'] += charge_power
+                        power -= charge_power
 
-    def feed_in(self, component: PV or WindTurbine):
+        # for es in env.storage:
+        #     if self.df.at[clock, 'P_Res [W]'] > 0:
+        #         power = self.df.at[clock, 'P_Res [W]']
+        #         discharge_power = es.discharge(clock=clock,
+        #                                        power=power)
+        #         self.df.at[clock, f'{es.name} [W]'] += discharge_power
+        #         self.df.at[clock, 'P_Res [W]'] += discharge_power
+        # for dg in env.diesel_generator:
+        #     generator_power = self.dg_profile(clock=clock,
+        #                                       dg=dg)
+        #     if generator_power > p_res:
+        #         power = generator_power - p_res
+        #         for es in env.storage:
+        #             charge_power = es.charge(clock=clock,
+        #                                      power=power)
+        #             print(clock, charge_power)
+        #             self.df.at[clock, f'{es.name} [W]'] += charge_power
+        #             power -= charge_power
+
+    def feed_in(self,
+                component: PV or WindTurbine):
         """
         Calculate RE feed-in power and revenues
         :param component: PV/WindTurbine
@@ -229,7 +292,9 @@ class Operator:
                     = self.df[
                           f'{component.name} Feed in [W]'] * self.env.i_step / 60 / 1000 * self.env.wt_feed_in_tariff
 
-    def re_self_supply(self, clock: dt.datetime, component: PV or WindTurbine):
+    def re_self_supply(self,
+                       clock: dt.datetime,
+                       component: PV or WindTurbine):
         """
         Calculate re self-consumption
         :param clock: dt.datetime
@@ -251,7 +316,10 @@ class Operator:
         if df.at[clock, 'P_Res [W]'] < 0:
             df.at[clock, 'P_Res [W]'] = 0
 
-    def re_charge(self, clock: dt.datetime, es: Storage, component: PV or WindTurbine):
+    def re_charge(self,
+                  clock: dt.datetime,
+                  es: Storage,
+                  component: PV or WindTurbine):
         """
         Charge energy storage from renewable pv, wind turbine
         :param clock: dt.datetime
@@ -277,7 +345,8 @@ class Operator:
         self.df.at[clock, f'{component.name}_charge [W]'] = charge_power
         self.df.at[clock, f'{component.name} remain [W]'] -= charge_power
 
-    def grid_profile(self, clock: dt.datetime):
+    def grid_profile(self,
+                     clock: dt.datetime):
         """
         Cover load from power grid
         :param clock: dt.datetime
@@ -289,7 +358,9 @@ class Operator:
         df.at[clock, f'{grid} [W]'] = self.df.at[clock, 'P_Res [W]']
         df.at[clock, 'P_Res [W]'] = 0
 
-    def dg_profile(self, clock: dt.datetime, dg: DieselGenerator):
+    def dg_profile(self,
+                   clock: dt.datetime,
+                   dg: DieselGenerator):
         """
         Cover load from Diesel Generator
 
@@ -302,7 +373,13 @@ class Operator:
         power = self.df.at[clock, 'P_Res [W]']
         self.df.at[clock, f'{dg.name} [W]'] = dg.run(clock=clock,
                                                      power=power)
-        self.df.at[clock, 'P_Res [W]'] -= self.df.at[clock, f'{dg.name} [W]']
+        if power - dg.p_min > 0:
+            self.df.at[clock, 'P_Res [W]'] -= self.df.at[clock, f'{dg.name} [W]']
+        else:
+            self.df.at[clock, 'P_Res [W]'] = 0
+        generator_power = self.df.at[clock, f'{dg.name} [W]']
+
+        return generator_power
 
     def export_data(self):
         """
