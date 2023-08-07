@@ -12,6 +12,7 @@ from data.data import DB
 from components.pv import PV
 from components.windturbine import WindTurbine
 from components.dieselgenerator import DieselGenerator
+from miguel_test.dieselgenerator import DieselGenerator as test_generator
 from components.grid import Grid
 from components.storage import Storage
 from components.load import Load
@@ -23,6 +24,7 @@ class Environment:
     Negative power values are power consumption (load, storage)
     Positive power values are power production (PV, DieselGenerator, WindTurbine, Grid, Storage)
     """
+
     def __init__(self,
                  name: str = None,
                  time: dict = None,
@@ -33,6 +35,7 @@ class Environment:
                  blackout: bool = False,
                  blackout_data: str = None,
                  feed_in: bool = False,
+                 diesel_generator_model: str = 'conventional',
                  weather_data: str = None,
                  csv_sep: str = ',',
                  csv_decimal: str = '.'):
@@ -163,6 +166,8 @@ class Environment:
             self.blackout = None
             self.blackout_data = None
         self.feed_in = feed_in
+        # Diesel Generator
+        self.diesel_generator_model = diesel_generator_model
 
         # DataBase
         self.database = DB()
@@ -221,8 +226,6 @@ class Environment:
         elevation = result.json()['results'][0]['elevation']
 
         return elevation
-
-
 
     def find_season(self):
         if self.hemisphere == 'south':
@@ -448,8 +451,7 @@ class Environment:
 
     def add_diesel_generator(self,
                              p_n: float = None,
-                             fuel_consumption: float = None,
-                             fuel_ticks: dict = None,
+                             model: bool = False,
                              c_invest: float = None,
                              c_op_main: float = None,
                              c_var_n: float = 0):
@@ -461,8 +463,7 @@ class Environment:
         self.diesel_generator.append(DieselGenerator(env=self,
                                                      name=name,
                                                      p_n=p_n,
-                                                     fuel_consumption=fuel_consumption,
-                                                     fuel_ticks=fuel_ticks,
+                                                     model=model,
                                                      c_invest=c_invest,
                                                      c_op_main=c_op_main,
                                                      c_var_n=c_var_n))
@@ -562,4 +563,3 @@ class Environment:
 
         with open(f'{path}system_config.ini', 'w') as file:
             self.config.write(file)
-
