@@ -134,6 +134,7 @@ class Storage:
             self.df.at[clock, 'P [W]'] = power
             self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]'] + q_charge
             self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
+
             return power
         else:
             # Calculate remaining energy to charge storage
@@ -143,12 +144,21 @@ class Storage:
                 self.df.at[clock, 'P [W]'] = 0
                 self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=t_step), 'Q [Wh]']
                 self.df.at[clock, 'SOC'] = self.soc_max
+
                 return 0
             else:
                 self.df.at[clock, 'P [W]'] = power
-                self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] + q_remain
+                self.df.at[clock, 'Q [Wh]'] = self.df.at[
+                                                  clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] + q_remain
                 self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
+
                 return power
+
+    def constant_values(self, clock):
+        if clock != self.env.t_start:
+            self.df.at[clock, 'P [W]'] = self.df.at[clock - self.env.t_step, 'P [W]']
+            self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - self.env.t_step, 'Q [Wh]']
+            self.df.at[clock, 'SOC'] = self.df.at[clock - self.env.t_step, 'SOC']
 
     def discharge(self, clock: dt.datetime, power: float):
         """
