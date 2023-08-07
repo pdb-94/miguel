@@ -337,9 +337,9 @@ For a full list of all dependencies see requirements.txt. This file will ask the
 
 [6] Vartiainen, E, Masson, G, Breyer, C, Moser, D, Román Medina, E. Impact of weighted average cost of capital, capital expenditure, and other parameters on future utility-scale PV levelised cost of electricity. Prog Photovolt Res Appl. 2020; 28: 439– 453. [https://doi.org/10.1002/pip.3189](https://doi.org/10.1002/pip.3189)
 
-[7] Bjarne Steffen, Martin Beuse, Paul Tautorat, Tobias S. Schmidt, Experience Curves for Operations and Maintenance Costs of Renewable Energy Technologies, Joule, Volume 4, Issue 2, 2020, Pages 359-375, ISSN 2542-4351, [https://doi.org/10.1016/j.joule.2019.11.012]([https://www.sciencedirect.com/science/article/pii/S2542435119305793](https://doi.org/10.1016/j.joule.2019.11.012))
+[7] Bjarne Steffen, Martin Beuse, Paul Tautorat, Tobias S. Schmidt, Experience Curves for Operations and Maintenance Costs of Renewable Energy Technologies, Joule, Volume 4, Issue 2, 2020, Pages 359-375, ISSN 2542-4351, [https://www.sciencedirect.com/science/article/pii/S2542435119305793](https://doi.org/10.1016/j.joule.2019.11.012)
 
-[8] Lucas Sens, Ulf Neuling, Martin Kaltschmitt, Capital expenditure and levelized cost of electricity of photovoltaic plants and wind turbines – Development by 2050, Renewable Energy, Volume 185, 2022, Pages 525-537, ISSN 0960-1481, [https://doi.org/10.1016/j.renene.2021.12.042]([https://www.sciencedirect.com/science/article/pii/S0960148121017626](https://doi.org/10.1016/j.renene.2021.12.042)
+[8] Lucas Sens, Ulf Neuling, Martin Kaltschmitt, Capital expenditure and levelized cost of electricity of photovoltaic plants and wind turbines – Development by 2050, Renewable Energy, Volume 185, 2022, Pages 525-537, ISSN 0960-1481, [https://www.sciencedirect.com/science/article/pii/S0960148121017626](https://doi.org/10.1016/j.renene.2021.12.042)
 
 [9] Tyler Stehly, Philipp Beiter, and Patrick Duffy, National Renewable Energy Laboratory, 2019 Cost of Wind Energy Review, 2019, [https://www.nrel.gov/docs/fy21osti/78471.pdf9](https://www.nrel.gov/docs/fy21osti/78471.pdf)
 
@@ -349,7 +349,7 @@ For a full list of all dependencies see requirements.txt. This file will ask the
 
 [12] National Renewable Energy Laboratory, Utility-Scale Battery Storage, 2023, [https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage](https://atb.nrel.gov/electricity/2022/utility-scale_battery_storage)
 
-[13] Fraunhofer ISE, Photovoltaics and Climate Change, 2020, [https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf(https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf)
+[13] Fraunhofer ISE, Photovoltaics and Climate Change, 2020, [https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf](https://www.ise.fraunhofer.de/content/dam/ise/de/documents/publications/studies/ISE-Sustainable-PV-Manufacturing-in-Europe.pdf)
 
 
 [14] Ozoemena, M., Cheung, W.M. & Hasan, R. Comparative LCA of technology improvement opportunities for a 1.5-MW wind turbine in the context of an onshore wind farm. Clean Techn Environ Policy 20, 173–190 (2018). [https://doi.org/10.1007/s10098-017-1466-2](https://doi.org/10.1007/s10098-017-1466-2)
