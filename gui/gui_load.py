@@ -1,21 +1,14 @@
-import os
 import sys
-import folium
-import io
-import datetime as dt
 import pandas as pd
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.QtWebEngineWidgets import *
 import matplotlib
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
 
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
-import gui_func as gui_func
-from gui_plot import Plot
+import gui.gui_func as gui_func
+from gui.gui_plot import Plot
 
 
 class LoadProfile(QWidget):
@@ -77,7 +70,7 @@ class LoadProfile(QWidget):
         # Set up Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.description, 0, 0, 1, 3, Qt.AlignVCenter)
-        self.layout.addWidget(self.method_l, 1, 0,Qt.AlignRight | Qt.AlignVCenter)
+        self.layout.addWidget(self.method_l, 1, 0, Qt.AlignRight | Qt.AlignVCenter)
         self.layout.addWidget(self.method_combo, 1, 1, 1, 2, Qt.AlignVCenter)
         self.layout.addWidget(self.consumption_l, 2, 0, Qt.AlignRight | Qt.AlignVCenter)
         self.layout.addWidget(self.consumption, 2, 1, Qt.AlignVCenter)
@@ -100,7 +93,6 @@ class LoadProfile(QWidget):
         else:
             gui_func.show_widget(widget=self.method_2, show=True)
             gui_func.show_widget(widget=self.method_1, show=False)
-
 
     def get_load_profile(self):
         """

@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import *
-import gui_func as gui_func
-from gui_table import Table
+import gui.gui_func as gui_func
+from gui.gui_table import Table
 
 
 class Photovoltaic(QWidget):

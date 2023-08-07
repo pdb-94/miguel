@@ -1,5 +1,5 @@
 import sys
-import gui_func as gui_func
+import gui.gui_func as gui_func
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

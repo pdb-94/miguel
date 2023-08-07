@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from gui_table import Table
+from gui.gui_table import Table
 from components.storage import Storage
 
 

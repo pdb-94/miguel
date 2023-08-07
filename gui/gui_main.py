@@ -13,7 +13,7 @@ from report.report import Report
 from components.pv import PV
 from components.windturbine import WindTurbine
 from components.dieselgenerator import DieselGenerator
-import gui_func as gui_func
+import gui.gui_func as gui_func
 from gui.gui_projectsetup import ProjectSetup
 from gui.gui_environment import EnergySystem
 from gui.gui_weatherdata import WeatherData
