@@ -13,3 +13,5 @@ report/St. Dominics Hospital.pdf
 report/MiGUEL Project.pdf
 /test/
 .idea
+*.pyc
+__pycache__/
