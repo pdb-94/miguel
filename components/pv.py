@@ -19,8 +19,8 @@ class PV:
                  p_n: float = None,
                  pv_profile: pd.Series = None,
                  pv_data: dict = None,
-                 c_invest_n: float = 496,
-                 c_op_main_n: float = 7.55,
+                 c_invest_n: float = 667.68,
+                 c_op_main_n: float = 6.06,
                  c_var_n: float = 0,
                  co2_init: float = 460,
                  c_invest: float = None,
@@ -61,14 +61,32 @@ class PV:
         # Weather data
         self.weather_data = self.env.weather_data[0]
         self.weather_data['precipitable_water'] = 0.1
-        # Libraries
-        self.module_lib = self.retrieve_pvlib_library(component='module')
-        self.inverter_lib = self.retrieve_pvlib_library(component='inverter')
+        # Libraries (use project-relative data files so this works on other machines)
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        module_csv = os.path.join(base_dir, 'data', 'CEC Modules.csv')
+        inverter_csv = os.path.join(base_dir, 'data', 'sam-library-cec-inverters-2019-03-05.csv')
+
+        self.module_lib = pd.read_csv(module_csv, sep=',', skiprows=[1, 2])
+        self.inverter_lib = pd.read_csv(inverter_csv, sep=',', skiprows=[1, 2])
+
+
 
         if pv_profile is not None:
             # Create DataFrame from existing pv profile
-            self.df['P [W]'] = pv_profile
+            print("DEBUG: pv_profile received in PV class")
+            print("  → Length:", len(pv_profile))
+            print("  → Missing values:", pv_profile.isna().sum())
+            print("  → Max:", pv_profile.max())
+
+            self.df = pd.DataFrame({'P [W]': pv_profile})
+
+            #self.df['P [W]'] = pv_profile
             self.p_n = p_n
+            ####
+            print("DEBUG AFTER SETTING P [W] in self.df")
+            print("  → Sum:", self.df['P [W]'].sum())
+            print("  → Max:", self.df['P [W]'].max())
+            print("DEBUG: PV p_n =", self.p_n)
         elif p_n is not None:
             self.p_n = p_n
             self.longitude = self.env.longitude
@@ -299,82 +317,63 @@ class PV:
 
             return pv_yield
 
-    def pick_pv_system(self,
-                       min_module_power: float,
-                       max_module_power: float,
-                       inverter_power_range):
+    def pick_pv_system(self, min_module_power: float, max_module_power: float, inverter_power_range: float):
         """
         Pick PV system based on nominal power
         :param min_module_power: float
+            Minimum module power in Watts
         :param max_module_power: float
+            Maximum module power in Watts
         :param inverter_power_range: float
+            Inverter power range tolerance in Watts
         :return: list
-            module, inverter, modules_per_string, strings_per_inverter
+            Selected module, module name, inverter, inverter name, modules per string, strings per inverter
         """
-        modules = []
-        # Choose modules depending on module power
-        for module in self.module_lib.columns:
-            if max_module_power > self.module_lib[module].I_mp_ref * self.module_lib[module].V_mp_ref > min_module_power:
-                modules.append(module)
-        # Pick random module from list
-        module_name = modules[random.randint(0, (len(modules) - 1))]
-        module = self.module_lib[module_name]
+        # Filter modules based on power range
+        modules = self.module_lib.loc[
+            (self.module_lib['I_mp_ref'] * self.module_lib['V_mp_ref'] >= min_module_power) &
+            (self.module_lib['I_mp_ref'] * self.module_lib['V_mp_ref'] <= max_module_power)
+            ]
 
-        # Calculate amount of modules needed to reach power
-        n_modules = (self.p_n / (module.I_mp_ref * module.V_mp_ref))
+        if modules.empty:
+            raise ValueError("No PV modules found within the specified power range.")
 
-        # Calculate modules per string and strings per inverter
-        if round(n_modules, 0) % 3 == 0:
-            modules_per_string = round(n_modules / 3, 0)
+        # Pick a random module
+        selected_module = modules.sample()
+        module_name = selected_module.index[0]
+        module = selected_module.iloc[0]
+
+        # Calculate required number of modules
+        module_power = module['I_mp_ref'] * module['V_mp_ref']
+        n_modules = self.p_n / module_power
+
+        # Determine modules per string and strings per inverter
+        if round(n_modules) % 3 == 0:
+            modules_per_string = round(n_modules / 3)
             strings_per_inverter = 3
-
-        elif round(n_modules, 0) % 4 == 0:
-            modules_per_string = round(n_modules / 4, 0)
+        elif round(n_modules) % 4 == 0:
+            modules_per_string = round(n_modules / 4)
             strings_per_inverter = 4
-
         else:
-            modules_per_string = round(n_modules / 2, 0)
+            modules_per_string = round(n_modules / 2)
             strings_per_inverter = 2
 
-        inverters = []
+        # Filter inverters based on total module power
+        total_power = module_power * modules_per_string * strings_per_inverter
+        inverters = self.inverter_lib.loc[
+            (self.inverter_lib['Paco'] >= total_power) &
+            (self.inverter_lib['Paco'] <= total_power + inverter_power_range)
+            ]
 
-        while len(inverters) == 0:
-            for inverter in self.inverter_lib.columns:
-                if (self.inverter_lib[inverter].Paco
-                    > (module.I_mp_ref * module.V_mp_ref *
-                       modules_per_string * strings_per_inverter)) \
-                        and (self.inverter_lib[inverter].Paco
-                             < (module.I_mp_ref * module.V_mp_ref *
-                                modules_per_string * strings_per_inverter) + inverter_power_range):
-                    inverters.append(inverter)
-            # Increase power range of inverter if no inverter was found
-            inverter_power_range += 100
+        if inverters.empty:
+            raise ValueError("No suitable inverter found for the selected modules. Consider adjusting the power range.")
 
-        inverter_name = inverters[random.randint(0, (len(inverters) - 1))]
-        inverter = self.inverter_lib[inverter_name]
+        # Pick a random inverter
+        selected_inverter = inverters.sample()
+        inverter_name = selected_inverter.index[0]
+        inverter = selected_inverter.iloc[0]
 
         return module, module_name, inverter, inverter_name, modules_per_string, strings_per_inverter
-
-    def retrieve_pvlib_library(self, component):
-        """
-        Retrieve and transpose pvlib database from SQLite
-        :param component: str
-            module or inverter
-        :return: pd.DataFrame
-            CEC parameters
-        """
-        conn = self.env.database.connect
-        if component == 'module':
-            table_name = 'pvlib_cec_module'
-        else:
-            table_name = 'pvlib_cec_inverter'
-        df = pd.read_sql_query(f'SELECT * From {table_name}', conn)
-        df = df.transpose()
-        col = df.loc['index']
-        df = df.drop(index='index')
-        df.columns = col
-
-        return df
 
     def create_config(self):
         """

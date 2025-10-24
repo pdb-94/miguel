@@ -5,10 +5,9 @@ from global_land_mask import globe
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from tzfpy import get_tz
 from environment import Environment
 from operation import Operator
-from evaluation import Evaluation
+from Evaluation.evaluation import Evaluation
 from report.report import Report
 from components.pv import PV
 from components.windturbine import WindTurbine

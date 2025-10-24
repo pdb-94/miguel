@@ -1,2 +1,0 @@
-The chapter system configuration contains detailed information about the selected system components. This includes parameters such as nominal power/capacity, specific investment and operation andmaintenance cost (chapter 4.1). Furthermore the renewable energy energy supply is displayed (chapter 4.2).
- 
