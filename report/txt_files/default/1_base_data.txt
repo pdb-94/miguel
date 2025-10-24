@@ -1,2 +1,0 @@
-The following parameters are provided through the user. If no values were entered default values will be used. The chapter functions as an overview of the base parameters. The location is displayed on the map below.
-

@@ -1,2 +1,0 @@
-For the ecological analysis, a simplified CO2 life cycle analysis (LCA) is performed. The CO2 LCA is a tool to evaluate the carbon footprint of the energy system. Boundaries for the analysis include CO2 emissions during manufacture and over the entire life cycle. By including the emissions during the production of the system components, a better comparability is ensured. The table shows CO2-emissions during manufacture and installation, annual CO2-emissions and lifetime CO2-emissions. Disposal is not included in this case.
-

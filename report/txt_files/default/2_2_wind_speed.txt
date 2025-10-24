@@ -1,2 +1,0 @@
-The plot shows the wind speed at 10m height in hourly-resolution. The table shows the monthly average wind speed and direction. 
-

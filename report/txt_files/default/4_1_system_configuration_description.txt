@@ -1,5 +1,0 @@
-
-P : 	       Nominal power                         i_c:      Specific investment cost
-I_c: 	      Investment cost                       om_c:  Specific operation maintenance cost
-OM_c: 	 Operation maintenance cost    W: 		    Capacity
-

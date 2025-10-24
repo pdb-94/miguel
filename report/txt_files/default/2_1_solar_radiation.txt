@@ -1,2 +1,0 @@
-The plot shows the global horizontal irradiation (GHI), direct normal irradiation (DNI) and the direct horizontal irradiation (DHI) at the selected location in an hourly resolution based on the TMY. The table shows the average monthly GHI, DNI and DHI values.
-

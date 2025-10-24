@@ -4,25 +4,25 @@ import datetime as dt
 import pandas as pd
 import pvlib
 import requests
-import urllib
 from configparser import ConfigParser
 from geopy.geocoders import Nominatim
 # MiGUEL Modules
-from data.data import DB
 from components.pv import PV
 from components.windturbine import WindTurbine
-from components.dieselgenerator import DieselGenerator
-from miguel_test.dieselgenerator import DieselGenerator as test_generator
 from components.grid import Grid
 from components.storage import Storage
 from components.load import Load
+from components.electrolyser import Electrolyser
+from components.H2_Storage import H2Storage
+from components.fuel_cell import FuelCell
+
 
 
 class Environment:
     """
     Environment class containing all system components
-    Negative power values are power consumption (load, storage)
-    Positive power values are power production (PV, DieselGenerator, WindTurbine, Grid, Storage)
+    Negative power values are power consumption (load, storage, Electrolyser )
+    Positive power values are power production (PV,FC,Hydrogen-Storage, WindTurbine, Grid, Storage)
     """
 
     def __init__(self,
@@ -35,7 +35,6 @@ class Environment:
                  blackout: bool = False,
                  blackout_data: str = None,
                  feed_in: bool = False,
-                 diesel_generator_model: str = 'conventional',
                  weather_data: str = None,
                  csv_sep: str = ',',
                  csv_decimal: str = '.'):
@@ -58,13 +57,11 @@ class Environment:
              lifetime: int,
              electricity_price: float [US$/kWh]
              co2_price: float [US$/t]
-             diesel_price: float [US$/l]
              pv_feed_in_tariff: float [US$/kWh]
              wt_feed_in_tariff: float [US$/kWh]
              currency: str}
         :param ecology: dict
-            Parameter for ecological calculations
-            {co2_diesel: float,
+            Parameter for ecological calculations,
              co2_grid: float}
         :param grid_connection: bool
             System grid connected
@@ -78,14 +75,17 @@ class Environment:
             File path weather data
         """
         # Component Container
+        self.fuel_cell = []
+        self.H2Storage = []
+        self.electrolyser = []
         self.grid = None
         self.load = None
         self.pv = []
-        self.diesel_generator = []
         self.wind_turbine = []
         self.re_supply = []
         self.supply_components = []
         self.storage = []
+        self.h2_components = []  # **NEU: Separate Liste für Wasserstoffkomponenten**
         # Parameters
         self.name = name
         self.csv_sep = csv_sep
@@ -117,25 +117,21 @@ class Environment:
             self.pv_feed_in_tariff = 0.00  # US$/kWh
             self.wt_feed_in_tariff = 0.00  # US$/kWh
             self.electricity_price = 0.0  # US$/kWh
-            self.diesel_price = 0  # US$/l
             self.avg_co2_price = 0  # US$//t
         else:
             self.currency = economy.get('currency')
             self.d_rate = economy.get('d_rate')
             self.lifetime = economy.get('lifetime')  # a
             self.electricity_price = economy.get('electricity_price')  # US$//kWh
-            self.diesel_price = economy.get('diesel_price')  # US$/l
             self.avg_co2_price = economy.get('co2_price')  # US$/t
             self.pv_feed_in_tariff = economy.get('pv_feed_in_tariff')  # US$//kWh
             self.wt_feed_in_tariff = economy.get('wt_feed_in_tariff')  # US$//kWh
         if ecology is None:
-            self.co2_diesel = 0.2665  # kg CO2/kWh
             self.co2_grid = 0  # kg CO2/kWh
         else:
-            self.co2_diesel = ecology.get('co2_diesel')
             self.co2_grid = ecology.get('co2_grid')
         # Environment DataFrame
-        columns = ['P_Res [W]', 'PV total power [W]', 'WT total power [W]']
+        columns = ['P_Res [W]', 'WT total power [W]']
         self.df = pd.DataFrame(columns=columns, index=self.time)
         self.df['PV total power [W]'] = 0
         self.df['WT total power [W]'] = 0
@@ -166,11 +162,10 @@ class Environment:
             self.blackout = None
             self.blackout_data = None
         self.feed_in = feed_in
-        # Diesel Generator
-        self.diesel_generator_model = diesel_generator_model
+
 
         # DataBase
-        self.database = DB()
+       # self.database = DB()
 
         self.supply_data = pd.DataFrame(columns=['Component',
                                                  'Name',
@@ -196,7 +191,7 @@ class Environment:
         Find address based on coordinates
         :return: list
         """
-        geolocator = Nominatim(user_agent='geoapiExercises')
+        geolocator = Nominatim(user_agent='miguel_application_v1.0')
         location = geolocator.reverse(f'{self.latitude},{self.longitude}')
         if location is None:
             sys.exit('Coordinates not on land.')
@@ -274,6 +269,11 @@ class Environment:
                                                                               url='https://re.jrc.ec.europa.eu/api/')
         # Set data.index to current year
         current_year = dt.datetime.today().year
+        # Überprüfen, ob das aktuelle Jahr ein Schaltjahr ist
+
+        if current_year % 4 == 0 and (current_year % 100 != 0 or current_year % 400 == 0):
+            #print(f"{current_year} is a leap year. Using {current_year - 1} as the base year.")
+            current_year -= 1  # Schaltjahr: Verwende das vorherige Jahr
         data.index = pd.date_range(start=dt.datetime(
             year=current_year,
             month=1,
@@ -310,7 +310,7 @@ class Environment:
                                hour=23,
                                minute=59)
         wt_hourly_data.index = pd.date_range(start=start_time,
-                                             end=end_time,
+                                            periods=len(wt_hourly_data),
                                              freq='1h')
         wt_data = wt_hourly_data
         # Interpolate values
@@ -395,8 +395,10 @@ class Environment:
                               name=name,
                               pv_profile=pv_profile,
                               c_invest=c_invest,
+                              p_n=p_n,
                               c_op_main=c_op_main,
                               c_var_n=c_var_n))
+
         elif p_n is not None:
             self.pv.append(PV(env=self,
                               name=name,
@@ -415,9 +417,13 @@ class Environment:
         else:
             pass
         self.re_supply.append(self.pv[-1])
+        pv_series = self.pv[-1].df["P [W]"].reindex(self.df.index, fill_value=0)
+        self.df[f"{name}: P [W]"] = pv_series
+        self.df["PV total power [W]"] += pv_series
+
         self.supply_components.append(self.pv[-1])
-        self.df[f'{name}: P [W]'] = self.pv[-1].df['P [W]']
-        self.df['PV total power [W]'] += self.df[f'{name}: P [W]']
+        #self.df[f'{name}: P [W]'] = self.pv[-1].df['P [W]']
+        #self.df['PV total power [W]'] += self.df[f'{name}: P [W]']
         self.add_component_data(component=self.pv[-1],
                                 supply=True)
 
@@ -449,28 +455,7 @@ class Environment:
         self.df['WT total power [W]'] += self.df[f'{name}: P [W]']
         # self.add_component_data(component=self.wind_turbine[-1], supply=True)
 
-    def add_diesel_generator(self,
-                             p_n: float = None,
-                             model: bool = False,
-                             c_invest: float = None,
-                             c_op_main: float = None,
-                             c_var_n: float = 0):
-        """
-        Add Diesel Generator to environment
-        :return: None
-        """
-        name = f'DG_{len(self.diesel_generator) + 1}'
-        self.diesel_generator.append(DieselGenerator(env=self,
-                                                     name=name,
-                                                     p_n=p_n,
-                                                     model=model,
-                                                     c_invest=c_invest,
-                                                     c_op_main=c_op_main,
-                                                     c_var_n=c_var_n))
-        self.df[f'{name}: P [W]'] = self.diesel_generator[-1].df['P [W]']
-        self.supply_components.append(self.diesel_generator[-1])
-        self.add_component_data(component=self.diesel_generator[-1],
-                                supply=True)
+
 
     def add_storage(self,
                     p_n: float = None,
@@ -516,9 +501,9 @@ class Environment:
             self.supply_data = self.supply_data._append(component.technical_data,
                                                         ignore_index=True)
         else:
-            self.storage_data = self.storage_data._append(component.technical_data,
+          self.storage_data = self.storage_data._append(component.technical_data,
                                                           ignore_index=True)
-
+            
     def calc_energy_consumption_parameters(self):
         """
         Calculate total energy consumption and peak load
@@ -529,6 +514,7 @@ class Environment:
         peak_load = self.df['P_Res [W]'].max()
 
         return energy_consumption, peak_load
+
 
     def create_config(self):
         """
@@ -551,11 +537,9 @@ class Environment:
                                   'lifetime': str(self.lifetime),
                                   'd_rate': str(self.d_rate),
                                   'electricity_price': str(self.electricity_price),
-                                  'diesel_price': str(self.diesel_price),
                                   'wt_feed_in_tariff': str(self.wt_feed_in_tariff),
                                   'pv_feed_in_tariff': str(self.pv_feed_in_tariff),
-                                  'co2_grid': str(self.co2_grid),
-                                  'co2_diesel': str(self.co2_diesel)}
+                                  'co2_grid': str(self.co2_grid)}
 
         path = f'{sys.path[1]}/export/config/'
         if not os.path.exists(path):
@@ -563,3 +547,140 @@ class Environment:
 
         with open(f'{path}system_config.ini', 'w') as file:
             self.config.write(file)
+
+    def add_electrolyser(self,
+                         p_n : float = None,
+                         c_invest_n: float = None,
+                         c_invest: float = None,
+                         c_op_main_n: float= None,
+                         c_op_main: float= None,
+                         lifetime: float = None):
+        """
+         Add an Electrolyser to the environment.
+
+    :param p_n: float
+        Nominal power of the electrolyser [W]
+    :param c_invest_n: float
+        Specific investment cost [US$/kW]
+    :param c_invest: float
+        Total investment cost [US$]
+    :param c_op_main_n: float
+        Specific operation & maintenance cost [US$/kW]
+    :param c_op_main: float
+        Total operation & maintenance cost [US$/a]
+    :param lifetime: float
+        Expected lifetime of the electrolyser [years]
+    :return: None
+
+
+        """
+        name = f'Electrolyser_{len(self.electrolyser) + 1}'
+        electrolyser = Electrolyser(self,
+                                    name=name,
+                                    p_n=p_n,
+                                    c_invest_n=c_invest_n,
+                                    c_invest=c_invest,
+                                    c_op_main_n=c_op_main_n,
+                                    c_op_main=c_op_main,
+                                    life_time=lifetime)
+
+        self.electrolyser.append(electrolyser)
+        self.h2_components.append(electrolyser)
+        self.df[f'{name}: P [W]'] = electrolyser.df_electrolyser['P[W]']
+
+    def add_H2_Storage(self,
+                       capacity: float,
+                       initial_level: float = None,
+                       name= None,
+                       c_invest_n: float = None,
+                       c_invest: float = None,
+                       c_op_main_n: float = None,
+                       c_op_main: float = None,
+                       lifetime: float =20
+                       ):
+        """
+
+        :param capacity: float
+        :param initial_level:
+        :param name:
+        :param c_invest_n:
+        :param c_invest:
+        :param c_op_main_n:
+        :param c_op_main:
+        :param lifetime:
+        :return:
+        """
+        if name is None:
+         name = f'H2_Storage {len(self.H2Storage) + 1}'
+
+        # **Erstelle das H2Storage-Objekt mit den richtigen Variablen**
+        self.H2Storage.append(H2Storage(env=self,
+                                        capacity=capacity,  # ✅ Variable `capacity_H2` an `capacity` übergeben
+                                        initial_level=initial_level,
+                                        name=name,
+                                        c_invest_n=c_invest_n,
+                                        c_invest=c_invest,
+                                        c_op_main_n=c_op_main_n,
+                                        c_op_main=c_op_main,
+                                        lifetime=lifetime
+                                        ))
+
+
+    def add_fuel_cell(self,
+                     max_power: float = None,
+                      c_invest_n: float = None,
+                      c_invest: float = None,
+                      c_op_main_n: float = None,
+                      c_op_main: float = None,
+                      lifetime:float = 10 #years
+                     ) :
+        """
+        :param max_power:
+        :param c_invest:
+        :param c_op_main:
+        :return:
+        """
+        name = f'FuelCell_{len(self.fuel_cell) + 1}'
+        fuel_cell = FuelCell(env=self,
+                             max_power=max_power,
+                             c_invest_n=c_invest_n,
+                             c_invest=c_invest,
+                             c_op_main_n=c_op_main_n,
+                             c_op_main=c_op_main,
+                             lifetime= lifetime
+                             )
+
+        self.fuel_cell.append(fuel_cell)
+        self.h2_components.append(fuel_cell)
+        self.df[f'{name}: P [W]'] = fuel_cell.df_fc['Power Output [W]']
+        self.df[f'{name}: H2 Consumption [kg]'] = fuel_cell.df_fc['H2 Consumed [kg]']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,2 +1,0 @@
-In the upcoming chapter displays climate conditions at the selected location. The provided data originates from the Photovoltaic Geographical Information System (PVGIS) hosted by the European Commission.The data is created from a typical meteorological year (TMY). For this purpose, the typical meteorological month is selected. The table shows the month and the years where the data is taken from.
-
