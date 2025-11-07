@@ -9,11 +9,26 @@ MiGUEL is continously optimized in terms of handling and outputs.
 
 
 ## Introduction
-MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of photovoltaic-diesel-hybrid systems. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
+MiGUEL is a python-based, open-source simulation tool to design, simulate and evaluate the performance of **renewable energy hybrid systems with hydrogen storage**. MiGUEL is based on a matlab tool developed at the Technische Hochschule Köln ([TH Köln](https://www.th-koeln.de/)). In the course of the research project Energy-Self-Sufficiency for Health Facilities in Ghana ([EnerSHelF](https://enershelf.de/)) the matlab tool was transferred to python, revised and additional components were added.  
+
+**NEW in 2024/2025:** MiGUEL now includes comprehensive **hydrogen system components** (Electrolyser, H2 Storage, Fuel Cell) enabling seasonal energy storage and power-to-gas-to-power applications. The tool supports both traditional battery storage and innovative hydrogen-based long-term storage solutions.
+
 MiGUEL aims to provide an easy-to-use simulation tool with low entry barriers and comprehensible results. Only a basic knowledge of the programming language is needed to use the tool. For the system design, simulation and evaluation, only a small number of parameters is needed. The simulation can run without data sets provided by the user. 
+
 The results are provided in the form of csv files for each simulation step and in the form of an automatically generated pdf report. The csv files are understood as raw data for further processing. The pdf report serves as a project brochure. Here, the results are presented clearly and graphically, and an economic and ecological evaluation of the system is carried out.
 
+### Key Features
+✅ **Renewable Energy**: Solar PV and Wind Turbine modeling  
+✅ **Hydrogen System**: Electrolyser, H2 Storage, Fuel Cell for seasonal storage  
+✅ **Battery Storage**: Short-term electrical energy storage  
+✅ **Grid Connection**: Import/export with blackout modeling  
+✅ **Economic Analysis**: LCOE, NPV, investment cost calculations  
+✅ **Environmental Impact**: CO2 emissions tracking and reduction analysis  
+✅ **Modern GUI**: User-friendly interface for system design (see [Modern GUI](#modern-graphical-user-interface))
+
 ## Table of contents
+- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Authors and contributors](#authors-and-contributors)
 - [Content and structure](#content-and-structure)
   - [Main](#main)
@@ -21,15 +36,137 @@ The results are provided in the form of csv files for each simulation step and i
   - [Operator](#operator)
   - [Evaluation](#evaluation)
   - [Output](#output)
-- [Graphical user interface](#graphical-user-interface)
+- [Modern Graphical User Interface](#modern-graphical-user-interface-20242025)
+- [Legacy Graphical User Interface](#legacy-graphical-user-interface-pyqt5---2023)
 - [Database](#database)
 - [Project partners](#project-partners)
 - [Dependencies](#dependencies)
 - [References](#references)
 - [Appendix](#appendix)
 
+## Installation
+
+### Requirements
+- Python 3.8 or higher (3.11+ recommended)
+- pip (Python package installer)
+
+### Installation Steps
+
+1. **Clone or download the repository:**
+   ```bash
+   git clone https://github.com/pdb-94/miguel.git
+   cd miguel
+   ```
+
+2. **Create a virtual environment (recommended):**
+   ```bash
+   # Windows
+   python -m venv .venv
+   .venv\Scripts\activate
+
+   # Linux/Mac
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Verify installation:**
+   ```bash
+   python -c "import environment; import operation; import evaluation; print('MiGUEL installed successfully!')"
+   ```
+
+### Troubleshooting Installation
+
+**pvlib/h5py binary compatibility issues:**
+```bash
+pip install --upgrade numpy==1.24.4
+pip install --upgrade h5py==3.8.0
+pip install --upgrade pvlib
+```
+
+**GUI not opening (tkinter missing):**
+```bash
+# Ubuntu/Debian
+sudo apt-get install python3-tk
+
+# macOS - tkinter is included with Python from python.org
+# Windows - tkinter is included by default
+```
+
+## Quick Start
+
+### Using the Modern GUI (Easiest)
+```bash
+python launch_gui.py
+```
+Follow the 7 tabs to configure your system, run simulation, and view results.
+
+### Using Python Code (Most Flexible)
+```python
+from environment import Environment
+from operation import Operator
+from evaluation import Evaluation
+from datetime import datetime, timedelta
+
+# 1. Create environment
+time = {
+    'start': datetime(2023, 1, 1),
+    'end': datetime(2023, 12, 31),
+    'step': timedelta(minutes=60),
+    'timezone': 'UTC'
+}
+
+location = {'latitude': 52.52, 'longitude': 13.40, 'terrain': 'urban'}
+economy = {'d_rate': 0.05, 'lifetime': 20, 'electricity_price': 0.15}
+ecology = {'co2_grid': 0.5}
+
+env = Environment(name='Example', time=time, location=location, 
+                  economy=economy, ecology=ecology, grid_connection=True)
+
+# 2. Add components
+env.add_load(annual_consumption=50000, ref_profile='H0')
+env.add_pv(p_n=100000, pv_data={'surface_tilt': 30, 'surface_azimuth': 180})
+env.add_storage(p_n=50000, c=200000, soc=0.5)
+
+# 3. Add hydrogen system (optional)
+env.add_electrolyser(p_n=50000)
+env.add_H2_Storage(capacity=100, initial_level=0.1)
+env.add_fuel_cell(p_n=30000)
+
+# 4. Run simulation
+operator = Operator(env=env)
+
+# 5. Evaluate
+evaluation = Evaluation(env=env, operator=operator)
+
+# 6. Export
+operator.df.to_excel('results.xlsx')
+print(f"LCOE: ${evaluation.lcoe:.4f}/kWh")
+```
+
+### Running Examples
+```bash
+# Interactive examples
+python gui_example.py
+
+# Choose:
+# 1 - Simple example (PV + Battery)
+# 2 - Hydrogen example (PV + Battery + H2)
+# 3 - Both
+```
+
+For more detailed guides:
+- **QUICKSTART.md** - Quick start guide with tips
+- **GUI_README.md** - Complete GUI user manual
+- **GUI_ARCHITECTURE.py** - Technical documentation
+- **documentation/HYDROGEN_SYSTEM_ARCHITECTURE.md** - Detailed hydrogen system documentation
+
 ## Authors and contributors
-The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Other contributors are Moritz End ([@moend95](https://github.com/moend95)). Further assistance was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
+The main author is Paul Bohn ([@pdb-94](https://github.com/pdb-94)). Co-author of the project is Silvan Rummeny ([@srummeny](https://github.com/srummeny)) who created the first approach within his PhD. Key contributors include Moritz End ([@moend95](https://github.com/moend95)) who developed the hydrogen system components and modern GUI (2024/2025). Further assistance was provided by Sascha Birk ([@pyosch](https://github.com/Pyosch)). Academic contributions include Yassine Maali's master thesis work on MiGUEL architecture and system design. The development of the tool was supervised by Prof. Dr. Schneiders ([TH Köln CIRE](https://www.th-koeln.de/anlagen-energie-und-maschinensysteme/cologne-institute-for-renewable-energy_13385.php)).
 
 ## Content and structure
 The basic structure of MiGUEL is displayed below. 
@@ -38,7 +175,66 @@ The basic structure of MiGUEL is displayed below.
   <img src="/documentation/structure.png" alt="drawing" height="200"/>
 </p>
 
-The class Environment represents the energy system. It takes basic parameters such as time frame, location, economic and ecologic parameters. System components can be added to the Environment. The Operator runs the simulation and evaluation of the designed energy system. The class Report creates the pdf-report. The program is run by the main file.
+The class **Environment** represents the energy system. It takes basic parameters such as time frame, location, economic and ecologic parameters. System components can be added to the Environment. The **Operator** runs the simulation and evaluation of the designed energy system. The class **Evaluation** computes economic and environmental metrics. The class **Report** creates the pdf-report. The program is run by the main file.
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        ENVIRONMENT                          │
+│  (System configuration, time, location, economics)          │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ├──▶ Load Profile
+         ├──▶ Solar PV (multiple)
+         ├──▶ Wind Turbine (multiple)
+         ├──▶ Battery Storage (multiple)
+         ├──▶ Grid Connection
+         │
+         ├──▶ Hydrogen System:
+         │    ├─ Electrolyser (PV → H2)
+         │    ├─ H2 Storage (seasonal buffer)
+         │    └─ Fuel Cell (H2 → Power)
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         OPERATOR                            │
+│         (Dispatch simulation, energy flows)                 │
+│                                                             │
+│  For each timestep:                                         │
+│   1. Calculate renewable generation (PV, Wind)              │
+│   2. Match load with available power                        │
+│   3. Charge/discharge battery storage                       │
+│   4. Excess PV → Electrolyser → H2 Storage                  │
+│   5. H2 Storage → Fuel Cell → Power (when needed)           │
+│   6. Grid import/export (if connected)                      │
+│                                                             │
+│  Output: Timestep-by-timestep power flows (DataFrame)       │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       EVALUATION                            │
+│    (LCOE, CO2 emissions, renewable fraction, H2 metrics)    │
+│                                                             │
+│  • Levelized Cost of Energy (LCOE)                          │
+│  • Net Present Cost (NPC)                                   │
+│  • Total CO2 emissions & avoided emissions                  │
+│  • Renewable energy fraction                                │
+│  • Total H2 produced & consumed                             │
+│  • Grid import/export energy                                │
+└────────┬────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    OUTPUT & REPORTING                        │
+│                                                             │
+│  • CSV files (raw timestep data)                            │
+│  • Excel export (detailed results)                          │
+│  • PDF report (system overview & evaluation)                │
+│  • GUI results display                                      │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Main
 The main file is used to run the program. The main file is the only time the user has to interact with the source code.  The Environment, Operator and Report are created by the user. 
@@ -81,14 +277,23 @@ To create an instance of the class, the following parameters have to be provided
 
 #### System components
 MiGUEL features the following system components. Each component can be added to the Environment by using a different function. The list displays the system components and the functions to add the components to the Environment.
-|System component|Function|
-|-|-|
-|Load|.add_load|
-|Photovoltaic|.add_PV|
-|Wind turbine|.add_wind_turbine|
-|Grid| .add_grid|
-|Diesel generator|.add_diesel_generator|
-|Energy storage|.add_storage|
+
+| System component | Function | Type | Status |
+|-|-|-|-|
+| Load | `.add_load()` | Consumer | ✅ Core |
+| Photovoltaic | `.add_pv()` | Generator | ✅ Core |
+| Wind turbine | `.add_wind_turbine()` | Generator | ✅ Core |
+| Grid | `.add_grid()` | Generator/Consumer | ✅ Core |
+| **Electrolyser** | **`.add_electrolyser()`** | **Consumer (H2 Producer)** | **✅ NEW** |
+| **H2 Storage** | **`.add_H2_Storage()`** | **H2 Buffer** | **✅ NEW** |
+| **Fuel Cell** | **`.add_fuel_cell()`** | **Generator (H2 Consumer)** | **✅ NEW** |
+| Battery Storage | `.add_storage()` | Storage | ✅ Core |
+| Diesel generator | `.add_diesel_generator()` | Generator | ⚠️ Legacy |
+
+**Legend:**
+- ✅ **Core**: Fully supported and actively maintained
+- ✅ **NEW**: Recently added hydrogen system components
+- ⚠️ **Legacy**: Supported but may require manual integration in GUI
 
 ##### Load
 The system component load represents the load profile of the subject under review. The load profile can be generated in two different ways. 
@@ -182,6 +387,104 @@ The class Storage represents energy storage systems. The energy storage is repre
 
 The energy storage can be either charged or discharged at any time step. The following boundary conditions apply to loading and unloading. The memory can only be discharged to the minimum state of charge and charged to the maximum state of charge. The maximum charging or discharging power corresponds to the nominal power multiplied by the respective efficiency.
 
+##### Electrolyser (NEW)
+The class Electrolyser represents a **PEM (Proton Exchange Membrane) electrolyser** that converts electrical energy into hydrogen through water electrolysis. This component enables long-term seasonal energy storage by converting excess renewable energy (especially from solar PV) into hydrogen gas.
+
+**Key Features:**
+- Converts electrical power to hydrogen (H2) with efficiency curves
+- Operates with minimum load threshold (typically 10% of nominal power)
+- Tracks hydrogen production in kg
+- Includes investment and operation costs specific to electrolyser technology
+
+**Input Parameters:**
+
+| Parameter | Description | dtype | Default | Unit | Comment |
+|-----------|-------------|-------|---------|------|---------|
+| p_n | Nominal power | float | - | W | Maximum electrical power consumption |
+| c_invest | Investment cost | float | Auto-calculated | US$ | Total investment cost |
+| c_invest_n | Specific investment cost | float | 1854.6 | US$/kW | Per kW investment cost |
+| c_op_main | Annual O&M cost | float | Auto-calculated | US$/year | Annual operation & maintenance |
+| c_op_main_n | Specific O&M cost | float | 18.55 | US$/kW/year | Per kW O&M cost |
+| co2_init | Production emissions | float | 36.95 | kg CO2/kW | CO2 emissions from manufacturing |
+| life_time | Operational lifetime | int | 20 | years | Expected lifetime |
+
+**Energy Flow:** Excess PV/Wind Power → **Electrolyser** → H2 → H2 Storage
+
+##### H2 Storage (NEW)
+The class H2Storage represents a **hydrogen storage tank** that stores hydrogen produced by the electrolyser and provides it to the fuel cell when needed. This enables **seasonal energy storage**, storing summer solar energy as hydrogen for winter use.
+
+**Key Features:**
+- Stores hydrogen in kg (mass-based storage)
+- Tracks state of charge (SOC) with min/max limits
+- Supports both inflow (from electrolyser) and outflow (to fuel cell)
+- Enables long-term storage (days to months)
+
+**Input Parameters:**
+
+| Parameter | Description | dtype | Default | Unit | Comment |
+|-----------|-------------|-------|---------|------|---------|
+| capacity | Total storage capacity | float | - | kg | Maximum hydrogen storage |
+| initial_level | Initial H2 level | float | 0.1 * capacity | kg | Starting hydrogen amount (can be fraction if ≤1) |
+| soc_min | Minimum state of charge | float | 0.01 | - | Minimum allowed SOC |
+| soc_max | Maximum state of charge | float | 0.95 | - | Maximum allowed SOC |
+| c_invest | Investment cost | float | Auto-calculated | US$ | Total investment cost |
+| c_invest_n | Specific investment cost | float | 534.94 | US$/kg | Per kg storage cost |
+| c_op_main_n | Specific O&M cost | float | 0 | US$/kg/year | Per kg O&M cost |
+| co2_init | Production emissions | float | 48 | kg CO2/kg | CO2 emissions from manufacturing |
+| lifetime | Operational lifetime | int | 25 | years | Expected lifetime |
+
+**Storage Operation:**
+- **Charging:** H2 from electrolyser → Storage tank (limited by soc_max)
+- **Discharging:** Storage tank → H2 to fuel cell (limited by soc_min)
+
+##### Fuel Cell (NEW)
+The class FuelCell represents a **PEM fuel cell** that converts stored hydrogen back into electrical energy. This closes the hydrogen energy cycle and provides dispatchable renewable power when solar/wind generation is insufficient.
+
+**Key Features:**
+- Converts hydrogen (H2) to electrical power with efficiency curves
+- Variable efficiency based on load (part-load operation)
+- Tracks hydrogen consumption in kg
+- Provides firm renewable capacity
+
+**Input Parameters:**
+
+| Parameter | Description | dtype | Default | Unit | Comment |
+|-----------|-------------|-------|---------|------|---------|
+| p_n | Nominal power | float | - | W | Maximum electrical power output |
+| c_invest | Investment cost | float | Auto-calculated | US$ | Total investment cost |
+| c_invest_n | Specific investment cost | float | 3000 | US$/kW | Per kW investment cost |
+| c_op_main | Annual O&M cost | float | Auto-calculated | US$/year | Annual operation & maintenance |
+| c_op_main_n | Specific O&M cost | float | 30 | US$/kW/year | Per kW O&M cost |
+| co2_init | Production emissions | float | 56 | kg CO2/kW | CO2 emissions from manufacturing |
+| life_time | Operational lifetime | int | 10 | years | Expected lifetime (stack replacement) |
+
+**Energy Flow:** H2 Storage → **Fuel Cell** → Electrical Power → Load/Grid
+
+**Hydrogen System Architecture:**
+
+```
+┌─────────────┐      ┌──────────────┐      ┌─────────────┐
+│  Excess PV  │ ───▶ │ Electrolyser │ ───▶ │ H2 Storage  │
+│   Power     │      │ (e⁻ → H2)    │      │   (tank)    │
+└─────────────┘      └──────────────┘      └──────┬──────┘
+                                                   │
+                                                   ▼
+                                            ┌─────────────┐
+                                            │  Fuel Cell  │
+                                            │  (H2 → e⁻)  │
+                                            └──────┬──────┘
+                                                   │
+                                                   ▼
+                                            ┌─────────────┐
+                                            │    Load     │
+                                            └─────────────┘
+```
+
+**Use Case - Seasonal Storage:**
+- **Summer:** High PV generation → Excess power → Electrolyser → H2 Storage
+- **Winter:** Low PV generation → H2 Storage → Fuel Cell → Load coverage
+- **Result:** Higher renewable energy fraction, reduced grid dependence
+
 ### Operator
 The simulation process is divided in three steps. 
 
@@ -211,22 +514,54 @@ Note: The specific values for investment, operating and maintenance costs have b
 #### Levelized Cost of Energy
 The LCOE are calculated according to Michael Papapetrou et. al. for every energy supply component [5]. The system LCOE is composed of the individual LCOEs of the system components, which are scaled according to the energetic share. The LCOE are calculated over the whole system lifetime. The LCOE includes the initial investment costs and the operation and maintenance costs. Costs for recycling are neglected in this evaluation. The investment and operation and maintenance cost are based on specific costs from literature values. The specific costs are scaled by the power (energy supply components) or capacity (energy storage).
 
+**Traditional Components:**
+
 | System component | Specific investment cost | Specific annual operation/maintenance cost | Unit    | Source    |
 |------------------|--------------------------|--------------------------------------------|---------|-----------|
 | PV               | 496                      | 7.55                                       | US$/kW  | [6] [7]   |
 | Wind turbine     | 1160                     | 43                                         | US$/kW  | [8] [9]   |
 | Diesel generator | 468                      | Investment cost *0.03; 0.021 US$/kWh       | US$/kW  | [10] [11] |
-| Energy storage   | 1200                     | 30                                         | US$/kWh | [12]      |
+| Battery storage  | 1200                     | 30                                         | US$/kWh | [12]      |
+
+**Hydrogen System Components (NEW):**
+
+| System component | Specific investment cost | Specific annual operation/maintenance cost | Unit    | Source/Assumptions |
+|------------------|--------------------------|--------------------------------------------|---------|-------------------|
+| Electrolyser     | 1854.6                   | 18.55                                      | US$/kW  | Industry average 2024 |
+| H2 Storage       | 534.94                   | 0                                          | US$/kg  | Compressed storage tank |
+| Fuel Cell        | 3000                     | 30                                         | US$/kW  | PEM fuel cell stack |
+
+**Note:** Hydrogen component costs are based on current market conditions (2024) and continue to decrease with technology maturation. The electrolyser and fuel cell costs include power electronics and balance of plant.
 
 #### CO2-emissions
-The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage. 
+The CO2-emissions are evaluated over the system lifetime. Included are the CO2-emissions during the production of the system component and the CO2-emissions emitted during the usage.
+
+**Traditional Components:**
 
 | System component | Specific CO2 emissions production/installation | Unit   | Source |
 |------------------|------------------------------------------------|--------|--------|
 | PV               | 460                                            | kg/kW  | [13]   |
 | Wind turbine     | 200                                            | kg/kW  | [14]   |
 | Diesel generator | 265                                            | kg/kW  | [15]   |
-| Energy storage   | 103                                            | kg/kWh | [16]   |
+| Battery storage  | 103                                            | kg/kWh | [16]   |
+
+**Hydrogen System Components (NEW):**
+
+| System component | Specific CO2 emissions production/installation | Unit   | Source/Assumptions |
+|------------------|------------------------------------------------|--------|-------------------|
+| Electrolyser     | 36.95                                          | kg/kW  | PEM electrolyser manufacturing |
+| H2 Storage       | 48                                             | kg/kg  | Tank production (compressed) |
+| Fuel Cell        | 56                                             | kg/kW  | PEM fuel cell stack |
+
+**Operational Emissions:**
+- **Renewable Generation (PV, Wind):** 0 kg CO2/kWh (zero emissions during operation)
+- **Battery Storage:** 0 kg CO2/kWh (no direct emissions)
+- **Hydrogen System:** 0 kg CO2/kWh (when powered by renewable energy)
+- **Grid Import:** Variable (co2_grid parameter, typically 0.3-0.8 kg CO2/kWh)
+- **Diesel Generator:** 0.2665 kg CO2/kWh (combustion emissions)
+
+**Avoided Emissions:**
+The evaluation calculates CO2 emissions avoided by using renewable energy instead of grid electricity or diesel generation.
 
 ### Output
 MiGUEL provides two types of outputs. The first output is a csv-file with every simulation time step. The csv-files can be used for further research or in depth analysis of the system behaviour. The csv-files do not include the system evaluation. The second output is the pdf-report. The report includes the most important results. The results are displayed graphically and will be explained briefly. 
@@ -252,8 +587,74 @@ The pdf-Report is automatically created by MiGUEL. It gives an overview of the s
 
 The report focuses not only on the energetic results of the system evaluation but also on economic and ecologic parameters. This makes the results more comprehensible compared to the csv-files. The pdf-report can be used as a project brochure. 
 
-## Graphical user interface
-End of June 2023 a graphical user interface (GUI) has been implemented into MiGUEL to increase the usability of the tool. With the implemtation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
+## Modern Graphical User Interface (2024/2025)
+A new **modern GUI** has been developed to support the latest MiGUEL features, including the hydrogen system components. The new GUI uses tkinter (built-in with Python) for minimal dependencies and maximum compatibility.
+
+### Features
+- ✅ **Hydrogen System Support**: Full integration of Electrolyser, H2 Storage, and Fuel Cell
+- ✅ **Tab-Based Workflow**: Intuitive 7-tab design guides users through system configuration
+- ✅ **Real-Time Feedback**: Progress indicators and status updates during simulation
+- ✅ **Results Visualization**: Economic, energy, and environmental metrics display
+- ✅ **Excel Export**: Detailed timestep data export for further analysis
+- ✅ **Minimal Dependencies**: Uses standard library tkinter (no PyQt5 required)
+
+### Quick Start
+```bash
+# Launch the modern GUI
+python launch_gui.py
+
+# Or run directly
+python modern_gui.py
+```
+
+### Workflow (7 Tabs)
+1. **System Setup**: Configure location, time period, economics, grid connection
+2. **Load Profile**: Add energy consumption (annual + reference or custom CSV)
+3. **Solar PV**: Add photovoltaic systems with tilt/azimuth configuration
+4. **Battery Storage**: Add short-term electrical energy storage
+5. **Hydrogen System**: Add Electrolyser, H2 Storage, Fuel Cell components
+6. **Run Simulation**: Review system overview and execute dispatch calculation
+7. **Results**: View LCOE, energy flows, H2 metrics, CO2 emissions, export data
+
+### Example Usage
+See detailed guides in:
+- `QUICKSTART.md` - Quick start guide with examples
+- `GUI_README.md` - Complete user manual
+- `gui_example.py` - Working Python examples (without GUI)
+
+### Alternative: Code-Based Approach
+For advanced users or automation:
+```python
+from environment import Environment
+from operation import Operator
+from evaluation import Evaluation
+from datetime import datetime, timedelta
+
+# Create environment
+env = Environment(name='My System', time={...}, location={...}, ...)
+
+# Add components
+env.add_load(annual_consumption=50000, ref_profile='H0')
+env.add_pv(p_n=100000, pv_data={'surface_tilt': 30, 'surface_azimuth': 180})
+env.add_electrolyser(p_n=50000)
+env.add_H2_Storage(capacity=100)
+env.add_fuel_cell(p_n=30000)
+
+# Run simulation
+operator = Operator(env=env)
+evaluation = Evaluation(env=env, operator=operator)
+
+# Export results
+operator.df.to_excel('results.xlsx')
+```
+
+## Legacy Graphical User Interface (PyQt5 - 2023)
+⚠️ **Note**: The original PyQt5-based GUI is no longer maintained and does not support hydrogen components. Users are encouraged to use the new modern GUI above.
+
+<details>
+<summary>Click to expand legacy GUI documentation (for reference only)</summary>
+
+End of June 2023 a graphical user interface (GUI) was implemented into MiGUEL to increase the usability of the tool. With the implementation the entry hurdle is lowered even more. The GUI follows the logical process as described above. The following list gives an overview of the different tabs and a short description of their function:
 1) **Get started**: Welcome Screen including a brief overview of MiGUEL and EnerSHelF. Select csv file format
 2) **Energy system**: Input mask to  create Environment class.
 3) **Weather data**: Displays weather data from PVGIS at selected location.
@@ -264,6 +665,14 @@ End of June 2023 a graphical user interface (GUI) has been implemented into MiGU
 8) **Energy storage**: Input mask to add energy storage to Environment.
 9) **Dispatch**: Overview of system components. Runs dispatch and system evaluation.
 10) **Evaluation**: Overview of system evaluation parameters. Creates outputs.
+
+**Limitations:**
+- Does not support hydrogen components (Electrolyser, H2 Storage, Fuel Cell)
+- Requires PyQt5 and additional dependencies
+- No longer actively maintained
+
+**Migration**: Users should transition to the new modern GUI for full feature support.
+</details>
 
 
 ## Database

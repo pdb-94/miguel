@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import numpy as np
 import datetime as dt
-import pvlib
+# pvlib is imported lazily inside methods to avoid import-time binary dependency issues
 from configparser import ConfigParser
 
 
@@ -79,6 +79,18 @@ class PV:
             print("  → Max:", pv_profile.max())
 
             self.df = pd.DataFrame({'P [W]': pv_profile})
+
+            # Ensure PV profile uses the environment's time index so lookups by
+            # timestamp succeed later in the dispatch routines.
+            try:
+                self.df = self.df.reindex(self.env.time, fill_value=0)
+            except Exception:
+                # Fallback: align to the environment time_series if .time is not usable
+                try:
+                    self.df = self.df.reindex(self.env.time_series, fill_value=0)
+                except Exception:
+                    # As a last resort, keep original index but warn (may cause KeyError later)
+                    print(f"[WARN] Could not reindex PV profile for {self.name}; timestamps may not align with environment")
 
             #self.df['P [W]'] = pv_profile
             self.p_n = p_n
@@ -206,6 +218,8 @@ class PV:
         :return: pvlib.pvsystem.PVSystem
             PV system
         """
+        # Import pvlib here to avoid import-time binary dependency issues
+        import pvlib
         # Get temperature_model
         temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS['sapm'][temperature_model]
         # Create PV system
@@ -224,6 +238,7 @@ class PV:
         :return: pvlib.Location
             Location object
         """
+        import pvlib
         location = pvlib.location.Location(name=f'{self.name} Location',
                                            longitude=self.longitude,
                                            latitude=self.latitude,
@@ -252,6 +267,7 @@ class PV:
         :return: pvlib.modelchain.ModelChain
             ModelChain object
         """
+        import pvlib
         modelchain = pvlib.modelchain.ModelChain(system=pv_system,
                                                  location=location,
                                                  name=self.name + ' ModelChain',

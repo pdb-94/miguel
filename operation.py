@@ -103,7 +103,7 @@ class Operator:
         :return: None
         """
         env = self.env
-    print(f"DEBUG: Dispatch started")
+        print(f"DEBUG: Dispatch started")
         processed_times = set()
 
         # Time step iteration
@@ -450,8 +450,8 @@ class Operator:
             time stamp
         :return: None
         """
-    print ("Calling grid profile")
         df = self.df
+        print("Calling grid profile")
         grid = self.env.grid.name
         df.at[clock, f'{grid} [W]'] = self.df.at[clock, 'P_Res [W]']
         df.at[clock, 'P_Res [W]'] = 0
@@ -535,12 +535,12 @@ class Operator:
                       power: float):
 
         t_step = self.env.i_step/60
-    print(f"Timestep:{t_step}")
-        fc_power=min(power,fc.max_power )
+        print(f"Timestep:{t_step}")
+        fc_power = min(power, fc.max_power)
 
         # [kg] Berechnung der notwendigen Wasserstoffsmenge
-        fc_efficiency= fc.get_efficiency(p_rel=(fc_power/fc.max_power)*100)
-    print(f"efficiency in re_fc_operate {fc_efficiency}")
+        fc_efficiency = fc.get_efficiency(p_rel=(fc_power / fc.max_power) * 100)
+        print(f"efficiency in re_fc_operate {fc_efficiency}")
         required_Hydrogen = fc_power / (33.33*1000 * fc_efficiency)
 
         # verfügbare Wasserstoff abrufen
@@ -560,22 +560,34 @@ class Operator:
                     break
                 fc_efficiency = eff_new
             else:
-                    print(f"[WARN] FC @ {clock}: Iteration did not converge. η ≈ {fc_efficiency:.4f}")
+                print(f"[WARN] FC @ {clock}: Iteration did not converge. η ≈ {fc_efficiency:.4f}")
+        # Calculate actual delivered power and hydrogen consumption
+        # Protect against non-positive hydrogen availability
+        if used_Hydrogen <= 0 or fc_efficiency <= 0:
+            power_generated = 0.0
+            hydrogen_consumed = 0.0
+            fc_power = 0.0
+        else:
+            power_generated, hydrogen_consumed = fc.fc_operate(clock=clock,
+                                                               hydrogen_used=used_Hydrogen,
+                                                               eff=fc_efficiency,
+                                                               power_output=fc_power)
 
-
-
-        power_generated, hydrogen_consumed = fc.fc_operate(clock=clock,
-                                                           hydrogen_used=used_Hydrogen,
-                                                           eff= fc_efficiency,
-                                                           power_output=fc_power)
-          # Dataframe aktualisieren
+        # Update DataFrame and H2 storage
         self.df.at[clock, f'{fc.name} [W]'] = power_generated   # Umrechnung in Watt
-        self.df.at[clock, 'P_Res [W]'] -= power_generated
+        try:
+            self.df.at[clock, 'P_Res [W]'] -= power_generated
+        except Exception:
+            pass
 
-         # Aktualisieren des H2-Speichers nach Nutzung
-        hstr.discharge(clock=clock, outflow=hydrogen_consumed)
-        self.df.at[clock, f'{hstr.name} level [kg]'] = hstr.hstorage_df.at[clock, 'Storage Level [kg]']
-        self.df.at[clock, 'H2-SOC [%]'] = hstr.hstorage_df.at[clock, 'SOC [%]']
+        # Aktualisieren des H2-Speichers nach Nutzung
+        try:
+            hstr.discharge(clock=clock, outflow=hydrogen_consumed)
+            self.df.at[clock, f'{hstr.name} level [kg]'] = hstr.hstorage_df.at[clock, 'Storage Level [kg]']
+            self.df.at[clock, 'H2-SOC [%]'] = hstr.hstorage_df.at[clock, 'SOC [%]']
+        except Exception:
+            # If discharge/update fails, continue without raising to keep simulation progressing
+            pass
 
         return power_generated
 
@@ -604,8 +616,8 @@ class Operator:
         core_columns_existing = [col for col in core_columns if col in self.df.columns]
         core_df = self.df[core_columns_existing].copy()
 
-    core_df.to_excel(core_file)
-    print(f"✅ Core data export completed: {core_file}")
+        core_df.to_excel(core_file)
+        print(f"✅ Core data export completed: {core_file}")
 
 
     def plot_daily_system_behavior(self, day=None):
@@ -624,20 +636,20 @@ class Operator:
 
         # Plot erstellen
         plt.figure(figsize=(16, 8))
-    plt.plot(df_day.index, df_day['Load [W]'], label='Load [W]')
-    plt.plot(df_day.index, df_day['PV_Production [W]'], label='PV production [W]')
+        plt.plot(df_day.index, df_day['Load [W]'], label='Load [W]')
+        plt.plot(df_day.index, df_day['PV_Production [W]'], label='PV production [W]')
         if 'ES_1 [W]' in df_day.columns:
             plt.plot(df_day.index, df_day['ES_1 [W]'], label='Battery [W]')
         if 'Electrolyser_1 [W]' in df_day.columns:
             plt.plot(df_day.index, df_day['Electrolyser_1 [W]'], label='Electrolyser [W]')
             if 'H2_Storage level [kg]' in df_day.columns:
-            plt.plot(df_day.index, df_day['H2_Storage level [kg]'] * 1000, label='H2 storage [g]')
+                plt.plot(df_day.index, df_day['H2_Storage level [kg]'] * 1000, label='H2 storage [g]')
         if 'FuelCell_2 [W]' in df_day.columns:
             plt.plot(df_day.index, df_day['FuelCell_2 [W]'], label='FuelCell [W]')
 
-    plt.title(f'System behavior on {start_date.date()}')
-    plt.xlabel('Time')
-    plt.ylabel('Power / Quantity')
+        plt.title(f'System behavior on {start_date.date()}')
+        plt.xlabel('Time')
+        plt.ylabel('Power / Quantity')
         plt.legend(loc='upper left')
         plt.grid(True)
         plt.tight_layout()
@@ -659,10 +671,10 @@ class Operator:
 
         fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=df_day.index, y=df_day['Load [W]'],
-                 mode='lines', name='Load [W]', line=dict(color='black')))
-    fig.add_trace(go.Scatter(x=df_day.index, y=df_day['PV_Production [W]'],
-                 mode='lines', name='PV production [W]', line=dict(color='orange')))
+        fig.add_trace(go.Scatter(x=df_day.index, y=df_day['Load [W]'],
+                     mode='lines', name='Load [W]', line=dict(color='black')))
+        fig.add_trace(go.Scatter(x=df_day.index, y=df_day['PV_Production [W]'],
+                     mode='lines', name='PV production [W]', line=dict(color='orange')))
 
         if 'ES_1 [W]' in df_day.columns:
             fig.add_trace(go.Scatter(x=df_day.index, y=df_day['ES_1 [W]'],
@@ -672,8 +684,8 @@ class Operator:
             fig.add_trace(go.Scatter(x=df_day.index, y=df_day['Electrolyser_1 [W]'],
                                      mode='lines', name='Electrolyser [W]', line=dict(color='green', dash='dot')))
             if 'FuelCell_2 [W]' in df_day.columns:
-            fig.add_trace(go.Scatter(x=df_day.index, y=df_day['FuelCell_2 [W]'],
-                                     mode='lines', name='FuelCell [W]', line=dict(color='purple', dash='dash')))
+                fig.add_trace(go.Scatter(x=df_day.index, y=df_day['FuelCell_2 [W]'],
+                                         mode='lines', name='FuelCell [W]', line=dict(color='purple', dash='dash')))
 
         fig.update_layout(
             title=f'Interactive system behavior on {start_date.date()} (standard view)',
