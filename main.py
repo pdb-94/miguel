@@ -75,18 +75,18 @@ def demonstration(grid_connection=False, n_modul=None):
                                 soc=0.25)
         # **import hydrogen components**
         # electrolyser with p_n power [W]
-        environment.add_electrolyser(p_n=1350_000,
+        environment.add_electrolyser(p_n=1500_000,
                                      c_op_main_n= 21.16,
                                      c_invest_n=2115.19,
                                      lifetime=20)
         # hydrogen storage, capacity [kg]
-        environment.add_H2_Storage(capacity=500,
+        environment.add_H2_Storage(capacity=2000,
                                    initial_level=0.05,
                                    c_invest_n=610.10,
                                    c_op_main_n=0
                                    )
         # fuel cell, maximum power [W]
-        environment.add_fuel_cell(max_power=550_000,
+        environment.add_fuel_cell(max_power=1500_000,
                                   c_invest_n=3421.53,
                                   c_op_main_n=0,
                                   lifetime=10)
@@ -95,23 +95,23 @@ def demonstration(grid_connection=False, n_modul=None):
 
 
 
-env = demonstration(grid_connection=False, n_modul=35)
-operator = Operator(env=env)
-evaluation = Evaluation(env=env, operator=operator)
+if __name__ == '__main__':
+    env = demonstration(grid_connection=False, n_modul=35)
+    operator = Operator(env=env)
+    evaluation = Evaluation(env=env, operator=operator)
 
-lcoe = evaluation.evaluation_df.loc['System', 'LCOE [US$/kWh]']
-co2 = evaluation.evaluation_df.loc['System', 'Lifetime CO2 emissions [t]']
-H2_Anteil = (
-    evaluation.evaluation_df.loc['FuelCell_1', 'Annual energy supply [kWh/a]']
-    / evaluation.evaluation_df.loc['System', 'Annual energy supply [kWh/a]']
-) * 100
+    lcoe = evaluation.evaluation_df.loc['System', 'LCOE [US$/kWh]']
+    co2 = evaluation.evaluation_df.loc['System', 'Lifetime CO2 emissions [t]']
+    H2_Anteil = (
+        evaluation.evaluation_df.loc['FuelCell_1', 'Annual energy supply [kWh/a]']
+        / evaluation.evaluation_df.loc['System', 'Annual energy supply [kWh/a]']
+    ) * 100
 
-p_res = operator.df['P_Res [W]'].sum() / 1_000_000
-total = operator.df['Load [W]'].sum() / 1_000_000
-coverage = round((1 - p_res / total) * 100, 2)
-print(
-    "LCOE:",lcoe,
-    "CO2 Emissionen:", co2,
-    "Wasserstoffnutzung:", H2_Anteil
-
-)
+    p_res = operator.df['P_Res [W]'].sum() / 1_000_000
+    total = operator.df['Load [W]'].sum() / 1_000_000
+    coverage = round((1 - p_res / total) * 100, 2)
+    print(
+        "LCOE:", lcoe,
+        "CO2 Emissionen:", co2,
+        "Wasserstoffnutzung:", H2_Anteil
+    )

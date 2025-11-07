@@ -2,7 +2,7 @@ import sys
 import os
 import datetime as dt
 import pandas as pd
-import pvlib
+# pvlib is imported lazily inside get_weather_data() to avoid heavy binary deps
 import requests
 from configparser import ConfigParser
 from geopy.geocoders import Nominatim
@@ -136,10 +136,37 @@ class Environment:
         self.df['PV total power [W]'] = 0
         self.df['WT total power [W]'] = 0
         if weather_data is None:
-            # Include weather data for remote access
-            self.weather_data = self.get_weather_data()
-            self.wt_weather_data = self.create_wt_weather_data()
-            self.monthly_weather_data = self.create_monthly_weather_data()
+            # Try to include weather data from remote source. If pvlib or the
+            # remote call fails (binary issues, network), fall back to a
+            # lightweight placeholder so the Environment can be created and
+            # other components added. Detailed weather-dependent modelling
+            # may still fail later, but this prevents import-time crashes.
+            try:
+                self.weather_data = self.get_weather_data()
+            except Exception as e:
+                print(f"[WARN] get_weather_data failed: {e} — using placeholder weather data")
+                # Create a minimal hourly dataframe matching the environment time range
+                try:
+                    idx = pd.date_range(start=self.time_series[0], periods=len(self.time_series), freq=self.t_step)
+                except Exception:
+                    # Fallback: one-hour index for safety
+                    idx = pd.date_range(start=dt.datetime.now(), periods=24, freq='1h')
+                cols = ['ghi', 'dni', 'dhi', 'IR(h)', 'wind_speed', 'temp_air']
+                df = pd.DataFrame(0, index=idx, columns=cols)
+                # Mirror pvlib return structure: (data, months_selected, inputs, metadata)
+                self.weather_data = (df, [], {}, {})
+
+            # Try to create derived weather products; if these fail, replace with empty placeholders
+            try:
+                self.wt_weather_data = self.create_wt_weather_data()
+            except Exception as e:
+                print(f"[WARN] create_wt_weather_data failed: {e} — using empty wt_weather_data")
+                self.wt_weather_data = pd.DataFrame()
+            try:
+                self.monthly_weather_data = self.create_monthly_weather_data()
+            except Exception as e:
+                print(f"[WARN] create_monthly_weather_data failed: {e} — using empty monthly_weather_data")
+                self.monthly_weather_data = pd.DataFrame()
         else:
             self.weather_data = pd.read_csv(weather_data)
 
@@ -260,6 +287,12 @@ class Environment:
             inputs: dict
             metadata: dict
         """
+        # import pvlib here to avoid import-time binary dependency issues when module is imported
+        try:
+            import pvlib
+        except Exception:
+            raise
+
         data, months_selected, inputs, metadata = pvlib.iotools.get_pvgis_tmy(latitude=self.latitude,
                                                                               longitude=self.longitude,
                                                                               startyear=2005,

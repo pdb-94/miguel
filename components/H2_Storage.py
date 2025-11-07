@@ -16,23 +16,25 @@ class H2Storage:
     1) The storage is initialized at soc_min
     2) When the update method is called with INFLOW, the storage is charged and the storage level is updated
     3) When the update method is called with Outflow, the storage is discharged and the storage level is updated
+    """
+    def __init__(self,
                  env,
                  co2_init: float = 48,      # 48 kg/ kg H2
-                 capacity: float= None ,     #[kg]
-                 initial_level: float = None,  #[%]
+                 capacity: float = None,     # [kg]
+                 initial_level: float = None,  # [% or absolute kg]
                  name: str = None,
-                 c_invest : float = None,  # [USD]
-                 c_invest_n: float = 534.94,   #[Euro/kg oder kwh]
+                 c_invest: float = None,  # [USD]
+                 c_invest_n: float = 534.94,   # [USD/kg]
                  c_op_main: float = None,  # [USD/a]
-                 c_op_main_n: float = 0,    #[USD/kg]
+                 c_op_main_n: float = 0,    # [USD/kg]
                  c_var_n: float = 0,
-                 lifetime:int = 25
+                 lifetime: int = 25
                  ):
         """
         Initialize the hydrogen storage.
 
         :param capacity: Total storage capacity in kilograms (kg).
-        :param initial_level: Initial hydrogen level in the storage (kg).
+        :param initial_level: Initial hydrogen level in the storage (kg or fraction if <=1).
         """
         self.env = env
         self.soc_min = 0.01
@@ -127,28 +129,31 @@ class H2Storage:
 
         if outflow <= 0:
             return  # No discharge needed
-
-    min_level = self.soc_min * self.capacity  # Minimum fill level (kg)
-    max_outflow = self.current_level - min_level  # Maximum withdrawable amount
+        # Minimum and maximum allowed withdrawal
+        min_level = self.soc_min * self.capacity  # Minimum fill level (kg)
+        max_outflow = self.current_level - min_level  # Maximum withdrawable amount
 
         if max_outflow <= 0:
             # Storage is already at or below soc_min → no withdrawal possible
             return
 
-        # If outflow greater than allowed → limit it
+        # If requested outflow greater than allowed → limit it
         if outflow > max_outflow:
             outflow = max_outflow
 
-    # Compute new current fill level
+        # Compute new current fill level
         self.current_level -= outflow
 
         soc = (self.current_level / self.capacity) * 100
         discharge = 33.33 * outflow * 1000 * time_step
 
-        # Logging ins DataFrame
+        # Logging in DataFrame
         self.hstorage_df.at[clock, 'H2 Inflow [kg]'] = 0
         self.hstorage_df.at[clock, 'H2 Outflow [kg]'] = outflow
         self.hstorage_df.at[clock, 'Storage Level [kg]'] = self.current_level
         self.hstorage_df.at[clock, 'SOC [%]'] = soc
+        # initialize Q[Wh] if missing
+        if pd.isna(self.hstorage_df.at[clock, 'Q[Wh]']):
+            self.hstorage_df.at[clock, 'Q[Wh]'] = 0
         self.hstorage_df.at[clock, 'Q[Wh]'] -= discharge
         return

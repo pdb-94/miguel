@@ -73,20 +73,20 @@ class Evaluation:
                                   decimal=self.env.csv_decimal)
 
     def run(self, export: bool = True):
-    """
-    Prints the main evaluation results (energy, costs, CO2)
-    and optionally saves them as an Excel file.
-    """
-    print("✅ Evaluation completed.")
+        """
+        Prints the main evaluation results (energy, costs, CO2)
+        and optionally saves them as an Excel file.
+        """
+        print("✅ Evaluation completed.")
 
-    print("\n📊 Energy flows:")
+        print("\n📊 Energy flows:")
         print(self.evaluation_df[['Annual energy supply [kWh/a]', 'Lifetime energy supply [kWh]']])
 
-    print("\n💰 Costs:")
+        print("\n💰 Costs:")
         print(self.evaluation_df[
                   ['Investment cost [US$]', 'Annual cost [US$/a]', 'Lifetime cost [US$]', 'LCOE [US$/kWh]']])
 
-    print("\n🌍 CO₂ emissions:")
+        print("\n🌍 CO₂ emissions:")
         print(self.evaluation_df[
                   ['Initial CO2 emissions [t]', 'Annual CO2 emissions [t/a]', 'Lifetime CO2 emissions [t]']])
 
@@ -159,8 +159,8 @@ class Evaluation:
         Calculate lifetime energy supply
         :return:
         """
-    # How much energy does a component deliver (or consume) over the entire project lifetime (e.g., 20 years)?
-    print("\n📊 Starting lifetime energy calculation...")
+        # How much energy does a component deliver (or consume) over the entire project lifetime (e.g., 20 years)?
+        print("\n📊 Starting lifetime energy calculation...")
         for row in self.evaluation_df.index:
             annual_energy_supply = self.evaluation_df.loc[row, 'Annual energy supply [kWh/a]']
             if pd.isna(annual_energy_supply):
@@ -197,16 +197,16 @@ class Evaluation:
 
 
     def calc_pv_system_flows(self):
-    """
-    Calculates the energy distribution of PV production:
-    PV → Load, Storage, Electrolyser, Total
-    """
+        """
+        Calculates the energy distribution of PV production:
+        PV → Load, Storage, Electrolyser, Total
+        """
         i_step = self.env.i_step
 
-    # Direct consumption (load coverage)
+        # Direct consumption (load coverage)
         load = self.op.df['Load [W]']
         pv_prod = self.op.df['PV_Production [W]']
-        pv_to_load = np.minimum(load, pv_prod).sum() *(i_step / 60)/ 1000
+        pv_to_load = np.minimum(load, pv_prod).sum() * (i_step / 60) / 1000
         self.evaluation_df.loc['PV_to_load', 'Annual energy supply [kWh/a]'] = int(pv_to_load)
 
     # Storage

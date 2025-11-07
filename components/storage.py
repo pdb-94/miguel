@@ -204,8 +204,7 @@ class Storage:
                 self.df.at[clock, 'Q [Wh]'] = self.df.at[clock - dt.timedelta(minutes=self.env.i_step), 'Q [Wh]'] - q_remain
                 self.df.at[clock, 'SOC'] = self.df.at[clock, 'Q [Wh]'] / self.c
 
-            return power
-    print("storage after discharge", self.df.at[clock, 'Q [Wh]'])
+        return power
 
 
     def calc_replacements(self):
